@@ -2,27 +2,9 @@
 
 include_HEADERS = \
 	TCPConnection.h \
-	avltree.h \
-	bufsock.h \
-	cmd.h \
-	conf.h \
-	config.h \
-	ctcp.h \
-	defs.h \
-	errcodes.h \
-	funcptrs.h \
-	hashtable.h \
+	Singleton.h\
 	ircCommands.h \
-	irc_core.h \
-	irc_rpl.h \
-	irc_version.h \
-	libIRC.h \
-	list.h \
-	macros_priv.h \
-	map.h \
-	tcp.h \
-	trace.h \
-	util.h
+	libIRC.h 
 
 noinst_HEADERS = \
 	libirc_version.h

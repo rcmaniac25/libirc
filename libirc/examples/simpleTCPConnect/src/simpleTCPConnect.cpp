@@ -17,8 +17,6 @@
 
 #include "libIRC.h"
 
-TCPConnection	tcpConnection;
-
 class myClientDataPendingListener : public TCPClientDataPendingListener
 {
 public:
@@ -92,6 +90,8 @@ void myClientDataPendingListener::pending ( TCPClientConnection *connection, int
 
 void main ( void )
 {
+	TCPConnection	&tcpConnection =TCPConnection::instance();
+
 	std::string		server = "irc.freenode.net";
 	unsigned short	port = 6667;
 

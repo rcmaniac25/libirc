@@ -21,7 +21,6 @@
 	#include <windows.h>
 #endif
 
-
 class DefaultIRCLogHandaler : public IRCClientLogHandaler
 {
 public:
@@ -42,9 +41,7 @@ public:
 		}
 	}
 };
-
 DefaultIRCLogHandaler	defaultLoger;
-
 
 // sleep util
 void IRCOSSleep ( float fTime )
@@ -189,7 +186,58 @@ void IRCClient::pending ( TCPClientConnection *connection, int count )
 {
 	// we got some data, do something with it
 	log("Data Pending notification",5);
+	// ok we have to parse this tuff into "lines"
+	std::string	theLine = lastRecevedData;
+	tvPacketList	&packets = connection->getPackets();
+
+	while(packets.size())
+	{
+		TCPPacket	&packet = *(packets.begin());
+
+		unsigned int	len;
+		char* data  = (char*)packet.get(len);
+		unsigned int count = 0;
+		char	*temp;
+
+		while ( count < len )
+		{
+			temp = strchr(data+count,0);
+			if (temp)	// there was a NULL, lets read up to it
+			{
+				theLine += &(data[count]);
+
+				// send the line off
+				// do some processing on the line and send it
+				processIRCLine(theLine);
+
+				theLine = "";
+				lastRecevedData = theLine;
+				count += (int)strlen(&data[count])+1;
+			}
+			else
+			{
+				// the line goes over a packet, we will get more data soon, so just hang onto the last set of data
+				char	*tempData = (char*)malloc(len-count+1);
+				memcpy(tempData,&data[count],len-count);
+				tempData[len-count] = 0;
+
+				lastRecevedData = tempData;
+				free(tempData);
+				count = len;
+			}
+		}
+
+		packets.erase(packets.begin());
+	}
 }
+
+void IRCClient::processIRCLine ( std::string line )
+{
+	// we have a single line of text, do something with it.
+	// see if it's a command, and or call any handalers that we have
+	// also check for error returns
+}
+
 
 bool IRCClient::sendIRCCommandToServer ( teIRCCommands	command, std::string &data)
 {
@@ -285,13 +333,6 @@ int IRCClient::getDebugLevel ( void )
 	return debugLogLevel;
 }
 
-// the command handalers
-/*typedef std::map<std::string, IRCClientCommandHandaler*>	tmCommandHandalerMap;
-typedef std::map<std::string, std::vector<IRCClientCommandHandaler*>>	tmUserCommandHandalersMap;
-
-tmCommandHandalerMap			defaultCommandHandalers;
-tmUserCommandHandalersMap	userCommandHandalers; */
-
 bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info )
 {
 	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(commandName);
@@ -335,7 +376,6 @@ bool IRCClient::sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info 
 	info.command = ctcpCommandParser.getCommandName(command);
 	return sendCommand(info.command,info);
 }
-
 
 bool IRCClient::registerCommandHandaler ( IRCClientCommandHandaler *handaler )
 {
@@ -435,7 +475,6 @@ void IRCClient::registerDefaultCommandhandalers ( void )
 	addDefaultCommandhandalers(new IRCNickCommand );
 	addDefaultCommandhandalers(new IRCUserCommand );
 }
-
 
 // Local Variables: ***
 // mode:C++ ***

@@ -173,6 +173,7 @@ protected:
 	// irc data
 	std::string						ircServerName;
 	unsigned short				ircServerPort;
+	std::string						lastRecevedData;
 
 	// IRC "constants"
 	std::string		ircMessageTerminator;
@@ -194,6 +195,9 @@ protected:
 	virtual void setConnectionState ( teIRCConnectionState state ){ircConenctonState = state;}
 
 	teIRCConnectionState	ircConenctonState;
+
+	// receved data processing
+	void processIRCLine ( std::string line );
 
 	// the command handalers
 	typedef std::map<std::string, IRCClientCommandHandaler*>	tmCommandHandalerMap;
