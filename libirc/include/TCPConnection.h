@@ -74,7 +74,6 @@ typedef std::vector<TCPClientDataPendingListener*> tvClientDataPendingListenerLi
 class TCPClientConnection
 {
 public:
-
 	// connections
 	teTCPError connect ( std::string server, unsigned short port );
 	teTCPError connect ( void );
