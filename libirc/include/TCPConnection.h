@@ -29,9 +29,10 @@ typedef enum
 	eTCPBadAddress,
 	eTCPBadPort,
 	eTCPConnectionFailed,
-	eTCBSocketNFG,
+	eTCPSocketNFG,
 	eTCPInitFailed,
 	eTCPSelectFailed,
+	eTCPDataNFG,
 	eTCPUnknownError
 }teTCPError;
 
@@ -81,7 +82,7 @@ public:
 	// status
 	bool connected ( void );
 
-	// data polling
+	// packet polling
 	bool packets ( void );
 	tvPacketList& getPackets ( void );
 
@@ -92,6 +93,9 @@ public:
 	// data read
 	// generaly only called by the parent
 	void readData ( void );
+
+	// data send
+	teTCPError sendData ( void *data, int len );
 
 	// utils
 	void setReadChunkSize ( unsigned int size );

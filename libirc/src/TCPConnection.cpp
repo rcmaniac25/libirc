@@ -161,7 +161,7 @@ teTCPError TCPClientConnection::connect ( void )
 teTCPError TCPClientConnection::disconnect( void )
 {
 	if (!connected())
-		return setError(eTCBSocketNFG);
+		return setError(eTCPSocketNFG);
 
 	SDLNet_TCP_Close(info->socket);
 	info->socket = NULL;
@@ -232,7 +232,26 @@ void TCPClientConnection::readData ( void )
 	}
 
 	// notify any listeners
-	callDataPendingListeners(packetList.size());
+	callDataPendingListeners((int)packetList.size());
+}
+
+teTCPError TCPClientConnection::sendData ( void *data, int len )
+{
+	if (!info)
+		return setError(eTCPNotInit);
+
+	if (!info->socket)
+		return setError(eTCPSocketNFG);
+
+	if (!data || len < 1)
+		return setError(eTCPDataNFG);
+
+	int lenSent = SDLNet_TCP_Send(info->socket,data,len);
+
+	if (lenSent < len)
+		return setError(eTCPConnectionFailed);
+
+	return setError(eTCPNoError);
 }
 
 // data pending listeners
@@ -267,7 +286,7 @@ void TCPClientConnection::callDataPendingListeners ( int count )
 	tvClientDataPendingListenerList::iterator	itr = dataPendingList.begin();
 	while( itr != dataPendingList.end() )
 	{
-		itr->pending(this,count);
+		(*itr)->pending(this,count);
 		itr++;
 	}
 }
