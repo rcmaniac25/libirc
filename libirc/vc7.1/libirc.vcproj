@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.10"
 	Name="libirc"
 	ProjectGUID="{C5D9B854-BC07-48F5-8E51-16A4B23D60FF}"
 	Keyword="Win32Proj">
@@ -19,6 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="../include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;CALLBACK_COLLECTION_IS_AVLTREE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -44,6 +45,12 @@
 				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -81,105 +88,110 @@
 				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="src\avltree.c">
+				RelativePath="..\src\avltree.cpp">
 			</File>
 			<File
-				RelativePath="src\bufsock.c">
+				RelativePath="..\src\bufsock.cpp">
 			</File>
 			<File
-				RelativePath="src\ctcp.c">
+				RelativePath="..\src\ctcp.cpp">
 			</File>
 			<File
-				RelativePath="src\hashtable.c">
+				RelativePath="..\src\hashtable.cpp">
 			</File>
 			<File
-				RelativePath="src\irc_core.c">
+				RelativePath="..\src\irc_core.cpp">
 			</File>
 			<File
-				RelativePath="src\irc_funcs.c">
+				RelativePath="..\src\irc_funcs.cpp">
 			</File>
 			<File
-				RelativePath="src\list.c">
+				RelativePath="..\src\list.cpp">
 			</File>
 			<File
-				RelativePath="src\map.c">
+				RelativePath="..\src\map.cpp">
 			</File>
 			<File
-				RelativePath="stdafx.c">
+				RelativePath="..\src\tcp.cpp">
 			</File>
 			<File
-				RelativePath="src\tcp.c">
+				RelativePath="..\src\trace.cpp">
 			</File>
 			<File
-				RelativePath="src\trace.c">
-			</File>
-			<File
-				RelativePath="src\util.c">
+				RelativePath="..\src\util.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="src\avltree.h">
+				RelativePath="..\include\avltree.h">
 			</File>
 			<File
-				RelativePath="src\bufsock.h">
+				RelativePath="..\include\bufsock.h">
 			</File>
 			<File
-				RelativePath="src\cmd.h">
+				RelativePath="..\include\cmd.h">
 			</File>
 			<File
-				RelativePath="src\conf.h">
+				RelativePath="..\include\conf.h">
 			</File>
 			<File
-				RelativePath="src\ctcp.h">
+				RelativePath="..\include\ctcp.h">
 			</File>
 			<File
-				RelativePath="src\defs.h">
+				RelativePath="..\include\defs.h">
 			</File>
 			<File
-				RelativePath="src\errcodes.h">
+				RelativePath="..\include\errcodes.h">
 			</File>
 			<File
-				RelativePath="src\funcptrs.h">
+				RelativePath="..\include\funcptrs.h">
 			</File>
 			<File
-				RelativePath="src\hashtable.h">
+				RelativePath="..\include\hashtable.h">
 			</File>
 			<File
-				RelativePath="src\irc_core.h">
+				RelativePath="..\include\irc_core.h">
 			</File>
 			<File
-				RelativePath="src\irc_rpl.h">
+				RelativePath="..\include\irc_rpl.h">
 			</File>
 			<File
-				RelativePath="src\irc_version.h">
+				RelativePath="..\include\irc_version.h">
 			</File>
 			<File
-				RelativePath="src\list.h">
+				RelativePath="..\include\list.h">
 			</File>
 			<File
-				RelativePath="src\macros_priv.h">
+				RelativePath="..\include\macros_priv.h">
 			</File>
 			<File
-				RelativePath="src\map.h">
+				RelativePath="..\include\map.h">
 			</File>
 			<File
-				RelativePath="src\tcp.h">
+				RelativePath="..\include\tcp.h">
 			</File>
 			<File
-				RelativePath="src\trace.h">
+				RelativePath="..\include\trace.h">
 			</File>
 			<File
-				RelativePath="src\util.h">
+				RelativePath="..\include\util.h">
 			</File>
 		</Filter>
 		<Filter
