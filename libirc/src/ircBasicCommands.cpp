@@ -268,6 +268,32 @@ bool IRCPrivMsgCommand::send ( IRCClient &client, std::string &command, BaseIRCC
 	return true;
 }
 
+// IRC "KICK" command
+
+IRCKickCommand::IRCKickCommand()
+{
+	name = "KICK";
+}
+
+bool IRCKickCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	client.kickCommand(info);
+	return true;
+}
+
+bool IRCKickCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	IRCCommandINfo	&ircInfo = (IRCCommandINfo&)info;
+
+	std::string commandLine;
+
+	// KICK target user :reason
+	commandLine = ircInfo.target + delim + ircInfo.params[0]+ delim + std::string(":") + info.getAsString(1);
+	client.sendIRCCommandToServer(eCMD_KICK,commandLine);
+
+	return true;
+}
+
 	// special case commands
 
 // Generic handler for ALL

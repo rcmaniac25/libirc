@@ -616,6 +616,7 @@ void IRCClient::registerDefaultCommandhandlers ( void )
 	addDefaultCommandhandlers(new IRCQuitCommand );
 	addDefaultCommandhandlers(new IRCModeCommand );
 	addDefaultCommandhandlers(new IRCPrivMsgCommand );
+	addDefaultCommandhandlers(new IRCKickCommand );
 }
 
 // logical event handlers

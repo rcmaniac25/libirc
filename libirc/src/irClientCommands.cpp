@@ -155,3 +155,26 @@ bool IRCClient::sendMessage ( std::string target, std::string message, bool isAc
 	}
 	return true;
 }
+
+bool IRCClient::kick ( std::string user, std::string channel, std::string reason )
+{
+	// we need to have at LEAST sent the username and stuff
+	if (getConnectionState() < eSentNickAndUSer)
+		return false;
+
+	if (!userManager.userInChannel(user,channel))
+		return false;
+
+	IRCCommandINfo	info;
+	info.target = channel;
+	info.params.push_back(user);
+	info.params.push_back(reason);
+
+	if (!sendIRCCommand(eCMD_KICK,info))
+	{
+		log("Kick Failed: KICK command not sent",0);
+		return false;
+	}
+
+	return true;
+}

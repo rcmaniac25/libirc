@@ -31,7 +31,6 @@ typedef enum
 	eIRCEndMOTDEvent,
 	eIRCChannelJoinEvent,
 	eIRCChannelPartEvent,
-	eIRCChannelKickEvent,
 	eIRCChannelBanEvent,
 	eIRCChannelMessageEvent,
 	eIRCPrivateMessageEvent,

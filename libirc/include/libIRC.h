@@ -155,6 +155,9 @@ public:
 	virtual bool part ( std::string channel, std::string reason );
 	virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
 
+	// IRC chanops
+	virtual bool kick ( std::string user, std::string channel, std::string reason );
+
 	// IRC info operations
 	virtual string_list listUsers ( std::string channel );
 	virtual string_list listChanels ( void );
@@ -225,6 +228,7 @@ public:
 	void modeCommand ( BaseIRCCommandInfo	&info );
 	void nickNameError ( int error, std::string message );
 	void nickCommand ( BaseIRCCommandInfo	&info );
+	void kickCommand ( BaseIRCCommandInfo	&info );
 
 	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );

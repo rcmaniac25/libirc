@@ -128,7 +128,7 @@ public:
 };
 
 // IRC "PRIVMSG" command
-// paramaters {target,modes}
+// paramaters 
 class IRCPrivMsgCommand : public IRCClientCommandHandler
 {
 public:
@@ -136,6 +136,17 @@ public:
 	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
+
+// IRC "KICK" command
+// paramaters {user,reason}
+class IRCKickCommand : public IRCClientCommandHandler
+{
+public:
+	IRCKickCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
 
 
 

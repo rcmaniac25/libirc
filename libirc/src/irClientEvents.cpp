@@ -210,4 +210,22 @@ void IRCClient::nickCommand ( BaseIRCCommandInfo	&info )
 	callEventHandler(eventInfo.eventType,eventInfo);
 }
 
+void IRCClient::kickCommand ( BaseIRCCommandInfo	&info )
+{
+	trKickBanEventInfo	eventInfo;
+
+	eventInfo.eventType = eIRCUserKickedEvent;
+	eventInfo.channel = info.target;
+	eventInfo.kicker = string_util::tokenize(info.source,std::string("!"))[0];
+	eventInfo.reason = info.getAsString(1);
+	// kill the :
+	eventInfo.reason.erase(eventInfo.reason.begin());
+
+	eventInfo.user = info.params[0];
+	callEventHandler(eventInfo.eventType,eventInfo);
+
+	userManager.userPartChannel(eventInfo.user,eventInfo.channel);
+}
+
+
 
