@@ -17,7 +17,7 @@
 
 #include <vector>
 #include <map>
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 
 class IRCClient;
 

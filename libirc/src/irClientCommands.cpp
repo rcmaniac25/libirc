@@ -16,7 +16,7 @@
 
 #include "libIRC.h"
 #include "ircBasicCommands.h"
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 
 bool IRCClient::login ( std::string &nick, std::string &username, std::string &fullname, std::string &host )
 {

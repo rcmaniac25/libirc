@@ -11,7 +11,7 @@
  */
 
 // interface header
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 
 // system headers
 #include <string>

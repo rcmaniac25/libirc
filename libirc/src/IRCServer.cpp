@@ -16,7 +16,7 @@
 
 #include "libIRC.h"
 #include "ircBasicCommands.h"
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 
 #ifndef _WIN32
 	#include <unistd.h>

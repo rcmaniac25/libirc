@@ -15,14 +15,21 @@
 #ifndef _LIBIRC_H_
 #define _LIBIRC_H_
 
+// global includes
+#include <string>
+#include <vector>
+
+#ifndef string_list
+typedef std::vector<std::string> string_list;
+
 // IRC includes
 #include "ircCommands.h"
 #include "IRCEvents.h"
 #include "TCPConnection.h"
 #include "IRCUserManager.h"
 
-// global includes
-#include <string>
+#endif
+
 
 #define _DEFAULT_IRC_PORT	6667
 

@@ -13,7 +13,7 @@
 // basic IRC commands
 
 #include "ircBasicCommands.h"
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 #include "IRCEvents.h"
 
 std::string delim = " ";

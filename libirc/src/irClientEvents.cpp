@@ -16,7 +16,7 @@
 
 #include "libIRC.h"
 #include "ircBasicCommands.h"
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 
 // event trigers from low level messages
 // this way the low level events don't need the logic for the high level events.

@@ -15,7 +15,7 @@
 #ifndef _IRC_USER_MANAGER_
 #define _IRC_USER_MANAGER_
 
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 #include <vector>
 #include <string>
 #include <map>
