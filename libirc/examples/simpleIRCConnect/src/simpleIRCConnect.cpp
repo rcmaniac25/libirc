@@ -43,7 +43,7 @@ void main ( void )
 
 	// set the log
 	client.setLogfile("irc.log");
-	client.registerEventHandaler(eIRCNoticeEvent,&startupCallback);
+	client.registerEventHandler(eIRCNoticeEvent,&startupCallback);
 
 	client.connect("irc.freenode.net",6667);
 	client.login(std::string("TheLoneliestBot"),std::string("here"),std::string("William Shatner"));

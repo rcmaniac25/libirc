@@ -167,16 +167,16 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 }
 
 
-myEventCaller	eventHandaler;
+myEventCaller	eventHandler;
 
 
-void registerEventHandalers ( void )
+void registerEventHandlers ( void )
 {
-	client.registerEventHandaler(eIRCNoticeEvent,&eventHandaler);
-	client.registerEventHandaler(eIRCEndMOTDEvent,&eventHandaler);
-	client.registerEventHandaler(eIRCChannelJoinEvent,&eventHandaler);
-	client.registerEventHandaler(eIRCChannelMessageEvent,&eventHandaler);
-	client.registerEventHandaler(eIRCNickNameError,&eventHandaler);
+	client.registerEventHandler(eIRCNoticeEvent,&eventHandler);
+	client.registerEventHandler(eIRCEndMOTDEvent,&eventHandler);
+	client.registerEventHandler(eIRCChannelJoinEvent,&eventHandler);
+	client.registerEventHandler(eIRCChannelMessageEvent,&eventHandler);
+	client.registerEventHandler(eIRCNickNameError,&eventHandler);
 }
 
 void initInfo ( void )
@@ -209,7 +209,7 @@ void main ( void )
 
 	// set the log
 	client.setLogfile("irc.log");
-	registerEventHandalers();
+	registerEventHandlers();
 
 	client.connect(theBotInfo.server,theBotInfo.port);
 
