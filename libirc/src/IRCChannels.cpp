@@ -23,11 +23,11 @@ IRCChannel::IRCChannel()
 	//std::string							name;
 //	std::string							topic;
 	name = "UNKNOWN";
+	perms.mode = "NONE";
 }
 
 IRCChannel::~IRCChannel()
 {
-
 }
 
 std::string IRCChannel::getName ( void )
@@ -85,6 +85,12 @@ trIRCChannelUserPermisions& IRCChannel::getUserChanPerms ( std::string nick )
 	return thing;
 }
 
+trIRCChannelPermisions&	IRCChannel::getChanPerms ( void )
+{
+	return perms;
+}
+
+
 // state maintence
 void IRCChannel::setName ( std::string text )
 {
@@ -96,7 +102,36 @@ void IRCChannel::setTopic ( std::string text )
 	topic = text;
 }
 
-void IRCChannel::join ( trIRCUser *user, bool op )
+void IRCChannel::setMode ( std::string mode )
+{
+	perms.mode = mergeModes(perms.mode,mode);
+	
+	// parse the mode
+	perms.externalMessages = string_util::charExists(mode,'n');
+	perms.allowColors = string_util::charExists(mode,'c');
+	perms.forwarded = string_util::charExists(mode,'f');
+	perms.anyInvite = string_util::charExists(mode,'g');
+	perms.inviteOnly = string_util::charExists(mode,'i');
+	perms.juped = string_util::charExists(mode,'j');
+	perms.moderated = string_util::charExists(mode,'m');
+	perms.reducedModeraton = string_util::charExists(mode,'z');
+	perms.regForVoice = string_util::charExists(mode,'R');
+	perms.regOnly = string_util::charExists(mode,'r');
+	perms.secret = string_util::charExists(mode,'s');
+}
+
+void IRCChannel::setUserMode ( trIRCUser *user, std::string mode, std::string from )
+{
+	if (!user)
+		return;
+
+	user->channels[name].mode = mergeModes(user->channels[name].mode,mode);
+	user->channels[name].chanOp = string_util::charExists(mode,'o');
+	user->channels[name].voice = string_util::charExists(mode,'v');
+	user->channels[name].quieted = string_util::charExists(mode,'q');
+}
+
+void IRCChannel::join ( trIRCUser *user, teNickModes mode )
 {
 	if (!user)
 		return;
@@ -105,9 +140,9 @@ void IRCChannel::join ( trIRCUser *user, bool op )
 
 	trIRCChannelUserPermisions	chanPerms;
 
-	chanPerms.chanOp = op;
+	chanPerms.chanOp = mode == eOperator;
 	chanPerms.quieted = false;
-	chanPerms.voice = false;
+	chanPerms.voice = mode != eNoMode;
 
 	user->channels[name] = chanPerms;
 }
@@ -150,4 +185,35 @@ void IRCChannel::kick ( trIRCUser *user )
 		user->channels.erase(user->channels.find(name));
 }
 
+std::string IRCChannel::mergeModes ( std::string mode, std::string modMode )
+{
+	bool add = modMode[0] == '+';
+
+	std::string newMode = mode;
+	if (newMode == "NONE")
+		newMode = "";
+
+	std::string::iterator	modModeItr = modMode.begin();
+	modModeItr++;
+
+	while (modModeItr != modMode.end())
+	{
+		char item = *modModeItr;
+
+		if (add)
+		{
+			if (!string_util::charExists(newMode,item))
+				newMode += *modModeItr;
+		}
+		else
+		{
+			if (string_util::charExists(newMode,item))
+			{
+				string_util::eraseFirstOf(newMode,item);
+			}
+		}
+		modModeItr++;
+	}
+	return newMode;
+}
 

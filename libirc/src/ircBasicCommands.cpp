@@ -232,6 +232,7 @@ IRCModeCommand::IRCModeCommand()
 bool IRCModeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
 	// we got a mode message, see what the deal is
+	client.modeCommand(info);
 	return true;	
 }
 
@@ -375,7 +376,17 @@ bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIR
 		case RPL_LISTSTART:
 		case RPL_LIST:
 		case RPL_LISTEND:
+			break;
+
 		case RPL_CHANNELMODEIS:
+			{	
+				// first string is the channel this is for
+				std::string channel = info.params[0];
+
+				// let the big guy know we got some
+				client.setChannelMode(channel,info.params[1]);
+			}
+			break;
 		case RPL_UNIQOPIS:
 		case RPL_NOTOPIC:
 			break;

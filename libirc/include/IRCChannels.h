@@ -21,6 +21,14 @@
 
 #include "TextUtils.h"
 
+// mode stuff
+typedef enum
+{
+	eNoMode = 0,
+	eVoice,
+	eOperator
+}teNickModes;
+
 typedef struct 
 {
 	std::string mode;
@@ -71,6 +79,7 @@ typedef struct
 	bool				externalMessages;
 	bool				permanent;
 	bool				regForVoice;
+	bool				regOnly;
 	bool				secret;
 	bool				reducedModeraton;
 }trIRCChannelPermisions;
@@ -87,12 +96,15 @@ public:
 	std::vector<std::string>	listUsers ( bool justOps = false );
 	trIRCUser&	getUserInfo ( std::string nick );
 	trIRCChannelUserPermisions& getUserChanPerms ( std::string nick );
+	trIRCChannelPermisions&	getChanPerms ( void );
 
 // state maintence
 	void setName ( std::string text );
 	void setTopic ( std::string text );
+	void setMode ( std::string mode );
+	void setUserMode ( trIRCUser *user, std::string mode, std::string from );
 
-	void join ( trIRCUser *user, bool op );
+	void join ( trIRCUser *user, teNickModes mode );
 	void part ( trIRCUser *user );
 	void kick ( trIRCUser *user );
 
@@ -102,6 +114,8 @@ protected:
 	tvIRCUserRefList				users;
 	std::string							name;
 	std::string							topic;
+
+	std::string mergeModes ( std::string mode, std::string modMode );
 };
 
 typedef std::vector<IRCChannel>	tvChannelList; 

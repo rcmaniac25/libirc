@@ -891,6 +891,30 @@ bool longTestCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
+class chanPermsCommand : public botCommandHandaler
+{
+public:
+	chanPermsCommand() {name = "chanperms";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool chanPermsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	std::string channel = info->getAsString(2);
+
+	trIRCChannelPermisions perms = client.getChanPerms(channel);
+
+	std::string message = from + ", " +channel + " mode is " + perms.mode;
+	client.sendMessage(info->target,message);
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -908,6 +932,8 @@ void registerBotCommands ( void )
 	installBotCommand(new addmasterCommand);
 	installBotCommand(new libVersCommand);
 	installBotCommand(new longTestCommand);
+	installBotCommand(new chanPermsCommand);
+
 }
 
 

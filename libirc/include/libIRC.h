@@ -160,6 +160,8 @@ public:
 	virtual string_list listChanels ( void );
 	virtual string_list listChanOps ( std::string channel );
 
+	virtual trIRCChannelPermisions getChanPerms ( std::string channel );
+
 	//event handler methods.... for higher level API
 	virtual bool registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
 	virtual bool removeEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
@@ -216,6 +218,7 @@ public:
 	void setNick ( std::string text ) {nickname=text;}
 	std::string getNick ( void ) {return nickname;}
 
+	void setChannelMode ( std::string channel, std::string mode );
 	void setChannelTopicMessage ( std::string channel, std::string topic, std::string source );
 	void addChannelUsers ( std::string channel, string_list newUsers );
 	void endChannelUsersList ( std::string channel );
@@ -286,7 +289,7 @@ protected:
 	void registerDefaultEventHandlers ( void );
 
 	// user management
-	trIRCUser& getUserRecord ( std::string name, bool &op );
+	trIRCUser& getUserRecord ( std::string name );
 	bool removeChannelUser (std::string channel, std::string name );
 
 	// loging
@@ -304,6 +307,9 @@ protected:
 
 	// flood protection
 	float											minCycleTime;
+
+	teNickModes parseNickMode ( std::string &nick );
+	std::string getCleanNick ( std::string &nick );
 };
 
 #endif //_LIBIRC_H_

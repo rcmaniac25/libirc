@@ -872,16 +872,8 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
 }
 
 // user management
-trIRCUser& IRCClient::getUserRecord ( std::string name, bool &op )
+trIRCUser& IRCClient::getUserRecord ( std::string name )
 {
-	op = false;
-
-	if (name.c_str()[0] == '@')
-	{
-		op = true;
-		name.erase(0,1);
-	}
-
 	tvIRCUserMap::iterator	itr = userList.find(name);
 	if (itr == userList.end())
 	{
@@ -890,6 +882,34 @@ trIRCUser& IRCClient::getUserRecord ( std::string name, bool &op )
 		return userList[name] = user;
 	}
 	return userList[name];
+}
+
+std::string IRCClient::getCleanNick ( std::string &nick )
+{
+	if (nick.size() < 2)
+		return nick;
+
+	if (nick[0] == '@' || nick[0] == '+')
+	{
+		std::string	temp = nick;
+		temp.erase(temp.begin());
+		return temp;
+	}
+	return nick;
+}
+
+teNickModes IRCClient::parseNickMode ( std::string &nick )
+{
+	if (nick.size() < 2)
+		return eNoMode;
+
+	if (nick[0] == '@')
+		return eOperator;
+
+	if (nick[0] == '+')
+		return eVoice;
+
+	return eNoMode;
 }
 
 // event trigers from low level messages
@@ -945,10 +965,9 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 	}
 	else	// someone else joined a channel we are in
 	{
-		bool op;
-		trIRCUser	&user = getUserRecord(who,op);
+		trIRCUser	&user = getUserRecord(getCleanNick(who));
 
-		channels[info.target].join(&user,op);
+		channels[info.target].join(&user,parseNickMode(who));
 		joinInfo.eventType = eIRCUserJoinEvent;
 	}	
 
@@ -964,26 +983,45 @@ void IRCClient::partMessage ( BaseIRCCommandInfo	&info )
 	std::string who = goodies[0];
 
 	trPartEventInfo	partInfo;
-	if (who == getNick())	// we joined a channel
+	if (who == getNick())	// we parted a channel
 	{	
-		IRCChannel	channel;
-		channel.setName(info.target);
-		channels[channel.getName()] = channel;
+		tmChannelMap::iterator itr = channels.find(info.target);
+		if ( itr == channels.end())
+		{
+			// we should not hit here
+			// this is when we get a part for a channel we have not goten a join for
+			return;
+		}
 
 		partInfo.eventType = eIRCChannelPartEvent;
+		partInfo.channel = info.target;
+		partInfo.user = who;
+		callEventHandler(partInfo.eventType,partInfo);
+
+		channels.erase(itr);
 	}
 	else	// someone else joined a channel we are in
 	{
-		bool op;
-		trIRCUser	&user = getUserRecord(who,op);
+		trIRCUser	&user = getUserRecord(getCleanNick(who));
 
 		channels[info.target].part(&user);
 		partInfo.eventType = eIRCUserPartEvent;
+		partInfo.channel = info.target;
+		partInfo.user = who;
+		callEventHandler(partInfo.eventType,partInfo);
 	}	
+}
 
-	partInfo.channel = info.target;
-	partInfo.user = who;
-	callEventHandler(partInfo.eventType,partInfo);
+void IRCClient::setChannelMode ( std::string channel, std::string mode )
+{
+	channels[channel].setMode(mode);
+
+	trModeEventInfo	info;
+	info.eventType = eIRCChannelModeSet;
+	info.target = channel;
+	info.from = reportedServerHost;
+	info.mode = mode;
+	callEventHandler(info.eventType,info);
 }
 
 void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic, std::string source )
@@ -1000,7 +1038,47 @@ void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic,
 
 void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 {
+	std::string who = info.target;
+	trModeEventInfo	modeInfo;
+	modeInfo.target = who;
 
+	// figure out who the message is from, is it form a channel or from a dude
+	if (who[0] == '#' )
+	{
+
+		tmChannelMap::iterator itr = channels.find(who);
+
+		modeInfo.from = info.source;
+		modeInfo.mode = info.params[0];
+
+		if ( itr == channels.end())
+		{
+			// we should not hit here
+			// this is when we get a mode for a channel we have not goten a join for
+			return;
+		}
+
+		if (info.params.size() > 1)	// if there is mor then one param then it's a mode change for a user
+		{
+			modeInfo.eventType = eIRCChannelUserModeSet;
+			std::string user = getCleanNick(info.params[1]);
+			modeInfo.message = info.getAsString(2);
+
+			trIRCUser	&ircUser = getUserRecord(user);
+			itr->second.setUserMode(&ircUser,modeInfo.mode,modeInfo.from);
+		}
+		else
+		{	
+			modeInfo.eventType = eIRCChannelModeSet;
+			itr->second.setMode(modeInfo.mode);
+		}		
+	}
+	else	// it's amode for a user ( like US )
+	{
+		modeInfo.eventType = eIRCUserModeSet;
+	}
+
+	callEventHandler(modeInfo.eventType,modeInfo);
 }
 
 void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
@@ -1008,10 +1086,9 @@ void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
 	string_list::iterator	itr = newUsers.begin();
 	while ( itr != newUsers.end() )
 	{
-		bool op;
-		trIRCUser	&user = getUserRecord(*itr,op);
+		trIRCUser	&user = getUserRecord(getCleanNick(*itr));
 
-		channels[channel].join(&user,op);
+		channels[channel].join(&user,parseNickMode(*itr));
 		itr++;
 	}
 }
@@ -1021,8 +1098,7 @@ bool IRCClient::removeChannelUser ( std::string channel, std::string name )
 	if (name == getNick())
 		return false;
 
-	bool op;
-	trIRCUser	&user = getUserRecord(name,op);
+	trIRCUser	&user = getUserRecord(getCleanNick(name));
 
 	channels[channel].part(&user);
 	return true;
@@ -1118,6 +1194,16 @@ string_list IRCClient::listChanels ( void )
 		itr++;
 	}
 	return chanList;
+}
+
+trIRCChannelPermisions IRCClient::getChanPerms ( std::string channel )
+{
+	trIRCChannelPermisions perms;
+	perms.mode = "NONE";
+
+	if (channels.find(channel) != channels.end())
+		return channels.find(channel)->second.getChanPerms();
+	return perms;
 }
 
 // default event handling

@@ -430,6 +430,35 @@ namespace string_util {
 
 		return list;
 	}
+
+	inline bool charExists ( std::string text, char f )
+	{
+		return strchr(text.c_str(),f) != NULL;
+	}
+
+	inline std::string::iterator findChar ( std::string text, char f )
+	{
+		std::string x;
+		x+=f;
+
+		return find_first_of(text.begin(),text.end(),x.begin(),x.end());
+	}
+
+	inline void eraseFirstOf ( std::string &text, char f )
+	{
+		std::string::iterator itr = text.begin();
+
+		while(itr != text.end())
+		{
+			if (*itr == f)
+			{
+				text.erase(itr);
+				itr == text.end();
+			}
+			else
+				itr++;
+		}
+	}
 };
 
 
