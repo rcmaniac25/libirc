@@ -29,7 +29,7 @@ DEFS=$(CALLBACK) $(TRACE) $(AVLTREE) $(HASHTABLE) $(CTCP)
 CFLAGS=$(COMPILE_FLAGS) -Wall -fPIC -shared $(DEFS)
 CC=gcc
 OBJS=ctcp.o irc_core.o irc_funcs.o tcp.o avltree.o map.o list.o \
-hashtable.o trace.o bufsock.o irc_core_unix.o
+hashtable.o trace.o bufsock.o
 LDFLAGS=-shared
 
 all: $(OBJS)
