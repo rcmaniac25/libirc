@@ -15,6 +15,9 @@
 #include "TCPConnection.h"
 #include "SDL_net.h"
 
+#define DEFAULT_READ_CHUNK 512
+
+#include <map>
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP packet class
 
@@ -29,6 +32,13 @@ TCPPacket::TCPPacket( const TCPPacket &p )
 	data = (unsigned char*)malloc(p.size);
 	memcpy(data,p.data,p.size);
 	size = p.size;
+}
+
+TCPPacket::TCPPacket( unsigned char* buf, unsigned int len )
+{
+	data = NULL;
+	size = 0;
+	set(buf,len);
 }
 
 TCPPacket::~TCPPacket()
@@ -70,21 +80,44 @@ unsigned char* TCPPacket::get ( unsigned int &len )
 // TCP/IP connection class for clients
 
 // the info data for the class
-struct TCPClientConnection::TCPClientConnectionInfo
+class TCPClientConnection::TCPClientConnectionInfo
 {	
-	//SOCKET	socket;
+public:
+	TCPClientConnectionInfo();
+	teTCPError	lastError;
+	IPaddress	serverIP;
+	TCPsocket	socket;
+	int readChunkSize;
 };
+
+TCPClientConnection::TCPClientConnectionInfo::TCPClientConnectionInfo()
+{
+	teTCPError	lastError = eTCPNotInit;;
+	serverIP.host = 0;
+	serverIP.port = 0;
+	socket = NULL;
+	readChunkSize = DEFAULT_READ_CHUNK;;
+}
 
 TCPClientConnection::TCPClientConnection()
 {
 	info = new TCPClientConnectionInfo;
-
-	// do some TCP/IPish things here
+	parent = NULL;
+	info->lastError = eTCPNotInit;
+	info->serverIP.host = 0;
+	info->serverIP.port = 0;
+	info->socket = NULL;
+	info->readChunkSize = 512;
 }
 
-TCPClientConnection::TCPClientConnection( std::string server, unsigned short port )
+TCPClientConnection::TCPClientConnection( std::string server, unsigned short port, TCPConnection *parentConnection )
 {
-	// do some TCP/IPish things here
+	info = new TCPClientConnectionInfo;
+	info->lastError = eTCPNotInit;
+	parent = parentConnection;
+
+	if (server.size() && port != 0)
+		connect(server,port);
 }
 
 TCPClientConnection::~TCPClientConnection()
@@ -94,26 +127,166 @@ TCPClientConnection::~TCPClientConnection()
 		delete(info);
 }
 
+teTCPError TCPClientConnection::connect ( std::string server, unsigned short port )
+{
+	if (!info)
+		return setError(eTCPNotInit);
+
+	if ( SDLNet_ResolveHost(&info->serverIP, server.c_str(), port))
+		return setError(eTCPUnknownError);
+
+	if ( info->serverIP.host == INADDR_NONE )
+		return setError(eTCPBadAddress);
+
+	return connect();	
+}
+
+teTCPError TCPClientConnection::connect ( void )
+{
+	disconnect();
+
+	if ( info->serverIP.host == 0 || info->serverIP.port == 0 || info->serverIP.host == INADDR_NONE )
+		return setError(eTCPBadAddress);
+
+	info->socket = SDLNet_TCP_Open(&info->serverIP);
+	if ( info->socket == NULL )
+		return setError(eTCPConnectionFailed);
+
+	if (parent)
+		parent->addClientSocket(this);
+
+	return setError(eTCPNoError);
+}
+
+teTCPError TCPClientConnection::disconnect( void )
+{
+	if (!connected())
+		return setError(eTCBSocketNFG);
+
+	SDLNet_TCP_Close(info->socket);
+	info->socket = NULL;
+
+	if (parent)
+		parent->removeClientSocket(this);
+
+	return setError(eTCPNoError);
+}
+
+
+bool TCPClientConnection::connected ( void )
+{
+	if (!info)
+		return false;
+
+	return info->socket != NULL;
+}
+
+bool TCPClientConnection::packets ( void )
+{
+	return packetList.size() > 0;
+}
+
+tvPacketList& TCPClientConnection::getPackets ( void )
+{
+	return packetList;
+}
+
+void TCPClientConnection::readData ( void )
+{
+	bool done = false;
+	int dataRead = 0;
+
+	unsigned char	*chunk = (unsigned char*)malloc(info->readChunkSize);
+	unsigned char	*data = NULL;
+	int		totalSize = 0;
+
+	while (!done)
+	{
+		dataRead =  SDLNet_TCP_Recv(info->socket, chunk, (int)info->readChunkSize);
+		if (dataRead <0)
+		{
+			if (data)
+				data = (unsigned char*)realloc(data,totalSize+dataRead);
+			else
+				data = (unsigned char*)malloc(dataRead);
+
+			if (data)
+			{
+				memcpy(&data[totalSize],chunk,dataRead);
+				totalSize += dataRead;
+			}
+			else	// there was an error
+				done = true;
+
+		}
+		else // there was an error
+			done = true;
+	}
+
+	if (chunk)
+		free(chunk);
+
+	if (data)
+	{
+		packetList.push_back(TCPPacket(data,totalSize));
+		free(data);
+	}
+}
+
+
+teTCPError TCPClientConnection::getLastError ( void )
+{
+	return info->lastError;
+}
+
+teTCPError TCPClientConnection::setError ( teTCPError error )
+{
+	if (info)
+		info->lastError = error;
+	return error;
+}
+
+void TCPClientConnection::setReadChunkSize ( unsigned int size )
+{
+	if (info && size > 0)
+		info->readChunkSize = size;
+}
+
+unsigned int TCPClientConnection::getReadChunkSize ( void )
+{
+	return info ? info->readChunkSize : 0;
+}
+
+
+
+
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP listener class for servers
 
 // the info data for the class
 struct TCPServerConnection::TCPServerConnectionInfo
 {	
-	//SOCKET	socket;
+	teTCPError	lastError;
 };
 
 
 TCPServerConnection::TCPServerConnection()
 {
 	info = new TCPServerConnectionInfo;
-	// do some TCP/IPish things here
+	info->lastError = eTCPNotInit;
+	parent = NULL;
 }
 
-TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int connections )
+TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int connections, TCPConnection *parentConnection )
 {
-	// do some TCP/IPish things here
+	info = new TCPServerConnectionInfo;
+	info->lastError = eTCPNotInit;
+	parent = parentConnection;
+
+	//if (server.size() && port != 0)
+	//	connect(server,port);
 }
+
 
 TCPServerConnection::~TCPServerConnection()
 {
@@ -125,19 +298,32 @@ TCPServerConnection::~TCPServerConnection()
 
 // master connections class, Make this a singleton? there should only ever be one
 
-struct TCPConnection::TCPConnectionInfo
+typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
+typedef std::map<TCPsocket, TCPServerConnection* > tmServerSocketMap;
+
+class TCPConnection::TCPConnectionInfo
 {	
-#ifdef _WIN32
-	//WSADATA m_WSAData;
-#endif
+public:
+	TCPConnectionInfo();
+	tmClientSocketMap	clientSockets;
+	SDLNet_SocketSet	clientSocketSet;
+	tmServerSocketMap	serverSockets;
+	SDLNet_SocketSet	serverSocketSet;
 	bool initedSocketInterface;
+	int	 timeout;
 };
+
+TCPConnection::TCPConnectionInfo::TCPConnectionInfo()
+{
+	clientSocketSet = NULL;
+	serverSocketSet = NULL;
+	initedSocketInterface = false;
+	timeout = 0;
+}
 
 TCPConnection::TCPConnection()
 {
 	info = new TCPConnectionInfo;
-	info->initedSocketInterface = false;
-
 	init();
 }
 
@@ -151,33 +337,54 @@ TCPConnection::~TCPConnection()
 teTCPError TCPConnection::init ( void )
 {
 	kill();
-#ifdef _WIN32
-	//if(WSAStartup( MAKEWORD( 2, 2 ), &info->m_WSAData ) ==0)
-//		info->initedSocketInterface = true;
+	if(SDLNet_Init() ==0)
+		info->initedSocketInterface = true;
 	return info->initedSocketInterface ? eTCPNoError : eTCPInitFailed;
-#endif
-	return eTCPNoError;
 }
 
 void TCPConnection::kill ( void )
 {
 	if (info->initedSocketInterface)
 	{
-#ifdef _WIN32
-//		WSACleanup();
-#endif//_WIN32
+		SDLNet_Quit();
 		info->initedSocketInterface = false;
 	}
 }
 
 teTCPError TCPConnection::update ( void )
 {
+	if (!info)
+		return eTCPNotInit;
+
+	if (info->clientSocketSet)
+	{
+		int items = SDLNet_CheckSockets(info->clientSocketSet,info->timeout);
+		if (items = -1)
+			return eTCPSelectFailed;
+		if (items > 0)
+		{
+			tmClientSocketMap::iterator itr = info->clientSockets.begin();
+			while (itr != info->clientSockets.end())
+			{
+				if (SDLNet_SocketReady(itr->first))
+					itr->second->readData();
+				itr++;
+			}
+		}
+	}
 	return eTCPNoError;
 }
 
+void TCPConnection::setUpdateTimeout ( int timeout )
+{
+	if (info && timeout > 0)
+		info->timeout = timeout;
+}
+
+
 TCPClientConnection* TCPConnection::newClientConnection ( std::string server, unsigned short port )
 {
-	TCPClientConnection*	connection = new  TCPClientConnection(server,port);
+	TCPClientConnection*	connection = new  TCPClientConnection(server,port,this);
 	
 	clientConnections.push_back(connection);
 	return connection;
@@ -185,7 +392,7 @@ TCPClientConnection* TCPConnection::newClientConnection ( std::string server, un
 
 TCPServerConnection* TCPConnection::newServerConnection ( unsigned short port, int connections )
 {
-	TCPServerConnection*	connection = new  TCPServerConnection(port,connections);
+	TCPServerConnection*	connection = new  TCPServerConnection(port,connections,this);
 
 	serverConnections.push_back(connection);
 	return connection;
@@ -220,6 +427,49 @@ void TCPConnection::deleteServerConnection ( TCPServerConnection* connection )
 std::string TCPConnection::getLocalHost ( void )
 {
 	return "127.0.0.1";
+}
+
+bool TCPConnection::addClientSocket ( TCPClientConnection* client )
+{
+	if (info->clientSocketSet)
+		SDLNet_FreeSocketSet(info->clientSocketSet);
+
+	info->clientSockets[client->info->socket] = client;
+
+	info->clientSocketSet = SDLNet_AllocSocketSet((int)info->clientSockets.size());
+
+	if (!info->clientSocketSet)
+		return false;
+
+	tmClientSocketMap::iterator itr = info->clientSockets.begin();
+	while (itr != info->clientSockets.end())
+	{
+		SDLNet_TCP_AddSocket(info->clientSocketSet,itr->first);
+		itr++;
+	}
+
+	return true;
+}
+
+bool TCPConnection::addServerSocket ( TCPServerConnection* server )
+{
+	return true;
+}
+
+bool TCPConnection::removeClientSocket ( TCPClientConnection* client )
+{
+	tmClientSocketMap::iterator itr = info->clientSockets.find(client->info->socket);
+	if (itr == info->clientSockets.end())
+		return false;
+
+	SDLNet_TCP_DelSocket(info->clientSocketSet,client->info->socket);
+	info->clientSockets.erase(itr);
+	return true;
+}
+
+bool TCPConnection::removeServerSocket ( TCPServerConnection* server )
+{
+	return true;
 }
 
 

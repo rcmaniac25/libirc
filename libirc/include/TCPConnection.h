@@ -26,8 +26,10 @@ typedef enum
 	eTCPTimeout,
 	eTCPBadAddress,
 	eTCPBadPort,
+	eTCPConnectionFailed,
 	eTCBSocketNFG,
 	eTCPInitFailed,
+	eTCPSelectFailed,
 	eTCPUnknownError
 }teTCPError;
 
@@ -38,6 +40,7 @@ class TCPPacket
 public:
 	TCPPacket();
 	TCPPacket( const TCPPacket &p );
+	TCPPacket( unsigned char* buf, unsigned int len );
 	~TCPPacket();
 
 	TCPPacket& operator = ( const TCPPacket &p );
@@ -50,21 +53,51 @@ protected:
 	unsigned int	size;
 };
 
+typedef std::vector<TCPPacket>	tvPacketList;
+
+
 // TCP/IP client connection to some host on some port
 class TCPClientConnection
 {
 public:
-	TCPClientConnection();
-	TCPClientConnection( std::string server, unsigned short port );
-	~TCPClientConnection();
 
+	// connections
+	teTCPError connect ( std::string server, unsigned short port );
+	teTCPError connect ( void );
+	teTCPError disconnect( void );
+
+	// status
+	bool connected ( void );
+
+	// data polling
+	bool packets ( void );
+	tvPacketList& getPackets ( void );
+
+	// error handaling
+	teTCPError getLastError ( void );
+	teTCPError setError ( teTCPError error );
+
+	// data read
+	// generaly only called by the parent
+	void readData ( void );
+
+	// utils
+	void setReadChunkSize ( unsigned int size );
+	unsigned int getReadChunkSize ( void );
 
 protected:
 	// who's your daddy
 	friend	class TCPConnection;
-	TCPConnection			*parent;
 
-	struct TCPClientConnectionInfo;
+	// only daddy should make us
+	TCPClientConnection();
+	TCPClientConnection( std::string server, unsigned short port, TCPConnection *parentConnection );
+	~TCPClientConnection();
+
+	TCPConnection			*parent;
+	tvPacketList			packetList;
+
+	class TCPClientConnectionInfo;
 	TCPClientConnectionInfo	*info;
 };
 
@@ -73,7 +106,7 @@ class TCPServerConnection
 {
 public:
 	TCPServerConnection();
-	TCPServerConnection( unsigned short port, unsigned int connections );
+	TCPServerConnection( unsigned short port, unsigned int connections, TCPConnection *parentConnection );
 	~TCPServerConnection();
 
 protected:
@@ -106,6 +139,7 @@ public:
 
 	// has all connections check for new data
 	teTCPError update ( void );
+	void setUpdateTimeout ( int timeout );
 
 	// returns a new client conenction to the specified host and port
 	TCPClientConnection* newClientConnection ( std::string server, unsigned short port );
@@ -122,13 +156,22 @@ public:
 	std::string getLocalHost ( void );
 
 protected:
+	friend	class TCPClientConnection;
+	friend	class TCPServerConnection;
+
 	typedef std::vector<TCPClientConnection*>	tvClientConnectionList;
 	tvClientConnectionList		clientConnections;
 
 	typedef std::vector<TCPServerConnection*>	tvServerConnectionList;
 	tvServerConnectionList		serverConnections;
 
-	struct TCPConnectionInfo;
+	bool addClientSocket ( TCPClientConnection* client );
+	bool addServerSocket ( TCPServerConnection* server );
+
+	bool removeClientSocket ( TCPClientConnection* client );
+	bool removeServerSocket ( TCPServerConnection* server );
+
+	class TCPConnectionInfo;
 	TCPConnectionInfo	*info;
 };
 
