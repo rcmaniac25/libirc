@@ -16,6 +16,8 @@
 #define _TCP_CONNECTION_H_
 
 #include <vector>
+#include <string>
+
 
 
 
@@ -64,7 +66,7 @@ class TCPClientDataPendingListener
 {
 public:
 	virtual ~TCPClientDataPendingListener(){return;};
-	virtual pending ( TCPClientConnection *connection, int count ) = 0;
+	virtual void pending ( TCPClientConnection *connection, int count ) = 0;
 };
 
 typedef std::vector<TCPClientDataPendingListener*> tvClientDataPendingListenerList;
