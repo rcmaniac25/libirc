@@ -1,0 +1,20 @@
+libIRC Release Notes
+====================
+
+Included below is the latest news pertaining to libIRC releases.  As
+libIRC is a library intended for developers, the usual rhetoric of
+requiring news or announcements apply to the "user-visible" changes
+basically means most all changes that affect the public API of libIRC
+should be listed here prior to a release.
+
+----------------------------------------------------------------------
+--- 2004-08-08  Release 0.1.0                                      ---
+----------------------------------------------------------------------
+
+ * convert API to C++
+
+preliminary open source release.
+
+
+--- 
+NEWS items should be formated to column 70 (M-q in emacs), no tabs
