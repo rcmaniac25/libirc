@@ -18,6 +18,56 @@
 #include <WINSOCK2.H>
 #endif //_WIN32
 
+//---------------------------------------------------------------------------------------------------//
+// TCP/IP packet class
+
+TCPPacket::TCPPacket()
+{
+	data = NULL;
+	size = 0;
+}
+
+TCPPacket::TCPPacket( const TCPPacket &p )
+{
+	data = (unsigned char*)malloc(p.size);
+	memcpy(data,p.data,p.size);
+	size = p.size;
+}
+
+TCPPacket::~TCPPacket()
+{
+	if (data)
+		free(data);
+	data = NULL;
+	size = 0;
+}
+
+TCPPacket& TCPPacket::operator = ( const TCPPacket &p )
+{
+	if (data)
+		free (data);
+
+	data = (unsigned char*)malloc(p.size);
+	memcpy(data,p.data,p.size);
+	size = p.size;
+	return *this;
+}
+
+void TCPPacket::set ( unsigned char* buf, unsigned int len )
+{
+	if (data)
+		free (data);
+
+	data = (unsigned char*)malloc(len);
+	memcpy(data,buf,len);
+	size = len;
+}
+
+unsigned char* TCPPacket::get ( unsigned int &len )
+{
+	len = size;
+	return data;
+}
 
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP connection class for clients
