@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "IRCNumerics.h"
+
 /* Commands used in the IRC protocol (RFC 1459) */
 #define CMD_NICK	"NICK"
 #define CMD_USER	"USER"
