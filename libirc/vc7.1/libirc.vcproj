@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../include"
+				AdditionalIncludeDirectories="../include;../src/sdl_net"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;CALLBACK_COLLECTION_IS_AVLTREE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -156,6 +156,22 @@
 				<File
 					RelativePath="..\src\TCPConnection.cpp">
 				</File>
+				<Filter
+					Name="SDL_NET"
+					Filter="">
+					<File
+						RelativePath="..\src\sdl_net\SDLnet.cpp">
+					</File>
+					<File
+						RelativePath="..\src\sdl_net\SDLnetselect.cpp">
+					</File>
+					<File
+						RelativePath="..\src\sdl_net\SDLnetTCP.cpp">
+					</File>
+					<File
+						RelativePath="..\src\sdl_net\SDLnetUDP.cpp">
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -235,6 +251,16 @@
 				<File
 					RelativePath="..\include\TCPConnection.h">
 				</File>
+				<Filter
+					Name="SDL_NET"
+					Filter="">
+					<File
+						RelativePath="..\src\sdl_net\SDL_net.h">
+					</File>
+					<File
+						RelativePath="..\src\sdl_net\SDLnetsys.h">
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

@@ -27,14 +27,109 @@
 #ifndef _SDLNET_STANDALONE_H
 #define _SDLNET_STANDALONE_H
 
-#include "SDL_endian.h"
-
-
 // SDL error stuff form SDL_error.h
 void SDLNet_SetError(const char *error);
 const char* SDLNet_GetError(void);
 void SDLNet_ClearError(void);
 
+// endian action
+
+// byte order setuff from SDLNET_BYTEORDER.h
+/* Macros for determining the byte-order of this platform */
+
+/* The two types of endianness */
+#define SDLNET_LIL_ENDIAN	1234
+#define SDLNET_BIG_ENDIAN	4321
+
+/* Pardon the mess, I'm trying to determine the endianness of this host.
+I'm doing it by preprocessor defines rather than some sort of configure
+script so that application code can use this too.  The "right" way would
+be to dynamically generate this file on install, but that's a lot of work.
+*/
+#if  defined(__i386__) || defined(__ia64__) || defined(WIN32) || \
+	(defined(__alpha__) || defined(__alpha)) || \
+	defined(__arm__) || \
+	(defined(__mips__) && defined(__MIPSEL__)) || \
+	defined(__SYMBIAN32__) || \
+	defined(__x86_64__) || \
+	defined(__LITTLE_ENDIAN__)
+#define SDLNET_BYTEORDER	SDLNET_LIL_ENDIAN
+#else
+#define SDLNET_BYTEORDER	SDLNET_BIG_ENDIAN
+#endif
+
+#define Uint32	unsigned int
+#define Uint16	unsigned short
+#define Uint8	unsigned char
+
+/* The macros used to swap values */
+/* Try to use superfast macros on systems that support them */
+#ifdef linux
+#include <asm/byteorder.h>
+#ifdef __arch__swab16
+#define SDLNET_Swap16  __arch__swab16
+#endif
+#ifdef __arch__swab32
+#define SDLNET_Swap32  __arch__swab32
+#endif
+#endif /* linux */
+/* Use inline functions for compilers that support them, and static
+functions for those that do not.  Because these functions become
+static for compilers that do not support inline functions, this
+header should only be included in files that actually use them.
+*/
+#ifndef SDLNET_Swap16
+static inline Uint16 SDLNET_Swap16(Uint16 D) {
+	return((D<<8)|(D>>8));
+}
+#endif
+#ifndef SDLNET_Swap32
+static inline Uint32 SDLNET_Swap32(Uint32 D) {
+	return((D<<24)|((D<<8)&0x00FF0000)|((D>>8)&0x0000FF00)|(D>>24));
+}
+#endif
+#ifdef SDL_HAS_64BIT_TYPE
+#ifndef SDLNET_Swap64
+static inline Uint64 SDLNET_Swap64(Uint64 val) {
+	Uint32 hi, lo;
+
+	/* Separate into high and low 32-bit values and swap them */
+	lo = (Uint32)(val&0xFFFFFFFF);
+	val >>= 32;
+	hi = (Uint32)(val&0xFFFFFFFF);
+	val = SDLNET_Swap32(lo);
+	val <<= 32;
+	val |= SDLNET_Swap32(hi);
+	return(val);
+}
+#endif
+#else
+#ifndef SDLNET_Swap64
+/* This is mainly to keep compilers from complaining in SDL code.
+If there is no real 64-bit datatype, then compilers will complain about
+the fake 64-bit datatype that SDL provides when it compiles user code.
+*/
+#define SDLNET_Swap64(X)	(X)
+#endif
+#endif /* SDL_HAS_64BIT_TYPE */
+
+
+/* Byteswap item from the specified endianness to the native endianness */
+#if SDLNET_BYTEORDER == SDLNET_LIL_ENDIAN
+#define SDLNET_SwapLE16(X)	(X)
+#define SDLNET_SwapLE32(X)	(X)
+#define SDLNET_SwapLE64(X)	(X)
+#define SDLNET_SwapBE16(X)	SDLNET_Swap16(X)
+#define SDLNET_SwapBE32(X)	SDLNET_Swap32(X)
+#define SDLNET_SwapBE64(X)	SDLNET_Swap64(X)
+#else
+#define SDLNET_SwapLE16(X)	SDLNET_Swap16(X)
+#define SDLNET_SwapLE32(X)	SDLNET_Swap32(X)
+#define SDLNET_SwapLE64(X)	SDLNET_Swap64(X)
+#define SDLNET_SwapBE16(X)	(X)
+#define SDLNET_SwapBE32(X)	(X)
+#define SDLNET_SwapBE64(X)	(X)
+#endif
 
 /* Initialize/Cleanup the network API
    SDL must be initialized before calls to functions in this library,
@@ -315,9 +410,9 @@ Uint32 SDLNet_Read32(void *area);
 /* Write a 16 bit value to network packet buffer */
 #if !SDL_DATA_ALIGNED
 #define SDLNet_Write16(value, areap)	\
-	(*(Uint16 *)(areap) = SDL_SwapBE16(value))
+	(*(Uint16 *)(areap) = SDLNET_SwapBE16(value))
 #else
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if SDLNET_BYTEORDER == SDLNET_BIG_ENDIAN
 #define SDLNet_Write16(value, areap)	\
 do 					\
 {					\
@@ -339,9 +434,9 @@ do 					\
 /* Write a 32 bit value to network packet buffer */
 #if !SDL_DATA_ALIGNED
 #define SDLNet_Write32(value, areap) 	\
-	*(Uint32 *)(areap) = SDL_SwapBE32(value);
+	*(Uint32 *)(areap) = SDLNET_SwapBE32(value);
 #else
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if SDLNET_BYTEORDER == SDLNET_BIG_ENDIAN
 #define SDLNet_Write32(value, areap) 	\
 do					\
 {					\
@@ -367,9 +462,9 @@ do					\
 /* Read a 16 bit value from network packet buffer */
 #if !SDL_DATA_ALIGNED
 #define SDLNet_Read16(areap) 		\
-	(SDL_SwapBE16(*(Uint16 *)(areap)))
+	(SDLNET_SwapBE16(*(Uint16 *)(areap)))
 #else
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if SDLNET_BYTEORDER == SDLNET_BIG_ENDIAN
 #define SDLNet_Read16(areap) 		\
 	((((Uint8 *)areap)[0] <<  8) | ((Uint8 *)areap)[1] <<  0)
 #else
@@ -381,9 +476,9 @@ do					\
 /* Read a 32 bit value from network packet buffer */
 #if !SDL_DATA_ALIGNED
 #define SDLNet_Read32(areap) 		\
-	(SDL_SwapBE32(*(Uint32 *)(areap)))
+	(SDLNET_SwapBE32(*(Uint32 *)(areap)))
 #else
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if SDLNET_BYTEORDER == SDLNET_BIG_ENDIAN
 #define SDLNet_Read32(areap) 		\
 	((((Uint8 *)areap)[0] << 24) | (((Uint8 *)areap)[1] << 16) | \
 	 (((Uint8 *)areap)[2] <<  8) |  ((Uint8 *)areap)[3] <<  0)

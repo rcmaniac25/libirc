@@ -13,6 +13,7 @@
 // TCP/IP connection classes
 
 #include "TCPConnection.h"
+#include "SDL_net.h"
 
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP packet class
@@ -71,7 +72,7 @@ unsigned char* TCPPacket::get ( unsigned int &len )
 // the info data for the class
 struct TCPClientConnection::TCPClientConnectionInfo
 {	
-	SOCKET	socket;
+	//SOCKET	socket;
 };
 
 TCPClientConnection::TCPClientConnection()
@@ -99,7 +100,7 @@ TCPClientConnection::~TCPClientConnection()
 // the info data for the class
 struct TCPServerConnection::TCPServerConnectionInfo
 {	
-	SOCKET	socket;
+	//SOCKET	socket;
 };
 
 
@@ -127,7 +128,7 @@ TCPServerConnection::~TCPServerConnection()
 struct TCPConnection::TCPConnectionInfo
 {	
 #ifdef _WIN32
-	WSADATA m_WSAData;
+	//WSADATA m_WSAData;
 #endif
 	bool initedSocketInterface;
 };
@@ -151,8 +152,8 @@ teTCPError TCPConnection::init ( void )
 {
 	kill();
 #ifdef _WIN32
-	if(WSAStartup( MAKEWORD( 2, 2 ), &info->m_WSAData ) ==0)
-		info->initedSocketInterface = true;
+	//if(WSAStartup( MAKEWORD( 2, 2 ), &info->m_WSAData ) ==0)
+//		info->initedSocketInterface = true;
 	return info->initedSocketInterface ? eTCPNoError : eTCPInitFailed;
 #endif
 	return eTCPNoError;
@@ -163,7 +164,7 @@ void TCPConnection::kill ( void )
 	if (info->initedSocketInterface)
 	{
 #ifdef _WIN32
-		WSACleanup();
+//		WSACleanup();
 #endif//_WIN32
 		info->initedSocketInterface = false;
 	}

@@ -373,7 +373,7 @@ extern UDPsocket SDLNet_UDP_Open(Uint16 port)
 		memset(&sock_addr, 0, sizeof(sock_addr));
 		sock_addr.sin_family = AF_INET;
 		sock_addr.sin_addr.s_addr = INADDR_ANY;
-		sock_addr.sin_port = SDL_SwapBE16(port);
+		sock_addr.sin_port = SDLNET_SwapBE16(port);
 
 		/* Bind the socket for listening */
 		if ( bind(sock->channel, (struct sockaddr *)&sock_addr,

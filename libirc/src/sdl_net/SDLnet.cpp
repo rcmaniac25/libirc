@@ -30,32 +30,6 @@
 #include "SDLnetsys.h"
 #include "SDL_net.h"
 
-
-// byte order setuff from SDL_byteorder.h
-/* Macros for determining the byte-order of this platform */
-
-/* The two types of endianness */
-#define SDL_LIL_ENDIAN	1234
-#define SDL_BIG_ENDIAN	4321
-
-/* Pardon the mess, I'm trying to determine the endianness of this host.
-I'm doing it by preprocessor defines rather than some sort of configure
-script so that application code can use this too.  The "right" way would
-be to dynamically generate this file on install, but that's a lot of work.
-*/
-#if  defined(__i386__) || defined(__ia64__) || defined(WIN32) || \
-	(defined(__alpha__) || defined(__alpha)) || \
-	defined(__arm__) || \
-	(defined(__mips__) && defined(__MIPSEL__)) || \
-	defined(__SYMBIAN32__) || \
-	defined(__x86_64__) || \
-	defined(__LITTLE_ENDIAN__)
-#define SDL_BYTEORDER	SDL_LIL_ENDIAN
-#else
-#define SDL_BYTEORDER	SDL_BIG_ENDIAN
-#endif
-
-
 /* Since the UNIX/Win32/BeOS code is so different from MacOS,
    we'll just have two completely different sections here.
 */
@@ -244,7 +218,7 @@ int SDLNet_ResolveHost(IPaddress *address, const char *host, Uint16 port)
 		//}
 	}
 	
-	address->port = SDL_SwapBE16(port);
+	address->port = SDLNET_SwapBE16(port);
 
 	/* Return the status */
 	return(retval);
@@ -355,7 +329,7 @@ int SDLNet_ResolveHost(IPaddress *address, const char *host, Uint16 port)
 			}
 		}
 	}
-	address->port = SDL_SwapBE16(port);
+	address->port = SDLNET_SwapBE16(port);
 
 	/* Return the status */
 	return(retval);
@@ -389,28 +363,28 @@ const char *SDLNet_ResolveIP(IPaddress *ip)
 #undef SDLNet_Write16
 void   SDLNet_Write16(Uint16 value, void *areap)
 {
-	(*(Uint16 *)(areap) = SDL_SwapBE16(value));
+	(*(Uint16 *)(areap) = SDLNET_SwapBE16(value));
 }
 
 /* Write a 32 bit value to network packet buffer */
 #undef SDLNet_Write32
 void   SDLNet_Write32(Uint32 value, void *areap)
 {
-	*(Uint32 *)(areap) = SDL_SwapBE32(value);
+	*(Uint32 *)(areap) = SDLNET_SwapBE32(value);
 }
 
 /* Read a 16 bit value from network packet buffer */
 #undef SDLNet_Read16
 Uint16 SDLNet_Read16(void *areap)
 {
-	return (SDL_SwapBE16(*(Uint16 *)(areap)));
+	return (SDLNET_SwapBE16(*(Uint16 *)(areap)));
 }
 
 /* Read a 32 bit value from network packet buffer */
 #undef SDLNet_Read32
 Uint32 SDLNet_Read32(void *areap)
 {
-	return (SDL_SwapBE32(*(Uint32 *)(areap)));
+	return (SDLNET_SwapBE32(*(Uint32 *)(areap)));
 }
 
 #endif /* !SDL_DATA_ALIGNED */
