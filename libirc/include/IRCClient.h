@@ -91,6 +91,9 @@ public:
 	virtual bool part ( std::string channel, std::string reason );
 	virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
 
+	// name operations
+	virtual bool changeNick ( std::string &nick );
+
 	// IRC chanops
 	virtual bool kick ( std::string user, std::string channel, std::string reason );
 

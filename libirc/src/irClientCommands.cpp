@@ -67,6 +67,22 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 	return  true;
 }
 
+bool IRCClient::changeNick ( std::string &nick )
+{
+	requestedNick = nick;
+
+	IRCCommandINfo	info;
+	info.params.push_back(nick);
+
+	if (!sendIRCCommand(eCMD_NICK,info))
+	{
+		log("Login Failed: NICK command not sent",0);
+		return false;
+	}
+	setNick(nick);
+	return true;
+}
+
 bool IRCClient::join ( std::string channel )
 {
 	// we need to have at LEAST sent the username and stuff
