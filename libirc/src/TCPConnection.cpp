@@ -172,7 +172,6 @@ teTCPError TCPClientConnection::disconnect( void )
 	return setError(eTCPNoError);
 }
 
-
 bool TCPClientConnection::connected ( void )
 {
 	if (!info)
@@ -231,8 +230,47 @@ void TCPClientConnection::readData ( void )
 		packetList.push_back(TCPPacket(data,totalSize));
 		free(data);
 	}
+
+	// notify any listeners
+	callDataPendingListeners(packetList.size());
 }
 
+// data pending listeners
+void TCPClientConnection::addListener ( TCPClientDataPendingListener* listener )
+{
+	if (!listener)
+		return;
+
+	dataPendingList.push_back(listener);
+}
+
+void TCPClientConnection::removeListener ( TCPClientDataPendingListener* listener )
+{
+	if (!listener)
+		return;
+
+	tvClientDataPendingListenerList::iterator	itr = dataPendingList.begin();
+	while( itr != dataPendingList.end() )
+	{
+		if (*itr == listener)
+			itr = dataPendingList.erase(itr);
+		else
+			itr++;
+	}
+}
+
+void TCPClientConnection::callDataPendingListeners ( int count )
+{
+	if ( count >1 )
+		return;
+
+	tvClientDataPendingListenerList::iterator	itr = dataPendingList.begin();
+	while( itr != dataPendingList.end() )
+	{
+		itr->pending(this,count);
+		itr++;
+	}
+}
 
 teTCPError TCPClientConnection::getLastError ( void )
 {

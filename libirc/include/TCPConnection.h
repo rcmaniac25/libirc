@@ -17,6 +17,8 @@
 
 #include <vector>
 
+
+
 class TCPConnection;
 
 typedef enum
@@ -55,6 +57,16 @@ protected:
 
 typedef std::vector<TCPPacket>	tvPacketList;
 
+class TCPClientConnection;
+
+class TCPClientDataPendingListener
+{
+public:
+	virtual ~TCPClientDataPendingListener(){return;};
+	virtual pending ( TCPClientConnection *connection, int count ) = 0;
+};
+
+typedef std::vector<TCPClientDataPendingListener*> tvClientDataPendingListenerList;
 
 // TCP/IP client connection to some host on some port
 class TCPClientConnection
@@ -85,6 +97,11 @@ public:
 	void setReadChunkSize ( unsigned int size );
 	unsigned int getReadChunkSize ( void );
 
+	// data pending listeners
+	// let the people register a callback class to be called when data is receved
+	void addListener ( TCPClientDataPendingListener* listener );
+	void removeListener ( TCPClientDataPendingListener* listener );
+
 protected:
 	// who's your daddy
 	friend	class TCPConnection;
@@ -99,6 +116,10 @@ protected:
 
 	class TCPClientConnectionInfo;
 	TCPClientConnectionInfo	*info;
+
+	// listeners
+	tvClientDataPendingListenerList	dataPendingList;
+	void callDataPendingListeners ( int count );
 };
 
 // TCP/IP server connection listening for some connections on some port
