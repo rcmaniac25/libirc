@@ -22,6 +22,7 @@
 // global includes
 #include <string>
 #include <vector>
+#include <map>
 
 // simple OS indpendent sleep function
 // used by so many things, so we have one here
@@ -57,17 +58,18 @@ struct BaseIRCCommandInfo
 // a normal Internet Relay Chat command
 struct IRCCommandINfo : public BaseIRCCommandInfo
 {
+	teIRCCommands						 ircCommand;
 	std::vector<std::string> params;
-	std::string prefix;
 };
 
 // a Client To Client Protocol command
 struct CTCPCommandINfo : public BaseIRCCommandInfo
 {
+	teCTCPCommands					 ctcpCommand;
 	std::vector<std::string> params;
 	std::string from;
 	std::string to;
-	bool request;
+	bool				request;
 };
 
 // a Direct Client Connect command
@@ -75,10 +77,9 @@ struct DCCCommandINfo : public BaseIRCCommandInfo
 {
 	std::string from;
 	std::string to;
-	bool request;
+	bool				request;
 	std::string data;
 };
-
 
 // base command handaler for any command
 class IRCClientCommandHandaler
@@ -88,13 +89,15 @@ public:
   virtual ~IRCClientCommandHandaler(){return;}
 
   // called when the system wishes to know the name of this command
-  virtual std::string getCommandName ( void ){return "NULL";}
+  virtual std::string getCommandName ( void ){return name;}
 
   // called when the client receves a command of this type
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
 
   // called when the user wishes to send a command of this type
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
+protected:
+	std::string name;
 };
 
 class IRCClient : public TCPClientDataPendingListener
@@ -118,36 +121,79 @@ public:
   virtual bool sendRaw ( std::string data );
 
   //command handaler methods
-  virtual bool registerCommandHandaler ( std::string command, IRCClientCommandHandaler &handaler );
-  virtual int listCommandHandalers ( std::vector<std::string> &commandList );
+	virtual bool registerCommandHandaler ( IRCClientCommandHandaler *handaler );
+	virtual bool removeCommandHandaler ( IRCClientCommandHandaler *handaler );
+	virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
+	virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
+
+	virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
+	virtual bool sendIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
+	virtual bool sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
 
 	// called by the TCP/IP connection when we get data
 	virtual void pending ( TCPClientConnection *connection, int count );
-
 
 	// debug API
 	virtual void setLogfile ( std::string file );
 	virtual void setDebugLevel ( int level );
 	virtual int getDebugLevel ( void );
 
-protected:
-	TCPClientConnection		*tcpClient;	
-	TCPConnection					&tcpConnection;
-	int										debugLogLevel;
-	std::string						logfile;
-
+	// tutilitys generaly used only by command handalers
 	// data sending stuff
 	bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
 	bool sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data);
 
+	// the most RAWEST data transfer
 	bool sendTextToServer ( std::string &text );
 
 	// utilitys
 	void log ( std::string &text, int level = 0 );
 	void log ( const char *text, int level = 0 );
 
+
+protected:
+	friend class IRCClientCommandHandaler;
+
+	TCPClientConnection		*tcpClient;	
+	TCPConnection					&tcpConnection;
+	int										debugLogLevel;
+	std::string						logfile;
+
+	// irc data
+	std::string						ircServerName;
+	unsigned short				ircServerPort;
+
 	// IRC "constants"
 	std::string		ircMessageTerminator;
+	std::string		ircCommandDelimator;
+
+	// the wonderfull connection state
+	typedef enum
+	{
+		eNotConnected = 0,
+		eTCPConenct,
+		eSentNickAndUSer,
+		eLogedIn,
+		eRegistered,
+		eInChannel,
+		eLastState
+	}teIRCConnectionState;
+
+	virtual teIRCConnectionState getConnectionState ( void ){return ircConenctonState;}
+	virtual void setConnectionState ( teIRCConnectionState state ){ircConenctonState = state;}
+
+	teIRCConnectionState	ircConenctonState;
+
+	// the command handalers
+	typedef std::map<std::string, IRCClientCommandHandaler*>	tmCommandHandalerMap;
+	typedef std::map<std::string, std::vector<IRCClientCommandHandaler*> >	tmUserCommandHandalersMap;
+
+	tmCommandHandalerMap			defaultCommandHandalers;
+	tmUserCommandHandalersMap	userCommandHandalers;
+
+	void addDefaultCommandhandalers ( IRCClientCommandHandaler* handaler );
+	void clearDefaultCommandhandalers ( void );
+	void registerDefaultCommandhandalers ( void );
 };
 
 #endif //_LIBIRC_H_

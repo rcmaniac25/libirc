@@ -13,6 +13,8 @@
 // implementation of main libIRC classes
 
 #include "libIRC.h"
+#include "ircBasicCommands.h"
+
 #ifndef _WIN32
 	#include <unistd.h>
 #else
@@ -36,11 +38,15 @@ void IRCOSSleep ( float fTime )
 IRCClient::IRCClient()
 :tcpConnection(TCPConnection::instance())
 {
+	registerDefaultCommandhandalers();
 	init();
 	tcpClient = NULL;
 
 	ircMessageTerminator = " \r\n";
+	ircCommandDelimator	 = " ";
 	debugLogLevel = 0;
+	ircServerPort = 6667;
+	ircConenctonState = eNotConnected;
 }
 
 IRCClient::~IRCClient()
@@ -71,14 +77,19 @@ bool IRCClient::init ( void )
 
 bool IRCClient::connect ( std::string server, int port )
 {
-	if (!tcpClient)
+	if (!tcpClient || !server.size())
 		return false;
 
-	unsigned short port2Use = 6667;
+	ircServerName = server;
+	ircServerPort = 6667;
 	if ( port > 0 )
-		port2Use = (unsigned short)port;
+		ircServerPort = (unsigned short)port;
 
-	return tcpClient->connect(server,port2Use) == eTCPNoError;
+	teTCPError err = tcpClient->connect(server,ircServerPort);
+
+	ircConenctonState = err == eTCPNoError ? eTCPConenct : eNotConnected;
+
+	return err == eTCPNoError;
 }
 
 bool IRCClient::login ( std::string &nick, std::string &username, std::string &fullname)
@@ -98,7 +109,29 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 	if (!fullname.size())
 		fullname = "Lazy libIRC programer";
 
-	return false;
+
+	IRCCommandINfo	info;
+	info.params.push_back(nick);
+
+	if (!sendIRCCommand(eCMD_NICK,info))
+	{
+		log("Login Failed: NICK command not sent",0);
+		return false;
+	}
+
+	info.params.clear();
+	info.params.push_back(username);
+	info.params.push_back(std::string("localhost"));
+	info.params.push_back(ircServerName);
+	info.params.push_back(fullname);
+
+	if (!sendIRCCommand(eCMD_USER,info))
+	{
+		log("Login Failed: USER command not sent",0);
+		return false;
+	}
+	ircConenctonState = eSentNickAndUSer;
+	return  true;
 }
 
 bool IRCClient::disconnect ( void )
@@ -128,18 +161,6 @@ bool IRCClient::sendRaw ( std::string data )
 	return false;
 }
 
-//command handaler methods
-bool IRCClient::registerCommandHandaler ( std::string command, IRCClientCommandHandaler &handaler )
-{
-	return false;
-}
-
-int IRCClient::listCommandHandalers ( std::vector<std::string> &commandList )
-{
-	commandList.clear();
-	return 0;
-}
-
 void IRCClient::pending ( TCPClientConnection *connection, int count )
 {
 	// we got some data, do something with it
@@ -148,12 +169,12 @@ void IRCClient::pending ( TCPClientConnection *connection, int count )
 
 bool IRCClient::sendIRCCommandToServer ( teIRCCommands	command, std::string &data)
 {
-	return sendTextToServer(ircCommandParser.getCommandName(command) + data);
+	return sendTextToServer(ircCommandParser.getCommandName(command) + ircCommandDelimator + data);
 }
 
 bool IRCClient::sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data)
 {
-	return sendTextToServer(ctcpCommandParser.getCommandName(command) + data);
+	return sendTextToServer(ctcpCommandParser.getCommandName(command) + ircCommandDelimator + data);
 }
 
 // utility methods
@@ -238,6 +259,157 @@ void IRCClient::setDebugLevel ( int level )
 int IRCClient::getDebugLevel ( void )
 {
 	return debugLogLevel;
+}
+
+// the command handalers
+/*typedef std::map<std::string, IRCClientCommandHandaler*>	tmCommandHandalerMap;
+typedef std::map<std::string, std::vector<IRCClientCommandHandaler*>>	tmUserCommandHandalersMap;
+
+tmCommandHandalerMap			defaultCommandHandalers;
+tmUserCommandHandalersMap	userCommandHandalers; */
+
+bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info )
+{
+	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(commandName);
+
+	if (commandListItr != userCommandHandalers.end() || !commandListItr->second.size())	// do we have a custom command handaler
+	{
+		// is this right?
+		// should we do them all? or just the first one that "HANDLES" it?
+		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
+		while (itr != commandListItr->second.end())
+		{
+			(*itr)->send(*this,commandName,info);
+			itr++;
+		}
+		return true;
+	}
+	else	// check for the default
+	{
+		tmCommandHandalerMap::iterator itr = defaultCommandHandalers.find(commandName);
+		if (itr != defaultCommandHandalers.end())
+		{
+			itr->second->send(*this,commandName,info);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool IRCClient::sendIRCCommand ( teIRCCommands	command, IRCCommandINfo &info )
+{
+	info.type = eIRCCommand;
+	info.ircCommand = command;
+	info.command = ircCommandParser.getCommandName(command);
+	return sendCommand(info.command,info);
+}
+
+bool IRCClient::sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info )
+{
+	info.type = eCTCPCommand;
+	info.ctcpCommand = command;
+	info.command = ctcpCommandParser.getCommandName(command);
+	return sendCommand(info.command,info);
+}
+
+
+bool IRCClient::registerCommandHandaler ( IRCClientCommandHandaler *handaler )
+{
+	if (!handaler)
+		return false;
+
+	std::string command = handaler->getCommandName();
+
+	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(command);
+	if (commandListItr == userCommandHandalers.end())
+	{
+		std::vector<IRCClientCommandHandaler*> handalerList;
+		handalerList.push_back(handaler);
+		userCommandHandalers[command] = handalerList;
+	}
+	else
+		commandListItr->second.push_back(handaler);
+
+	return true;
+}
+
+bool IRCClient::removeCommandHandaler ( IRCClientCommandHandaler *handaler )
+{
+	if (!handaler)
+		return false;
+
+	std::string command = handaler->getCommandName();
+
+	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(command);
+	if (commandListItr == userCommandHandalers.end())
+		return false;
+	else
+	{
+		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
+		while ( itr != commandListItr->second.end())
+		{
+			if (*itr == handaler)
+				itr = commandListItr->second.erase(itr);
+			else
+				itr++;
+		}
+	}
+
+	return true;
+}
+
+int IRCClient::listUserHandledCommands ( std::vector<std::string> &commandList )
+{
+	commandList.clear();
+
+	tmUserCommandHandalersMap::iterator	itr = userCommandHandalers.begin();
+
+	while (itr != userCommandHandalers.end())
+	{
+		commandList.push_back(itr->first);
+		itr++;
+	}
+	return (int)commandList.size();
+}
+
+int IRCClient::listDefaultHandledCommands ( std::vector<std::string> &commandList )
+{
+	commandList.clear();
+
+	tmCommandHandalerMap::iterator	itr = defaultCommandHandalers.begin();
+
+	while (itr != defaultCommandHandalers.end())
+	{
+		commandList.push_back(itr->first);
+		itr++;
+	}
+	return (int)commandList.size();
+}
+
+void IRCClient::addDefaultCommandhandalers ( IRCClientCommandHandaler* handaler )
+{
+	defaultCommandHandalers[handaler->getCommandName()] = handaler;
+}
+
+void IRCClient::clearDefaultCommandhandalers ( void )
+{
+	tmCommandHandalerMap::iterator	itr = defaultCommandHandalers.begin();
+
+	while (itr != defaultCommandHandalers.end())
+	{
+		delete(itr->second);
+		itr++;
+	}
+	defaultCommandHandalers.clear();
+}
+
+void IRCClient::registerDefaultCommandhandalers ( void )
+{
+	userCommandHandalers.clear();
+	clearDefaultCommandhandalers();
+
+	addDefaultCommandhandalers(new IRCNickCommand );
+	addDefaultCommandhandalers(new IRCUserCommand );
 }
 
 

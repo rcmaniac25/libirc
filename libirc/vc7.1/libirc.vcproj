@@ -109,49 +109,11 @@
 				RelativePath="..\src\libIRC.cpp">
 			</File>
 			<Filter
-				Name="old"
+				Name="commandHandalers"
 				Filter="">
 				<File
-					RelativePath="..\src\bufsock.cpp">
+					RelativePath="..\src\ircBasicCommands.cpp">
 				</File>
-				<File
-					RelativePath="..\src\ctcp.cpp">
-				</File>
-				<File
-					RelativePath="..\src\irc_core.cpp">
-				</File>
-				<File
-					RelativePath="..\src\irc_funcs.cpp">
-				</File>
-				<File
-					RelativePath="..\src\tcp.cpp">
-				</File>
-				<Filter
-					Name="containers"
-					Filter="">
-					<File
-						RelativePath="..\src\avltree.cpp">
-					</File>
-					<File
-						RelativePath="..\src\hashtable.cpp">
-					</File>
-					<File
-						RelativePath="..\src\list.cpp">
-					</File>
-					<File
-						RelativePath="..\src\map.cpp">
-					</File>
-				</Filter>
-				<Filter
-					Name="utils"
-					Filter="">
-					<File
-						RelativePath="..\src\trace.cpp">
-					</File>
-					<File
-						RelativePath="..\src\util.cpp">
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="networking"
@@ -190,66 +152,11 @@
 				RelativePath="..\src\Singleton.h">
 			</File>
 			<Filter
-				Name="old"
+				Name="commandHandalers"
 				Filter="">
 				<File
-					RelativePath="..\include\bufsock.h">
+					RelativePath="..\src\ircBasicCommands.h">
 				</File>
-				<File
-					RelativePath="..\include\cmd.h">
-				</File>
-				<File
-					RelativePath="..\include\conf.h">
-				</File>
-				<File
-					RelativePath="..\include\ctcp.h">
-				</File>
-				<File
-					RelativePath="..\include\defs.h">
-				</File>
-				<File
-					RelativePath="..\include\errcodes.h">
-				</File>
-				<File
-					RelativePath="..\include\funcptrs.h">
-				</File>
-				<File
-					RelativePath="..\include\hashtable.h">
-				</File>
-				<File
-					RelativePath="..\include\irc_core.h">
-				</File>
-				<File
-					RelativePath="..\include\irc_rpl.h">
-				</File>
-				<File
-					RelativePath="..\include\irc_version.h">
-				</File>
-				<File
-					RelativePath="..\include\macros_priv.h">
-				</File>
-				<File
-					RelativePath="..\include\tcp.h">
-				</File>
-				<File
-					RelativePath="..\include\trace.h">
-				</File>
-				<File
-					RelativePath="..\include\util.h">
-				</File>
-				<Filter
-					Name="containers"
-					Filter="">
-					<File
-						RelativePath="..\include\avltree.h">
-					</File>
-					<File
-						RelativePath="..\include\list.h">
-					</File>
-					<File
-						RelativePath="..\include\map.h">
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="networking"
