@@ -103,6 +103,12 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\src\IRCClient.cpp">
+			</File>
+			<File
+				RelativePath="..\src\IRCServer.cpp">
+			</File>
+			<File
 				RelativePath="..\src\libIRC.cpp">
 			</File>
 			<Filter
@@ -163,7 +169,13 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
+				RelativePath="..\include\IRCClient.h">
+			</File>
+			<File
 				RelativePath="..\include\IRCEvents.h">
+			</File>
+			<File
+				RelativePath="..\include\IRCServer.h">
 			</File>
 			<File
 				RelativePath="..\include\IRCUserManager.h">

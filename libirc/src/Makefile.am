@@ -13,6 +13,8 @@ libIRC_la_SOURCES = 	\
 	TextUtils.cxx	\
 	ircCommands.cpp	\
 	libIRC.cpp 		\
+	IRCClient.cpp 		\
+	IRCServer.cpp 		\
 	ircClientCommands.cpp \
 	ircClientEvents.cpp   \
 	ircBasicCommands.cpp
