@@ -600,6 +600,7 @@ dnl ***************************
 AC_CONFIG_FILES([
 	Makefile
 	include/Makefile
+	misc/Makefile
 	src/Makefile
 	src/sdl_net/Makefile
 ])
