@@ -70,6 +70,27 @@ IRCClient::IRCClient()
 	logHandaler = &defaultLoger;
 }
 
+// base message class
+
+BaseIRCCommandInfo::BaseIRCCommandInfo()
+{
+	type = eUnknown;command = "NULL";
+}
+
+BaseIRCCommandInfo::~BaseIRCCommandInfo()
+{
+	return;
+}
+
+void BaseIRCCommandInfo::parse ( std::string line )
+{
+}
+
+std::string BaseIRCCommandInfo::getAsString ( int pos )
+{
+	return std::string("");
+}
+
 IRCClient::~IRCClient()
 {
 	tcpConnection.kill();

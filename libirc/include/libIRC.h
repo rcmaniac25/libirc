@@ -44,35 +44,40 @@ typedef enum
 }commndInfoTypes;
 
 // base struct in witch all info structures are derived
-struct BaseIRCCommandInfo
+class BaseIRCCommandInfo
 {
-  BaseIRCCommandInfo(){type = eUnknown;command = "NULL";};
-  ~BaseIRCCommandInfo(){return;};
+public:
+  BaseIRCCommandInfo();
+  virtual ~BaseIRCCommandInfo();
+
+	void parse ( std::string line );
+	std::string getAsString ( int pos = 0 );
 
   commndInfoTypes	type;
   std::string command;
   std::string raw;
+	std::vector<std::string> params;
 };
 
 // a normal Internet Relay Chat command
-struct IRCCommandINfo : public BaseIRCCommandInfo
+class IRCCommandINfo : public BaseIRCCommandInfo
 {
+public:
 	teIRCCommands						 ircCommand;
-	std::vector<std::string> params;
 };
 
 // a Client To Client Protocol command
-struct CTCPCommandINfo : public BaseIRCCommandInfo
+class CTCPCommandINfo : public BaseIRCCommandInfo
 {
+public:
 	teCTCPCommands					 ctcpCommand;
-	std::vector<std::string> params;
 	std::string from;
 	std::string to;
 	bool				request;
 };
 
 // a Direct Client Connect command
-struct DCCCommandINfo : public BaseIRCCommandInfo
+class DCCCommandINfo : public BaseIRCCommandInfo
 {
 	std::string from;
 	std::string to;
