@@ -23,6 +23,14 @@
 
 typedef struct 
 {
+	std::string name;
+	std::string message;
+	bool				action;
+}trFactoid;
+typedef std::map<std::string,trFactoid>	factoidMap;
+typedef std::map<std::string,std::string> string_map;
+typedef struct 
+{
 	std::string server;
 	int					port;
 	string_list	nicks;
@@ -30,15 +38,103 @@ typedef struct
 	std::string host;
 	std::string realName;
 	string_list channels;
-	std::string	master;
+	string_list	masters;
+	string_list unknownResponces;
+	string_list	partMessages;
+	string_list	quitMessages;
+	factoidMap	factoids;
+	string_map	joinMessages;
+	std::string config;
 
-	std::map<std::string,std::string> joinMessages;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
 
 IRCClient	client;
 bool part = false;
+
+void readConfig ( std::string file )
+{
+	theBotInfo.config = file;
+	std::string config;
+
+	// read the file data
+	FILE *fp = fopen(file.c_str(),"rt");
+	if (!fp)
+		return;
+
+	fseek(fp,SEEK_END,0);
+	int len = ftell(fp);
+	fseek(fp,SEEK_SET,0);
+
+	char *data = (char*)malloc(len+1);
+	fread(data,len,1,fp);
+	fclose(fp);
+	data[len] = 0;
+	config = data;
+	free(data);
+
+	std::string lineEnd;
+#ifdef _WIN32
+	lineEnd = "/r/n";
+#else
+	lineEnd = "/n";
+#endif
+
+	string_list lines = string_util::tokenize(config,lineEnd);
+
+	string_list::iterator itr = lines.begin();
+
+	while( itr!= lines.end() )
+	{
+
+		string_list lineSections = string_util::tokenize(config,std::string(":"),1);
+
+		if (lineSections.size()>1)
+		{
+			std::string command = string_util::tolower(lineSections[0]);
+			std::string dataStr = lineSections[1];
+
+			string_list params = string_util::tokenize(dataStr,std::string(" "),0,true);
+
+			if (command == "nick")
+			{
+				theBotInfo.nicks.push_back(dataStr);
+			}
+			else if (command == "server")
+			{
+				theBotInfo.server = dataStr;
+			}
+			else if (command == "port")
+			{
+				theBotInfo.port = atoi(dataStr.c_str());
+			}
+			else if (command == "channel")
+			{
+				theBotInfo.channels.push_back(dataStr);
+			}
+			else if (command == "master")
+			{
+				theBotInfo.masters.push_back(dataStr);
+			}
+			else if (command == "joinmessage")
+			{
+				theBotInfo.joinMessages[params[0]] = dataStr;
+			}
+			else if (command == "dontknow")
+			{
+				if (dataStr[0] == "\"")
+					dataStr.erase(0,1);
+
+				if (dataStr[dataStr.size()-1] == "\"")
+					dataStr.erase(dataStr.end()-1);
+
+				theBotInfo.masters.push_back(dataStr);
+			}
+		}
+		itr++;
+	}
+}
 
 
 void login ( void )
