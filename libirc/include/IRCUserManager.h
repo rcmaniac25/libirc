@@ -24,6 +24,28 @@ class IRCChannelManager;
 
 typedef struct 
 {
+	std::string mode;
+	bool				ircOp;
+	bool				identified;
+	bool				invisible;
+	bool				wallops;
+	bool				inviteable;
+	bool				messageable;
+	bool				ctcpReceipt;
+	bool				away;
+	bool				idle;
+}trIRCUserPermisions;
+
+typedef struct 
+{
+	std::string mode;
+	bool				chanOp;
+	bool				voice;
+	bool				quieted;
+}trIRCChannelUserPermisions;
+
+typedef struct 
+{
 	int									id;
 	std::string					name;
 	trIRCUserPermisions	perms;

@@ -31,7 +31,8 @@ string_list trIRCUserRecord::getChannels ( void )
 
 IRCUserManager::IRCUserManager()
 {
-	channelManager = NULL;
+	//channelManager = NULL;
+	lastID = 0;
 	//tmIRCUserIDMap			users;
 	//tmIRCUserIDNameMap	usernames;
 }
@@ -46,21 +47,36 @@ int IRCUserManager::getUserID ( std::string &name )
 	tmIRCUserIDNameMap::iterator itr = usernames.find(name);
 	if ( itr == usernames.end())
 	{
-		trIRCUserRecord	user
-		return -1;
+		trIRCUserRecord	user;
+		
+		user.nick = name;
+		user.id = lastID++:
+		usernames[name] = user.id;
+		users[user.id] = user;
+		return user.id;
 	}
+	return itr->second;
 }
 
 trIRCUserRecord& IRCUserManager::getUserInfo ( int id )
 {
-
+	return users[id];
 }
 
 trIRCUserRecord& IRCUserManager::getUserInfo ( std::string &name )
 {
-
+	return getUserInfo(getUserID(name));
 }
 
-void IRCUserManager::userJoinChannel ( std::string &user, std::string &channel );
-void IRCUserManager::userPartChannel ( std::string &user, std::string &channel );
+void IRCUserManager::userJoinChannel ( std::string &user, std::string &channel )
+{
+		trIRCUserRecord& userRec = getUserInfo(user);
+
+		userRec.channels[c]
+}
+
+void IRCUserManager::userPartChannel ( std::string &user, std::string &channel )
+{
+
+}
 
