@@ -104,5 +104,6 @@ protected:
 };
 
 typedef std::vector<IRCChannel>	tvChannelList; 
+typedef std::map<std::string,IRCChannel>	tmChannelMap; 
 
 #endif // __IRC_CHANNELS_H__ 

@@ -234,6 +234,7 @@ bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIR
 				trMessageEventInfo	messageInfo;
 
 				messageInfo.eventType = eIRCNoticeEvent;
+				messageInfo.target = info.target;
 				messageInfo.source = info.source;
 				messageInfo.params = info.params;
 				messageInfo.message = info.getAsString();

@@ -19,7 +19,7 @@
 #include "ircCommands.h"
 #include "IRCEvents.h"
 #include "TCPConnection.h"
-//#include "IRCChannels.h"
+#include "IRCChannels.h"
 
 // global includes
 #include <string>
@@ -210,6 +210,9 @@ public:
 
 	void joinMessage ( BaseIRCCommandInfo	&info );
 
+	void setNick ( std::string text ) {nickname=text;}
+	std::string getNick ( void ) {return nickname;}
+
 protected:
 	friend class IRCClientCommandHandaler;
 
@@ -273,8 +276,8 @@ protected:
 
 	// info from the connection
 	std::string								MOTD;
-
-	//tvChannelList							channels;
+	std::string								nickname;
+	tmChannelMap							channels;
 };
 
 #endif //_LIBIRC_H_

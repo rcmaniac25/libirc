@@ -149,22 +149,10 @@
 				RelativePath="..\include\IRCChannels.h">
 			</File>
 			<File
-				RelativePath="..\include\ircCommands.h">
-			</File>
-			<File
 				RelativePath="..\include\IRCEvents.h">
 			</File>
 			<File
-				RelativePath="..\include\IRCNumerics.h">
-			</File>
-			<File
 				RelativePath="..\include\libIRC.h">
-			</File>
-			<File
-				RelativePath="..\src\Singleton.h">
-			</File>
-			<File
-				RelativePath="..\include\TextUtils.h">
 			</File>
 			<Filter
 				Name="commandHandalers"
@@ -189,6 +177,26 @@
 						RelativePath="..\src\sdl_net\SDLnetsys.h">
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="utils"
+				Filter="">
+				<File
+					RelativePath="..\src\Singleton.h">
+				</File>
+				<File
+					RelativePath="..\include\TextUtils.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="IRC Spec"
+				Filter="">
+				<File
+					RelativePath="..\include\ircCommands.h">
+				</File>
+				<File
+					RelativePath="..\include\IRCNumerics.h">
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

@@ -73,6 +73,7 @@ typedef struct trKickBanEventInfo : public trBaseEventInfo
 // message events, used for eIRCChannelMessageEvent, eIRCPrivateMessageEvent, eIRCNoticeEvent, eIRCWelcomeEvent
 typedef struct trMessageEventInfo : public trBaseEventInfo
 {
+	std::string	target;
 	std::string source;
 	std::string message;
 	std::vector<std::string> params;

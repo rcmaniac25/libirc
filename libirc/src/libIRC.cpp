@@ -99,6 +99,10 @@ void BaseIRCCommandInfo::parse ( std::string line )
 		target = params[0];
 		// pull off the command
 		params.erase(params.begin());
+
+		// pull off the :
+		if (target.c_str()[0] == ':')
+			target.erase(target.begin());
 	}
 	else
 		target = "NULL";
@@ -146,6 +150,7 @@ IRCClient::~IRCClient()
 // general connection methods
 bool IRCClient::init ( void )
 {
+	nickname = "";
 	// if any old conenctions are around, kill em
 	if (tcpClient)
 		tcpConnection.deleteClientConnection(tcpClient);
@@ -774,6 +779,8 @@ void IRCClient::noticeMessage ( trMessageEventInfo	&info )
 
 void IRCClient::welcomeMessage ( trMessageEventInfo	&info )
 {
+	setNick(info.target);
+
 	// we know we are conencted here
 	if (getConnectionState() < eLogedIn)
 		setConnectionState(eLogedIn);
@@ -793,7 +800,20 @@ void IRCClient::endMOTD ( void )
 
 void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 {
+	string_list		goodies = string_util::tokenize(info.source,std::string("!"));
 
+	std::string who = goodies[0];
+
+	if (who == getNick())	// we joined a channel
+	{	
+		IRCChannel	channel;
+		channel.setName(info.target);
+		channels[channel.getName()] = channel;
+	}
+	else	// someone else joined a channel we are in
+	{
+		//channels[info.target].join()
+	}
 }
 
 // Local Variables: ***
