@@ -22,6 +22,13 @@
 
 typedef struct 
 {
+	std::string mask;
+	std::string from;
+	std::string date;
+}trIRCBanListItem;
+
+typedef struct 
+{
 	std::string mode;
 	bool				ircOp;
 	bool				identified;
@@ -69,6 +76,7 @@ typedef struct
 	std::string															lastMessage;
 	int																			lastMessageUser;
 	std::string															topic;
+	std::vector<trIRCBanListItem>						banList;														
 }trIRCChannelRecord;
 
 typedef struct 
@@ -167,6 +175,9 @@ public:
 		std::string getChannelLastMessageUserName ( int id );
 		std::string getChannelLastMessageUserName ( std::string &channel );
 
+		std::vector<trIRCBanListItem>	getChannelBanList ( int channel );
+		std::vector<trIRCBanListItem>	getChannelBanList ( std::string &channel );
+
 		std::vector<int> listChannelUsers ( int id );
 		std::vector<int> listChannelsUser ( std::string &name );
 		std::vector<std::string> listChanneUserlNames ( int id );
@@ -194,6 +205,15 @@ public:
 
 		void removeChannel ( int channel );
 		void removeChannel ( std::string channel );
+
+		void addBan ( int channel, std::string &mask, std::string &from, std::string &date );
+		void addBan ( std::string channel, std::string &mask, std::string &from, std::string &date );
+
+		void removeBan ( int channel, std::string &mask );
+		void removeBan ( std::string channel, std::string &mask );
+
+		void clearBans ( int channel );
+		void clearBans ( std::string channel );
 
 		// utilitys
 		void purgeNonChannelUsers ( void );
