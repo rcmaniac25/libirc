@@ -2,11 +2,8 @@
 
 SUBDIRS = \
 	include \
-	src
-
-DIST_SUBDIRS = \
 	misc \
-	tests \
+	src \
 	vc7.1
 
 EXTRA_DIST = \
