@@ -493,6 +493,13 @@ void privateMessage ( trMessageEventInfo *info )
 	}
 }
 
+void userKicked (trKickBanEventInfo *info)
+{
+	std::string	message = "whoa, ";
+	message += info->user + " got kiced by " + info->kicker + " for " + info->reason + " that has to suck!";
+	client.sendMessage(info->channel,message);
+}
+
 class myEventCaller : public IRCBasicEventCallback
 {
 public:
@@ -523,6 +530,10 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			channelMessage ((trMessageEventInfo*)&info);
 			break;
 
+		case eIRCUserKickedEvent:
+			userKicked ((trKickBanEventInfo*)&info);
+			break;
+
 		case eIRCNickNameError:
 			theBotInfo.nick++;
 			if (theBotInfo.nick < (int)theBotInfo.nicks.size())
@@ -551,7 +562,7 @@ void registerEventHandlers ( void )
 	client.registerEventHandler(eIRCChannelMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCNickNameError,&eventHandler);
 	client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
-
+	client.registerEventHandler(eIRCUserKickedEvent,&eventHandler);
 }
 
 void initInfo ( std::string config )
@@ -745,7 +756,7 @@ bool rawCommand::command ( std::string command, std::string source, std::string 
 
 	int	paramOffset = privMsg ? 0 : 1;
 
-	std::string text = info->getAsString(1+privMsg);
+	std::string text = info->getAsString(1+paramOffset);
 	client.sendTextToServer(text);
 	return true;
 }
@@ -1239,6 +1250,102 @@ bool chanInfoCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
+class helpCommand : public botCommandHandaler
+{
+public:
+	helpCommand() {name = "help";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool helpCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	tmBotCommandHandalerMap::iterator itr = botCommands.begin();
+	std::string message = "Current commands;";
+
+	while (itr != botCommands.end())
+	{
+		message += std::string(" ") + itr->first;
+		itr++;
+	}
+	
+	client.sendMessage(respondTo,message);
+
+	return true;
+}
+
+class factoidListCommand : public botCommandHandaler
+{
+public:
+	factoidListCommand() {name = "factoidlist";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool factoidListCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	factoidMap::iterator itr = theBotInfo.factoids.begin();
+	std::string message = "Current factoids;";
+
+	while (itr != theBotInfo.factoids.end())
+	{
+		message += std::string(" ") + itr->first;
+		itr++;
+	}
+
+	client.sendMessage(respondTo,message);
+
+	return true;
+}
+
+class kickCommand : public botCommandHandaler
+{
+public:
+	kickCommand() {name = "kick";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool kickCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(respondTo,"You're not the boss of me");
+		return true;
+	}
+
+	std::string bastard;
+	std::string channel;
+	std::string reason;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<4)
+			client.sendMessage(respondTo,"Usage: kick SOME_CHANNEL SOME_POOR_BASTARD SOME_LAME_REASON");
+		else
+		{
+			bastard = info->params[1];
+			channel = info->params[2];
+			reason = info->getAsString(3);
+		}
+	}
+	else
+	{
+		if ( info->params.size()<5)
+			client.sendMessage(respondTo,"Usage: kick SOME_CHANNEL SOME_POOR_BASTARD SOME_LAME_REASON");
+		else{
+			bastard = info->params[2];
+			channel = info->params[3];
+			reason = info->getAsString(4);
+		}
+	}
+
+	if (bastard.size())
+	{
+		client.sendMessage(respondTo,std::string("OK ") + from);
+
+		client.kick(bastard,channel,reason);
+	}
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -1259,6 +1366,9 @@ void registerBotCommands ( void )
 	installBotCommand(new chanPermsCommand);
 	installBotCommand(new userInfoCommand);
 	installBotCommand(new chanInfoCommand);
+	installBotCommand(new helpCommand);
+	installBotCommand(new factoidListCommand);
+	installBotCommand(new kickCommand);
 }
 
 
