@@ -33,7 +33,7 @@ void IRCOSSleep ( float fTime );
 // need this later
 class IRCClient;
 
-// info that is passed to a command handaler
+// info that is passed to a command handler
 // handles standard commands and CTCP
 
 // the types of command info structures
@@ -91,12 +91,12 @@ class DCCCommandINfo : public BaseIRCCommandInfo
 	std::string data;
 };
 
-// base command handaler for any command
-class IRCClientCommandHandaler
+// base command handler for any command
+class IRCClientCommandHandler
 {
 public:
-  IRCClientCommandHandaler(){return;}
-  virtual ~IRCClientCommandHandaler(){return;}
+  IRCClientCommandHandler(){return;}
+  virtual ~IRCClientCommandHandler(){return;}
 
   // called when the system wishes to know the name of this command
   virtual std::string getCommandName ( void ){return name;}
@@ -113,10 +113,10 @@ protected:
 	std::string name;
 };
 
-class IRCClientLogHandaler
+class IRCClientLogHandler
 {
 public:
-	virtual ~IRCClientLogHandaler(){return;}
+	virtual ~IRCClientLogHandler(){return;}
 	virtual void log ( IRCClient &client, int level, std::string line ) = 0;
 };
 
@@ -127,7 +127,7 @@ public:
 	virtual ~IRCClient();
 
 	// loging
-	void	setLogHandaler ( IRCClientLogHandaler * loger );
+	void	setLogHandler ( IRCClientLogHandler * loger );
 
 	virtual void setLogfile ( std::string file );
 	virtual std::string  getLogfile ( void );
@@ -153,18 +153,18 @@ public:
 	// virtual string_utils::string_list listUsers ( std::string channel );
 	virtual string_list listChanels ( void );
 
-	//event handaler methods.... for higher level API
-	virtual bool registerEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler );
-	virtual bool removeEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler );
-	virtual void callEventHandaler ( teIRCEventType eventType, trBaseEventInfo &info );
+	//event handler methods.... for higher level API
+	virtual bool registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
+	virtual bool removeEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
+	virtual void callEventHandler ( teIRCEventType eventType, trBaseEventInfo &info );
 
-  //command handaler methods... for lower level API
-	virtual bool registerCommandHandaler ( IRCClientCommandHandaler *handaler );
-	virtual bool removeCommandHandaler ( IRCClientCommandHandaler *handaler );
+  //command handler methods... for lower level API
+	virtual bool registerCommandHandler ( IRCClientCommandHandler *handler );
+	virtual bool removeCommandHandler ( IRCClientCommandHandler *handler );
 	virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
 	virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
 
-	// command sending and receving methods called by handalers
+	// command sending and receving methods called by handlers
 	virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
 	virtual bool sendIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
 	virtual bool sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
@@ -179,7 +179,7 @@ public:
 	// called by the TCP/IP connection when we get data
 	virtual void pending ( TCPClientConnection *connection, int count );
 
-	// tutilitys generaly used only by command handalers
+	// tutilitys generaly used only by command handlers
 	// data sending stuff
 	virtual bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
 	virtual bool sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data);
@@ -216,11 +216,11 @@ public:
 
 	void nickNameError ( int error, std::string message );
 
-	// used by the defalt event handalers
+	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
 
 protected:
-	friend class IRCClientCommandHandaler;
+	friend class IRCClientCommandHandler;
 
 	// networking
 	TCPClientConnection		*tcpClient;	
@@ -256,30 +256,30 @@ protected:
 	// receved data processing
 	void processIRCLine ( std::string line );
 
-	// the command handalers
-	typedef std::map<std::string, IRCClientCommandHandaler*>	tmCommandHandalerMap;
-	typedef std::map<std::string, std::vector<IRCClientCommandHandaler*> >	tmUserCommandHandalersMap;
+	// the command handlers
+	typedef std::map<std::string, IRCClientCommandHandler*>	tmCommandHandlerMap;
+	typedef std::map<std::string, std::vector<IRCClientCommandHandler*> >	tmUserCommandHandlersMap;
 
-	tmCommandHandalerMap			defaultCommandHandalers;
-	tmUserCommandHandalersMap	userCommandHandalers;
+	tmCommandHandlerMap			defaultCommandHandlers;
+	tmUserCommandHandlersMap	userCommandHandlers;
 
-	void addDefaultCommandhandalers ( IRCClientCommandHandaler* handaler );
-	void clearDefaultCommandhandalers ( void );
-	void registerDefaultCommandhandalers ( void );
+	void addDefaultCommandhandlers ( IRCClientCommandHandler* handler );
+	void clearDefaultCommandhandlers ( void );
+	void registerDefaultCommandhandlers ( void );
 
-	// event handalers
-	tmIRCEventMap							defaultEventHandalers;
-	tmIRCEventListMap					userEventHandalers;
+	// event handlers
+	tmIRCEventMap							defaultEventHandlers;
+	tmIRCEventListMap					userEventHandlers;
 
-	void addDefaultEventHandalers ( teIRCEventType eventType, IRCBasicEventCallback* handaler );
-	void clearDefaultEventHandalers ( void );
-	void registerDefaultEventHandalers ( void );
+	void addDefaultEventHandlers ( teIRCEventType eventType, IRCBasicEventCallback* handler );
+	void clearDefaultEventHandlers ( void );
+	void registerDefaultEventHandlers ( void );
 
 	// user management
 	trIRCUser& getUserRecord ( std::string name );
 
 	// loging
-	IRCClientLogHandaler			*logHandaler;
+	IRCClientLogHandler			*logHandler;
 	std::string								logfile;
 	int												debugLogLevel;
 
