@@ -243,7 +243,7 @@ void saveConfig ( void )
 
 	std::string lineEnd;
 #ifdef _WIN32
-	lineEnd = "\r\n";
+	lineEnd = "\n";
 #else
 	lineEnd = "\n";
 #endif
