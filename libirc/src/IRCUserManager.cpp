@@ -46,7 +46,6 @@ std::string mergeModes ( std::string mode, std::string modMode )
 	return newMode;
 }
 
-
 IRCUserManager::IRCUserManager()
 {
 	//std::map<int,trIRCUserRecord>	users;
@@ -491,6 +490,17 @@ std::vector<std::string> IRCUserManager::listChannelUserNames ( std::string &nam
 	return userList;
 }
 
+std::vector<trIRCBanListItem>	IRCUserManager::getChannelBanList ( int channel )
+{
+	return getChannelInfo(channel).banList;
+}
+
+std::vector<trIRCBanListItem>	IRCUserManager::getChannelBanList ( std::string &channel )
+{
+	return getChannelInfo(channel).banList;
+}
+
+
 // state update from the IRC data stream
 void IRCUserManager::userJoinChannel ( int user,  int channel )
 {
@@ -754,6 +764,68 @@ void IRCUserManager::removeChannel ( std::string channel )
 		removeChannel(getChannelID(channel));
 }
 
+void IRCUserManager::addBan ( int channel, std::string &mask, std::string &from, std::string &date )
+{
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+
+	trIRCBanListItem	ban;
+	ban.mask = string_util::tolower(mask);
+	ban.from = from;
+	ban.date = date;
+
+	if (findBan(ban,channelRecord.banList) == -1)
+		channelRecord.banList.push_back(ban);
+}
+
+void IRCUserManager::addBan ( std::string channel, std::string &mask, std::string &from, std::string &date )
+{
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+
+	trIRCBanListItem	ban;
+	ban.mask = string_util::tolower(mask);
+	ban.from = from;
+	ban.date = date;
+
+	if (findBan(ban,channelRecord.banList) == -1)
+		channelRecord.banList.push_back(ban);
+}
+
+void IRCUserManager::removeBan ( int channel, std::string &mask )
+{
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+
+	trIRCBanListItem	ban;
+	ban.mask = mask;
+	
+	int banFind = findBan(ban,channelRecord.banList);
+	if ( banFind != -1)
+		channelRecord.banList.erase(channelRecord.banList.begin()+banFind);
+}
+
+void IRCUserManager::removeBan ( std::string channel, std::string &mask )
+{
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+
+	trIRCBanListItem	ban;
+	ban.mask = mask;
+
+	int banFind = findBan(ban,channelRecord.banList);
+	if ( banFind != -1)
+		channelRecord.banList.erase(channelRecord.banList.begin()+banFind);
+}
+
+void IRCUserManager::clearBans ( int channel )
+{
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+	channelRecord.banList.clear();
+}
+
+void IRCUserManager::clearBans ( std::string channel )
+{
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+	channelRecord.banList.clear();
+}
+
 
 // utilitys
 void IRCUserManager::purgeNonChannelUsers ( void )
@@ -960,6 +1032,21 @@ void IRCUserManager::removeUser ( std::string name )
 {
 	if (userExists(name))
 		removeUser(getUserID(name));
+}
+
+int IRCUserManager::findBan (trIRCBanListItem &ban, std::vector<trIRCBanListItem> &banList )
+{
+	std::vector<trIRCBanListItem>::iterator	itr = banList.begin();
+
+	int item = 0;
+	while ( itr != banList.end() )
+	{
+		if ( itr->mask == string_util::tolower(ban.mask) )
+			return item;
+		item++;
+		itr++;
+	}
+	return -1;
 }
 
 

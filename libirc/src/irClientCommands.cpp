@@ -178,3 +178,143 @@ bool IRCClient::kick ( std::string user, std::string channel, std::string reason
 
 	return true;
 }
+
+bool IRCClient::ban ( std::string mask, std::string channel )
+{
+	return mode(std::string("+b"),channel,mask);
+}
+
+bool IRCClient::unban ( std::string mask, std::string channel )
+{
+	return mode(std::string("-b"),channel,mask);
+}
+
+bool IRCClient::mode ( std::string theMode, std::string target, std::string option )
+{	
+	// we need to have at LEAST sent the username and stuff
+	if (getConnectionState() < eSentNickAndUSer)
+		return false;
+
+	IRCCommandINfo	info;
+	info.target = target;
+	info.params.push_back(theMode);
+	if (option.size())
+		info.params.push_back(option);
+
+	sendIRCCommand(eCMD_MODE,info);
+	return true;
+}
+
+bool IRCClient::voice ( std::string user, std::string channel )
+{
+	return mode(std::string("+v"),channel,user);
+}
+
+bool IRCClient::devoice ( std::string user, std::string channel )
+{
+	return mode(std::string("-v"),channel,user);
+}
+
+bool IRCClient::op ( std::string user, std::string channel )
+{
+	return mode(std::string("+v"),channel,user);
+}
+
+bool IRCClient::deop ( std::string user, std::string channel )
+{
+	return mode(std::string("-v"),channel,user);
+}
+
+bool IRCClient::quiet ( std::string user, std::string channel )
+{
+	return mode(std::string("+q"),channel,user);
+}
+
+bool IRCClient::unquiet ( std::string user, std::string channel )
+{
+	return mode(std::string("-q"),channel,user);
+}
+
+// channel modes
+bool IRCClient::privateChannel ( std::string channel )
+{
+	return mode(std::string("+p"),channel,std::string(""));
+}
+
+bool IRCClient::unprivateChannel ( std::string channel )
+{
+	return mode(std::string("-p"),channel,std::string(""));
+}
+
+bool IRCClient::moderateChannel ( std::string channel )
+{
+	return mode(std::string("+m"),channel,std::string(""));
+}
+
+bool IRCClient::unmoderateChannel ( std::string channel )
+{
+	return mode(std::string("-m"),channel,std::string(""));
+}
+
+bool IRCClient::secretChannel ( std::string channel )
+{
+	return mode(std::string("+s"),channel,std::string(""));
+}
+
+bool IRCClient::unsecretChannel ( std::string channel )
+{
+	return mode(std::string("-s"),channel,std::string(""));
+}
+
+bool IRCClient::messageLockChannel ( std::string channel )
+{
+	return mode(std::string("+n"),channel,std::string(""));
+}
+
+bool IRCClient::unmessageLockChannel ( std::string channel )
+{
+	return mode(std::string("-n"),channel,std::string(""));
+}
+
+bool IRCClient::topicLockChannel ( std::string channel )
+{
+	return mode(std::string("+t"),channel,std::string(""));
+}
+
+bool IRCClient::untopicLockChannel ( std::string channel )
+{
+	return mode(std::string("-t"),channel,std::string(""));
+}
+
+bool IRCClient::inviteLockChannel ( std::string channel )
+{
+	return mode(std::string("+i"),channel,std::string(""));
+}
+
+bool IRCClient::uninviteLockChannel ( std::string channel )
+{
+	return mode(std::string("-i"),channel,std::string(""));
+}
+
+bool IRCClient::setChannelUserLimit ( std::string channel, int limit )
+{
+	return mode(std::string("+l"),channel,string_util::format("%d",limit));
+}
+
+bool IRCClient::removeChannelUserLimit ( std::string channel )
+{
+	return mode(std::string("-l"),channel,std::string(""));
+}
+
+bool IRCClient::setChannelKey ( std::string channel, std::string key )
+{
+	return mode(std::string("+k"),channel,key);
+}
+
+bool IRCClient::removeChannelKey ( std::string channel )
+{
+	return mode(std::string("-k"),channel,std::string(""));
+}
+
+
+

@@ -29,6 +29,7 @@
 // simple OS indpendent sleep function
 // used by so many things, so we have one here
 void IRCOSSleep ( float fTime );
+std::string getTimeStamp ( void );
 
 // need this later
 class IRCClient;
@@ -157,6 +158,35 @@ public:
 
 	// IRC chanops
 	virtual bool kick ( std::string user, std::string channel, std::string reason );
+
+	virtual bool mode ( std::string theMode, std::string target, std::string option );
+	// user modes in chanel
+	virtual bool ban ( std::string mask, std::string channel );
+	virtual bool unban ( std::string mask, std::string channel );
+	virtual bool voice ( std::string user, std::string channel );
+	virtual bool devoice ( std::string user, std::string channel );
+	virtual bool op ( std::string user, std::string channel );
+	virtual bool deop ( std::string user, std::string channel );
+	virtual bool quiet ( std::string user, std::string channel );
+	virtual bool unquiet ( std::string user, std::string channel );
+	// channel modes
+	virtual bool privateChannel ( std::string channel );
+	virtual bool unprivateChannel ( std::string channel );
+	virtual bool moderateChannel ( std::string channel );
+	virtual bool unmoderateChannel ( std::string channel );
+	virtual bool secretChannel ( std::string channel );
+	virtual bool unsecretChannel ( std::string channel );
+	virtual bool messageLockChannel ( std::string channel );
+	virtual bool unmessageLockChannel ( std::string channel );
+	virtual bool topicLockChannel ( std::string channel );
+	virtual bool untopicLockChannel ( std::string channel );
+	virtual bool inviteLockChannel ( std::string channel );
+	virtual bool uninviteLockChannel ( std::string channel );
+	virtual bool setChannelUserLimit ( std::string channel, int limit );
+	virtual bool removeChannelUserLimit ( std::string channel );
+	virtual bool setChannelKey ( std::string channel, std::string key );
+	virtual bool removeChannelKey ( std::string channel );
+
 
 	// IRC info operations
 	virtual string_list listUsers ( std::string channel );

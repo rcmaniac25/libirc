@@ -116,23 +116,50 @@ void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic,
 void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 {
 	std::string who = info.target;
+
 	trModeEventInfo	modeInfo;
+	modeInfo.eventType = eIRCNULLEvent;
+
+	trKickBanEventInfo	banInfo;
+	banInfo.eventType = eIRCNULLEvent;
+
 	modeInfo.target = who;
+	banInfo.channel = who;
+
+	std::string mode = info.params[1];
 
 	// figure out who the message is from, is it form a channel or from a dude
 	if (who[0] == '#' )
 	{
-		userManager.modeReceved(who,info.source,info.getAsString(1));
-		modeInfo.from = info.source;
-		modeInfo.mode = info.params[1];
-
-		if (info.params.size() > 1)	// if there is mor then one param then it's a mode change for a user
+		if (string_util::charExists(mode,'b'))	// it's a ban!
 		{
-			modeInfo.eventType = eIRCChannelUserModeSet;
-			modeInfo.message = info.getAsString(2);
+			bool add = mode[0] == '+';
+			banInfo.eventType = eIRCChannelBanEvent;
+
+			std::string banMask = info.params[2];
+			if (add)
+				userManager.addBan(who,banMask,info.source,getTimeStamp());
+			else	
+				userManager.removeBan(who,banMask)
+
+			banInfo.reason = "ban";
+			banInfo.user = banMask;
+			banInfo.kicker = info.source;
 		}
-		else
-			modeInfo.eventType = eIRCChannelModeSet;
+		else	// it's some mode for the channel
+		{
+			userManager.modeReceved(who,info.source,mode);
+			modeInfo.from = info.source;
+			modeInfo.mode = mode;
+
+			if (info.params.size() > 1)	// if there is mor then one param then it's a mode change for a user
+			{
+				modeInfo.eventType = eIRCChannelUserModeSet;
+				modeInfo.message = info.getAsString(2);
+			}
+			else
+				modeInfo.eventType = eIRCChannelModeSet;
+		}
 	}
 	else	// it's amode for a user ( like US )
 	{
@@ -141,7 +168,11 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 		userManager.modeReceved(who,info.source,info.getAsString(1));
 	}
 
-	callEventHandler(modeInfo.eventType,modeInfo);
+	if(modeInfo.eventType != eIRCNULLEvent)
+		callEventHandler(modeInfo.eventType,modeInfo);
+
+	if(banInfo.eventType != eIRCNULLEvent)
+		callEventHandler(banInfo.eventType,banInfo);
 }
 
 void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )

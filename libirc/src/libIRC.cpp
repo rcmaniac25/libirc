@@ -30,7 +30,39 @@
 	#include <unistd.h>
 #else
 	#include <windows.h>
+	#include <time.h>
+	#include <stdio.h>
 #endif
+
+// sleep util
+void IRCOSSleep ( float fTime )
+{
+#ifdef _WIN32
+	Sleep((DWORD)(1000.0f * fTime));
+#else
+	usleep((unsigned int )(100000 * fTime));
+#endif
+}
+
+
+std::string getTimeStamp ( void )
+{
+	std::string timeString;
+
+#ifdef _WIN32
+	struct tm *newtime;
+	time_t aclock;
+
+	time( &aclock );   // Get time in seconds
+	newtime = localtime( &aclock );   // Convert time to struct tm form 
+
+	/* Print local time as a string */
+	timeString = asctime( newtime );
+#endif//_WIN32
+
+	return timeString;
+}
+
 
 class DefaultIRCLogHandler : public IRCClientLogHandler
 {
@@ -54,16 +86,6 @@ public:
 };
 
 DefaultIRCLogHandler	defaultLoger;
-
-// sleep util
-void IRCOSSleep ( float fTime )
-{
-#ifdef _WIN32
-	Sleep((DWORD)(1000.0f * fTime));
-#else
-	usleep((unsigned int )(100000 * fTime));
-#endif
-}
 
 
 // base message class

@@ -244,6 +244,8 @@ protected:
 	void removeUser ( int user );
 	void removeUser ( std::string name );
 
+	int findBan (trIRCBanListItem &ban, std::vector<trIRCBanListItem> &banList );
+
 	std::map<int,trIRCUserRecord>	users;
 	std::map<int,trIRCChannelRecord> channels;
 

@@ -240,7 +240,16 @@ bool IRCModeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 bool IRCModeCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
   // MODE TARGET modes
-  client.sendIRCCommandToServer(eCMD_MODE, info.target);
+	std::string modeline = info.target;
+
+	if ( info.params.size())
+	{
+		modeline+= delim + info.params[0];
+
+		if ( info.params.size() > 1)
+			modeline+= delim + info.params[1];
+	}
+  client.sendIRCCommandToServer(eCMD_MODE, modeline);
   return true;
 }
 
