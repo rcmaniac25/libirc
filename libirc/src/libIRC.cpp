@@ -56,7 +56,7 @@ bool IRCClient::send ( std::string command, std::string target, std::string data
 	return false;
 }
 
-bool IRCClient::send ( std::string &command, IRCCommandInfo &info )
+bool IRCClient::send ( std::string &command, BaseIRCCommandInfo &info )
 {
 	return false;
 }

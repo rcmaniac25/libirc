@@ -15,6 +15,7 @@ libIRC_la_SOURCES = \
 	map.cpp \
 	tcp.cpp \
 	trace.cpp \
+	TCPConnection.cpp \
 	util.cpp
 
 libIRC_la_CPPFLAGS = -DCALLBACK_COLLECTION_IS_AVLTREE

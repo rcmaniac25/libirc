@@ -20,6 +20,7 @@ include_HEADERS = \
 	map.h \
 	tcp.h \
 	trace.h \
+	TCPConnection.h \
 	util.h
 
 noinst_HEADERS = \

@@ -109,16 +109,10 @@
 				Name="old"
 				Filter="">
 				<File
-					RelativePath="..\src\avltree.cpp">
-				</File>
-				<File
 					RelativePath="..\src\bufsock.cpp">
 				</File>
 				<File
 					RelativePath="..\src\ctcp.cpp">
-				</File>
-				<File
-					RelativePath="..\src\hashtable.cpp">
 				</File>
 				<File
 					RelativePath="..\src\irc_core.cpp">
@@ -127,19 +121,40 @@
 					RelativePath="..\src\irc_funcs.cpp">
 				</File>
 				<File
-					RelativePath="..\src\list.cpp">
-				</File>
-				<File
-					RelativePath="..\src\map.cpp">
-				</File>
-				<File
 					RelativePath="..\src\tcp.cpp">
 				</File>
+				<Filter
+					Name="containers"
+					Filter="">
+					<File
+						RelativePath="..\src\avltree.cpp">
+					</File>
+					<File
+						RelativePath="..\src\hashtable.cpp">
+					</File>
+					<File
+						RelativePath="..\src\list.cpp">
+					</File>
+					<File
+						RelativePath="..\src\map.cpp">
+					</File>
+				</Filter>
+				<Filter
+					Name="utils"
+					Filter="">
+					<File
+						RelativePath="..\src\trace.cpp">
+					</File>
+					<File
+						RelativePath="..\src\util.cpp">
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="networking"
+				Filter="">
 				<File
-					RelativePath="..\src\trace.cpp">
-				</File>
-				<File
-					RelativePath="..\src\util.cpp">
+					RelativePath="..\src\TCPConnection.cpp">
 				</File>
 			</Filter>
 		</Filter>
@@ -155,9 +170,6 @@
 			<Filter
 				Name="old"
 				Filter="">
-				<File
-					RelativePath="..\include\avltree.h">
-				</File>
 				<File
 					RelativePath="..\include\bufsock.h">
 				</File>
@@ -192,13 +204,7 @@
 					RelativePath="..\include\irc_version.h">
 				</File>
 				<File
-					RelativePath="..\include\list.h">
-				</File>
-				<File
 					RelativePath="..\include\macros_priv.h">
-				</File>
-				<File
-					RelativePath="..\include\map.h">
 				</File>
 				<File
 					RelativePath="..\include\tcp.h">
@@ -208,6 +214,26 @@
 				</File>
 				<File
 					RelativePath="..\include\util.h">
+				</File>
+				<Filter
+					Name="containers"
+					Filter="">
+					<File
+						RelativePath="..\include\avltree.h">
+					</File>
+					<File
+						RelativePath="..\include\list.h">
+					</File>
+					<File
+						RelativePath="..\include\map.h">
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="networking"
+				Filter="">
+				<File
+					RelativePath="..\include\TCPConnection.h">
 				</File>
 			</Filter>
 		</Filter>

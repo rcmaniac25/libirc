@@ -27,21 +27,54 @@ class IRCClient;
 
 // info that is passed to a command handaler
 // handles standard commands and CTCP
-class IRCCommandInfo
-{
-public:
-  IRCCommandInfo(){ctcp = false;request = false;};
-  ~IRCCommandInfo(){return;};
 
-  std::vector<std::string> params;
+// the types of command info structures
+typedef enum
+{
+	eUnknown = 0,
+	eIRCCommand,
+	eCTCPCommand,
+	eDDECommand
+}commndInfoTypes;
+
+// base struct in witch all info structures are derived
+struct BaseIRCCommandInfo
+{
+  BaseIRCCommandInfo(){type = eUnknown;command = "NULL";};
+  ~BaseIRCCommandInfo(){return;};
+
+  commndInfoTypes	type;
   std::string command;
-  std::string prefix;
-  bool ctcp;
-  std::string from;
-  std::string to;
-  bool request;
+  std::string raw;
 };
 
+// a normal Internet Relay Chat command
+struct IRCCommandINfo : public BaseIRCCommandInfo
+{
+	std::vector<std::string> params;
+	std::string prefix;
+};
+
+// a Client To Client Protocol command
+struct CTCPCommandINfo : public BaseIRCCommandInfo
+{
+	std::vector<std::string> params;
+	std::string from;
+	std::string to;
+	bool request;
+};
+
+// a Direct Client Connect command
+struct DCCCommandINfo : public BaseIRCCommandInfo
+{
+	std::string from;
+	std::string to;
+	bool request;
+	std::string data;
+};
+
+
+// base command handaler for any command
 class IRCClientCommandHandaler
 {
 public:
@@ -52,10 +85,10 @@ public:
   virtual std::string getCommandName ( void ){return "NULL";}
 
   // called when the client receves a command of this type
-  virtual bool receve ( IRCClient &client, std::string &command, IRCCommandInfo	&info ){return false;}
+  virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
 
   // called when the user wishes to send a command of this type
-  virtual bool send ( IRCClient &client, std::string &command, IRCCommandInfo	&info ){return false;}
+  virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
 };
 
 class IRCClient
@@ -75,7 +108,7 @@ public:
 
   // sending commands
   bool send ( std::string command, std::string target, std::string data );
-  bool send ( std::string &command, IRCCommandInfo &info );
+  bool send ( std::string &command, BaseIRCCommandInfo &info );
   bool sendRaw ( std::string data );
 
   //command handaler methods
