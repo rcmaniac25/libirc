@@ -26,14 +26,14 @@ IRCALLCommand::IRCALLCommand()
 bool IRCALLCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
 	// just log it out
-	client->log(string_util::format("ALL::command %s: from %s containing %s",command.c_str(),info.source.c_str(),info.getAsString().c_str()),4);
+	client.log(string_util::format("ALL::command %s: from %s containing %s",command.c_str(),info.source.c_str(),info.getAsString().c_str()),4);
 	return true;
 }
 
 bool IRCALLCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
 	// just log it out
-	client->log(string_util::format("ALL::command %s: to server containing %s",command.c_str(),info.getAsString().c_str()),4);
+	client.log(string_util::format("ALL::command %s: to server containing %s",command.c_str(),info.getAsString().c_str()),4);
 	return true;
 }
 

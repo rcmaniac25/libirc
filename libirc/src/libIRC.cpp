@@ -55,22 +55,6 @@ void IRCOSSleep ( float fTime )
 #endif
 }
 
-// IRC class stuff
-
-IRCClient::IRCClient()
-:tcpConnection(TCPConnection::instance())
-{
-	registerDefaultCommandhandalers();
-	init();
-	tcpClient = NULL;
-
-	ircMessageTerminator = " \r\n";
-	ircCommandDelimator	 = " ";
-	debugLogLevel = 0;
-	ircServerPort = 6667;
-	ircConenctonState = eNotConnected;
-	logHandaler = &defaultLoger;
-}
 
 // base message class
 
@@ -123,6 +107,23 @@ std::string BaseIRCCommandInfo::getAsString ( int pos )
 			temp += " ";
 	}
 	return temp;
+}
+
+// IRC class stuff
+
+IRCClient::IRCClient()
+:tcpConnection(TCPConnection::instance())
+{
+	tcpClient = NULL;
+	registerDefaultCommandhandalers();
+	init();
+
+	ircMessageTerminator = " \r\n";
+	ircCommandDelimator	 = " ";
+	debugLogLevel = 0;
+	ircServerPort = 6667;
+	ircConenctonState = eNotConnected;
+	logHandaler = &defaultLoger;
 }
 
 // irc client
@@ -219,7 +220,7 @@ bool IRCClient::disconnect ( void )
 // update loop methods
 bool IRCClient::process ( void )
 {
-	return false;
+	return tcpConnection.update()==eTCPNoError;
 }
 
 // sending commands
@@ -592,6 +593,7 @@ void IRCClient::registerDefaultCommandhandalers ( void )
 	userCommandHandalers.clear();
 	clearDefaultCommandhandalers();
 
+	addDefaultCommandhandalers(new IRCALLCommand );
 	addDefaultCommandhandalers(new IRCNickCommand );
 	addDefaultCommandhandalers(new IRCUserCommand );
 }
