@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stupidBot", "stupidBot.vcproj", "{72FB2DC7-2817-44C8-BA5E-B9CF997C1090}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C5D9B854-BC07-48F5-8E51-16A4B23D60FF} = {C5D9B854-BC07-48F5-8E51-16A4B23D60FF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libirc", "..\..\..\vc7.1\libirc.vcproj", "{C5D9B854-BC07-48F5-8E51-16A4B23D60FF}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{72FB2DC7-2817-44C8-BA5E-B9CF997C1090}.Debug.ActiveCfg = Debug|Win32
+		{72FB2DC7-2817-44C8-BA5E-B9CF997C1090}.Debug.Build.0 = Debug|Win32
+		{72FB2DC7-2817-44C8-BA5E-B9CF997C1090}.Release.ActiveCfg = Release|Win32
+		{72FB2DC7-2817-44C8-BA5E-B9CF997C1090}.Release.Build.0 = Release|Win32
+		{C5D9B854-BC07-48F5-8E51-16A4B23D60FF}.Debug.ActiveCfg = Debug|Win32
+		{C5D9B854-BC07-48F5-8E51-16A4B23D60FF}.Debug.Build.0 = Debug|Win32
+		{C5D9B854-BC07-48F5-8E51-16A4B23D60FF}.Release.ActiveCfg = Release|Win32
+		{C5D9B854-BC07-48F5-8E51-16A4B23D60FF}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

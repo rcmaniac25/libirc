@@ -15,10 +15,11 @@
 #ifndef __IRC_CHANNELS_H__
 #define __IRC_CHANNELS_H__
 
+#include <string>
 #include <vector>
 #include <map>
 
-class IRCClient;
+#include "TextUtils.h"
 
 typedef struct 
 {
@@ -54,7 +55,7 @@ typedef struct
 }trIRCUser;
 
 typedef std::vector<trIRCUser> tvIRCUserList;
-typedef std::vector<trIRCUser&> tvIRCUserRefList;
+typedef std::vector<trIRCUser*> tvIRCUserRefList;
 
 typedef struct 
 {
@@ -82,7 +83,7 @@ public:
 	std::string getName ( void );
 	std::string getTopic ( void );
 
-	string_list	listUsers ( void );
+	std::vector<std::string>	listUsers ( void );
 	trIRCUser&	getUserInfo ( std::string nick );
 	trIRCChannelUserPermisions& getUserChanPerms ( std::string nick );
 
@@ -90,9 +91,9 @@ public:
 	void setName ( std::string text );
 	void setTopic ( std::string text );
 
-	void join ( trIRCUser &user );
-	void part ( trIRCUser &user );
-	void kick ( trIRCUser &user );
+	void join ( trIRCUser *user );
+	void part ( trIRCUser *user );
+	void kick ( trIRCUser *user );
 
 protected:
 	trIRCChannelPermisions	perms;
@@ -102,5 +103,6 @@ protected:
 	std::string							topic;
 };
 
+typedef std::vector<IRCChannel>	tvChannelList; 
 
 #endif // __IRC_CHANNELS_H__ 

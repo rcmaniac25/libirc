@@ -146,7 +146,7 @@ IRCJoinCommand::IRCJoinCommand()
 
 bool IRCJoinCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
-	// we got a join message, see what the deal is
+	client.joinMessage(info);
 	return true;	
 }
 

@@ -169,7 +169,7 @@ bool IRCClient::connect ( std::string server, int port )
 	if (!tcpClient || !server.size())
 		return false;
 
-	ircServerName = server;
+	reportedServerHost = ircServerName = server;
 	ircServerPort = 6667;
 	if ( port > 0 )
 		ircServerPort = (unsigned short)port;
@@ -331,6 +331,9 @@ void IRCClient::processIRCLine ( std::string line )
 	// let the command parse it out into paramaters and find the command
 	BaseIRCCommandInfo	commandInfo;
 	commandInfo.parse(line);
+
+	if (!commandInfo.prefixed)
+		commandInfo.source = getServerHost();
 
 	// call the "ALL" handaler special if there is one
 	receveCommand(std::string("ALL"),commandInfo);
@@ -787,6 +790,11 @@ void IRCClient::endMOTD ( void )
 	trBaseEventInfo	info;	// no info
 	callEventHandaler(eIRCEndMOTDEvent,info);
 }	
+
+void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
+{
+
+}
 
 // Local Variables: ***
 // mode:C++ ***

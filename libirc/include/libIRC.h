@@ -19,6 +19,7 @@
 #include "ircCommands.h"
 #include "IRCEvents.h"
 #include "TCPConnection.h"
+//#include "IRCChannels.h"
 
 // global includes
 #include <string>
@@ -207,6 +208,8 @@ public:
 	void endMOTD ( void );
 	std::string getMOTD ( void ){return MOTD;}
 
+	void joinMessage ( BaseIRCCommandInfo	&info );
+
 protected:
 	friend class IRCClientCommandHandaler;
 
@@ -270,6 +273,8 @@ protected:
 
 	// info from the connection
 	std::string								MOTD;
+
+	//tvChannelList							channels;
 };
 
 #endif //_LIBIRC_H_

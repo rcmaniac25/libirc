@@ -6,7 +6,8 @@ lib_LTLIBRARIES = libIRC.la
 
 libIRC_la_SOURCES = \
 	TCPConnection.cpp \
-	ircCommands.cpp
+	ircCommands.cpp	\
+	IRCChannels.cpp	\
 	libIRC.cpp \
 	ircBasicCommands.cpp
 
