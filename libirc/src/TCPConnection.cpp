@@ -14,10 +14,6 @@
 
 #include "TCPConnection.h"
 
-#ifdef _WIN32
-#include <WINSOCK2.H>
-#endif //_WIN32
-
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP packet class
 
@@ -177,7 +173,6 @@ teTCPError TCPConnection::update ( void )
 {
 	return eTCPNoError;
 }
-
 
 TCPClientConnection* TCPConnection::newClientConnection ( std::string server, unsigned short port )
 {
