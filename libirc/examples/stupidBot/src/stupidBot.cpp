@@ -670,7 +670,8 @@ bool rawCommand::command ( std::string command, std::string source, std::string 
 		return true;
 	}
 
-	client.sendTextToServer(info->getAsString(2));
+	std::string text = info->getAsString(2);
+	client.sendTextToServer(text);
 	return true;
 }
 
