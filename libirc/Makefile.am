@@ -3,6 +3,11 @@
 SUBDIRS = \
 	include \
 	misc \
+	src
+
+DIST_SUBDIRS = \
+	include \
+	misc \
 	src \
 	vc7.1
 
