@@ -43,6 +43,7 @@ typedef enum
 	eIRCChannelModeSet,
 	eIRCChannelUserModeSet,
 	eIRCUserModeSet,
+	eIRCQuitEvent,
 	eIRCLastEvent
 }teIRCEventType;
 
@@ -83,7 +84,7 @@ typedef struct trNickChangeEventInfo : public trBaseEventInfo
 	std::string newName;
 }trNickChangeEventInfo;
 
-// part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent
+// part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent, eIRCQuitEvetnt
 typedef struct trPartEventInfo : public trBaseEventInfo
 {
 	std::string channel;

@@ -122,7 +122,6 @@ public:
 	virtual bool setChannelKey ( std::string channel, std::string key );
 	virtual bool removeChannelKey ( std::string channel );
 
-
 	// IRC info operations
 	virtual string_list listUsers ( std::string channel );
 	virtual string_list listChanels ( void );
@@ -194,6 +193,7 @@ public:
 	void nickNameError ( int error, std::string message );
 	void nickCommand ( BaseIRCCommandInfo	&info );
 	void kickCommand ( BaseIRCCommandInfo	&info );
+	void QuitMessage ( BaseIRCCommandInfo	&info );
 
 	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );

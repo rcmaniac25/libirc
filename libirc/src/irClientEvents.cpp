@@ -258,5 +258,24 @@ void IRCClient::kickCommand ( BaseIRCCommandInfo	&info )
 	userManager.userPartChannel(eventInfo.user,eventInfo.channel);
 }
 
+void IRCClient::QuitMessage ( BaseIRCCommandInfo	&info )
+{
+	string_list		goodies = string_util::tokenize(info.source,std::string("!"));
+
+	std::string who = goodies[0];
+
+	trPartEventInfo	partInfo;
+
+	userManager.userPartChannel(who,info.target);
+	if (who == getNick())
+		userManager.removeChannel(info.target);
+
+	partInfo.eventType = eIRCQuitEvent;
+	partInfo.channel = info.target;
+	partInfo.user = who;
+
+	callEventHandler(partInfo.eventType,partInfo);
+}
+
 
 

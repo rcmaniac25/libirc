@@ -208,7 +208,7 @@ IRCQuitCommand::IRCQuitCommand()
 
 bool IRCQuitCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
-	// can we ever even GET a quit message?
+	client.QuitMessage(info);
 	return true;
 }
 
