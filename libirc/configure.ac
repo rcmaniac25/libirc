@@ -601,6 +601,7 @@ AC_CONFIG_FILES([
 	Makefile
 	include/Makefile
 	src/Makefile
+	src/sdl_net/Makefile
 ])
 
 AC_OUTPUT

@@ -1,9 +1,11 @@
 # $Id$
 
+SUBDIRS = sdl_net
+
 lib_LTLIBRARIES = libIRC.la
 
-
 libIRC_la_SOURCES = \
+	TCPConnection.cpp \
 	avltree.cpp \
 	bufsock.cpp \
 	ctcp.cpp \
@@ -15,9 +17,10 @@ libIRC_la_SOURCES = \
 	map.cpp \
 	tcp.cpp \
 	trace.cpp \
-	TCPConnection.cpp \
 	util.cpp
 
 libIRC_la_CPPFLAGS = -DCALLBACK_COLLECTION_IS_AVLTREE
+
+libIRC_la_LIBADD = sdl_net/libSDLnet.la
 
 MAINTAINERCLEANFILES = Makefile.in
