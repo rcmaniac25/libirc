@@ -69,7 +69,7 @@ typedef struct
 	std::map<int,trIRCChannelUserPermisions>userPerms;
 	std::string															lastMessage;
 	int																			lastMessageUser;
-}trIRChannelRecord;
+}trIRCChannelRecord;
 
 typedef struct 
 {
@@ -194,13 +194,16 @@ protected:
 	trIRCUserRecord& getUserInfo ( int id );
 	trIRCUserRecord& getUserInfo ( std::string &name );
 
-	trIRChannelRecord& getChannelInfo ( int id );
-	trIRChannelRecord& getChannelInfo ( std::string &channel );
+	trIRCChannelRecord& getChannelInfo ( int id );
+	trIRCChannelRecord& getChannelInfo ( std::string &channel );
 
 	std::string getCleanNick ( std::string &nick );
 
 	std::map<int,trIRCUserRecord>	users;
-	std::map<int,trIRChannelRecord> channels;
+	std::map<int,trIRCChannelRecord> channels;
+
+	std::map<std::string,int>	userNameLookup;
+	std::map<std::string,int>	channelNameLookup;
 
 	bool			autoPurgeOnLastPart;
 	int				lastUserID;
