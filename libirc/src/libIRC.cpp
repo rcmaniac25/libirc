@@ -829,10 +829,15 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
 }
 
 // user management
-trIRCUser& IRCClient::getUserRecord ( std::string name )
+trIRCUser& IRCClient::getUserRecord ( std::string name, bool &op )
 {
+	op = false;
+
 	if (name.c_str()[0] == '@')
+	{
+		op = true;
 		name.erase(0,1);
+	}
 
 	tvIRCUserMap::iterator	itr = userList.find(name);
 	if (itr == userList.end())
@@ -897,7 +902,10 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 	}
 	else	// someone else joined a channel we are in
 	{
-		channels[info.target].join(&(getUserRecord(who)));
+		bool op;
+		trIRCUser	&user = getUserRecord(who,op);
+
+		channels[info.target].join(&user,op);
 		joinInfo.eventType = eIRCUserJoinEvent;
 	}	
 
@@ -923,7 +931,10 @@ void IRCClient::partMessage ( BaseIRCCommandInfo	&info )
 	}
 	else	// someone else joined a channel we are in
 	{
-		channels[info.target].part(&(getUserRecord(who)));
+		bool op;
+		trIRCUser	&user = getUserRecord(who,op);
+
+		channels[info.target].part(&user);
 		partInfo.eventType = eIRCUserPartEvent;
 	}	
 
@@ -949,7 +960,10 @@ void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
 	string_list::iterator	itr = newUsers.begin();
 	while ( itr != newUsers.end() )
 	{
-		channels[channel].join(&(getUserRecord(*itr)));
+		bool op;
+		trIRCUser	&user = getUserRecord(*itr,op);
+
+		channels[channel].join(&user,op);
 		itr++;
 	}
 }
@@ -959,7 +973,10 @@ bool IRCClient::removeChannelUser ( std::string channel, std::string name )
 	if (name == getNick())
 		return false;
 
-	channels[channel].part(&(getUserRecord(name)));
+	bool op;
+	trIRCUser	&user = getUserRecord(name,op);
+
+	channels[channel].part(&user);
 	return true;
 }
 
@@ -1027,6 +1044,19 @@ string_list IRCClient::listUsers ( std::string channel )
 	}
 	return userNames;
 }
+
+string_list IRCClient::listChanOps ( std::string channel )
+{
+	string_list userNames;
+
+	if (channels.find(channel) != channels.end())
+	{
+		return channels.find(channel)->second.listUsers(true);
+
+	}
+	return userNames;
+}
+
 
 string_list IRCClient::listChanels ( void )
 {

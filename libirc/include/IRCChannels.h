@@ -84,7 +84,7 @@ public:
 	std::string getName ( void );
 	std::string getTopic ( void );
 
-	std::vector<std::string>	listUsers ( void );
+	std::vector<std::string>	listUsers ( bool justOps = false );
 	trIRCUser&	getUserInfo ( std::string nick );
 	trIRCChannelUserPermisions& getUserChanPerms ( std::string nick );
 
@@ -92,7 +92,7 @@ public:
 	void setName ( std::string text );
 	void setTopic ( std::string text );
 
-	void join ( trIRCUser *user );
+	void join ( trIRCUser *user, bool op );
 	void part ( trIRCUser *user );
 	void kick ( trIRCUser *user );
 

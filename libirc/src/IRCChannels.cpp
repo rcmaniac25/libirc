@@ -40,14 +40,15 @@ std::string IRCChannel::getTopic ( void )
 	return topic;
 }
 
-string_list	IRCChannel::listUsers ( void )
+string_list	IRCChannel::listUsers ( bool justOps )
 {
 	tvIRCUserRefList::iterator itr = users.begin();
 	string_list usersList;
 
 	while ( itr != users.end() )
 	{
-		usersList.push_back((*itr)->nick);
+		if (!justOps || (justOps && (*itr)->channels[name].chanOp))
+			usersList.push_back((*itr)->nick);
 		itr++;
 	}
 	return usersList;
@@ -95,7 +96,7 @@ void IRCChannel::setTopic ( std::string text )
 	topic = text;
 }
 
-void IRCChannel::join ( trIRCUser *user )
+void IRCChannel::join ( trIRCUser *user, bool op )
 {
 	if (!user)
 		return;
@@ -104,7 +105,7 @@ void IRCChannel::join ( trIRCUser *user )
 
 	trIRCChannelUserPermisions	chanPerms;
 
-	chanPerms.chanOp = false;
+	chanPerms.chanOp = op;
 	chanPerms.quieted = false;
 	chanPerms.voice = false;
 

@@ -152,6 +152,7 @@ public:
 	// IRC info operations
 	virtual string_list listUsers ( std::string channel );
 	virtual string_list listChanels ( void );
+	virtual string_list listChanOps ( std::string channel );
 
 	//event handler methods.... for higher level API
 	virtual bool registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
@@ -277,7 +278,7 @@ protected:
 	void registerDefaultEventHandlers ( void );
 
 	// user management
-	trIRCUser& getUserRecord ( std::string name );
+	trIRCUser& getUserRecord ( std::string name, bool &op );
 	bool removeChannelUser (std::string channel, std::string name );
 
 	// loging
