@@ -31,6 +31,8 @@
 #define vsnprintf _vsnprintf
 #endif
 
+
+
 // because lists of strings are used ALL over the place
 typedef std::vector<std::string>	string_list;
 

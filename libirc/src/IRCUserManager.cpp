@@ -16,6 +16,9 @@
 
 std::string mergeModes ( std::string mode, std::string modMode )
 {
+	if (!modMode.size())
+		return mode;
+
 	bool add = modMode[0] == '+';
 
 	std::string newMode = mode;
@@ -659,7 +662,9 @@ void IRCUserManager::nickChange ( std::string &oldNick, std::string &newNick )
 {
 	trIRCUserRecord	&userRecord = getUserInfo(oldNick);
 	
-	userNameLookup.erase(userNameLookup.find(oldNick));
+	std::map<std::string,int>::iterator itr = userNameLookup.find(oldNick);
+	if (itr != userNameLookup.end())
+		userNameLookup.erase(itr);
 	userNameLookup[newNick] = userRecord.id;
 	userRecord.nick = newNick;
 }
