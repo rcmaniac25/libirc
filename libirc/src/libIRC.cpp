@@ -22,10 +22,10 @@
 	#include <windows.h>
 #endif
 
-class DefaultIRCLogHandaler : public IRCClientLogHandaler
+class DefaultIRCLogHandler : public IRCClientLogHandler
 {
 public:
-	virtual ~DefaultIRCLogHandaler(){return;}
+	virtual ~DefaultIRCLogHandler(){return;}
 	virtual void log ( IRCClient &client, int level, std::string line )
 	{
 		printf("log# %d:%s\n",level,line.c_str());
@@ -43,7 +43,7 @@ public:
 	}
 };
 
-DefaultIRCLogHandaler	defaultLoger;
+DefaultIRCLogHandler	defaultLoger;
 
 // sleep util
 void IRCOSSleep ( float fTime )
@@ -130,7 +130,7 @@ IRCClient::IRCClient()
 :tcpConnection(TCPConnection::instance())
 {
 	tcpClient = NULL;
-	registerDefaultCommandhandalers();
+	registerDefaultCommandhandlers();
 	init();
 
 	ircMessageTerminator = "\r\n";
@@ -138,7 +138,7 @@ IRCClient::IRCClient()
 	debugLogLevel = 0;
 	ircServerPort = 6667;
 	ircConenctonState = eNotConnected;
-	logHandaler = &defaultLoger;
+	logHandler = &defaultLoger;
 }
 
 // irc client
@@ -353,7 +353,7 @@ void IRCClient::pending ( TCPClientConnection *connection, int count )
 void IRCClient::processIRCLine ( std::string line )
 {
 	// we have a single line of text, do something with it.
-	// see if it's a command, and or call any handalers that we have
+	// see if it's a command, and or call any handlers that we have
 	// also check for error returns
 
 	// right now we don't know if it's an IRC or CTCP command so just go with the generic one
@@ -365,7 +365,7 @@ void IRCClient::processIRCLine ( std::string line )
 	if (!commandInfo.prefixed)
 		commandInfo.source = getServerHost();
 
-	// call the "ALL" handaler special if there is one
+	// call the "ALL" handler special if there is one
 	handler = std::string("ALL");
 	receveCommand(handler,commandInfo);
 
@@ -374,7 +374,7 @@ void IRCClient::processIRCLine ( std::string line )
 	  receveCommand(handler,commandInfo);
 	}
 
-	// notify any handalers for this specific command
+	// notify any handlers for this specific command
 	receveCommand(commandInfo.command,commandInfo);
 }
 
@@ -435,12 +435,12 @@ bool IRCClient::sendTextToServer ( std::string &text )
 	return true;
 }
 
-void	IRCClient::setLogHandaler ( IRCClientLogHandaler * loger )
+void	IRCClient::setLogHandler ( IRCClientLogHandler * loger )
 {
 	if (!loger)
-		logHandaler = &defaultLoger;
+		logHandler = &defaultLoger;
 	else
-		logHandaler = loger;
+		logHandler = loger;
 }
 
 void IRCClient::log ( const char *text, int level )
@@ -450,8 +450,8 @@ void IRCClient::log ( const char *text, int level )
 
 void IRCClient::log ( std::string text, int level )
 {
-	if (level <= debugLogLevel && logHandaler)
-		logHandaler->log(*this,level,text);
+	if (level <= debugLogLevel && logHandler)
+		logHandler->log(*this,level,text);
 }
 
 void IRCClient::setLogfile ( std::string file )
@@ -476,17 +476,17 @@ int IRCClient::getDebugLevel ( void )
 
 bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info )
 {
-	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(commandName);
+	tmUserCommandHandlersMap::iterator		commandListItr = userCommandHandlers.find(commandName);
 
 	bool callDefault = true;
 
-	if (commandListItr != userCommandHandalers.end() && commandListItr->second.size())	// do we have a custom command handaler
+	if (commandListItr != userCommandHandlers.end() && commandListItr->second.size())	// do we have a custom command handler
 	{
 		// someone has to want us to call the defalt now
 		callDefault = false;
 		// is this right?
 		// should we do them all? or just the first one that "HANDLES" it?
-		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
+		std::vector<IRCClientCommandHandler*>::iterator	itr = commandListItr->second.begin();
 		while (itr != commandListItr->second.end())
 		{
 			if ( (*itr)->send(*this,commandName,info))
@@ -498,8 +498,8 @@ bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info
 
 	if (callDefault)	// check for the default
 	{
-		tmCommandHandalerMap::iterator itr = defaultCommandHandalers.find(commandName);
-		if (itr != defaultCommandHandalers.end())
+		tmCommandHandlerMap::iterator itr = defaultCommandHandlers.find(commandName);
+		if (itr != defaultCommandHandlers.end())
 		{
 			itr->second->send(*this,commandName,info);
 			return true;
@@ -526,17 +526,17 @@ bool IRCClient::sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info 
 
 bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &info )
 {
-	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(commandName);
+	tmUserCommandHandlersMap::iterator		commandListItr = userCommandHandlers.find(commandName);
 
 	bool callDefault = true;
 
-	if (commandListItr != userCommandHandalers.end() && commandListItr->second.size())	// do we have a custom command handaler
+	if (commandListItr != userCommandHandlers.end() && commandListItr->second.size())	// do we have a custom command handler
 	{
 		// someone has to want us to call the defalt now
 		callDefault = false;
 		// is this right?
 		// should we do them all? or just the first one that "HANDLES" it?
-		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
+		std::vector<IRCClientCommandHandler*>::iterator	itr = commandListItr->second.begin();
 		while (itr != commandListItr->second.end())
 		{
 			if ( (*itr)->receve(*this,commandName,info))
@@ -549,8 +549,8 @@ bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &in
 
 	if (callDefault)	// check for the default
 	{
-		tmCommandHandalerMap::iterator itr = defaultCommandHandalers.find(commandName);
-		if (itr != defaultCommandHandalers.end())
+		tmCommandHandlerMap::iterator itr = defaultCommandHandlers.find(commandName);
+		if (itr != defaultCommandHandlers.end())
 		{
 			itr->second->receve(*this,commandName,info);
 			return true;
@@ -573,42 +573,42 @@ bool IRCClient::receveCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &inf
 	return receveCommand(info.command,info);
 }
 
-bool IRCClient::registerCommandHandaler ( IRCClientCommandHandaler *handaler )
+bool IRCClient::registerCommandHandler ( IRCClientCommandHandler *handler )
 {
-	if (!handaler)
+	if (!handler)
 		return false;
 
-	std::string command = handaler->getCommandName();
+	std::string command = handler->getCommandName();
 
-	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(command);
-	if (commandListItr == userCommandHandalers.end())
+	tmUserCommandHandlersMap::iterator		commandListItr = userCommandHandlers.find(command);
+	if (commandListItr == userCommandHandlers.end())
 	{
-		std::vector<IRCClientCommandHandaler*> handalerList;
-		handalerList.push_back(handaler);
-		userCommandHandalers[command] = handalerList;
+		std::vector<IRCClientCommandHandler*> handlerList;
+		handlerList.push_back(handler);
+		userCommandHandlers[command] = handlerList;
 	}
 	else
-		commandListItr->second.push_back(handaler);
+		commandListItr->second.push_back(handler);
 
 	return true;
 }
 
-bool IRCClient::removeCommandHandaler ( IRCClientCommandHandaler *handaler )
+bool IRCClient::removeCommandHandler ( IRCClientCommandHandler *handler )
 {
-	if (!handaler)
+	if (!handler)
 		return false;
 
-	std::string command = handaler->getCommandName();
+	std::string command = handler->getCommandName();
 
-	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(command);
-	if (commandListItr == userCommandHandalers.end())
+	tmUserCommandHandlersMap::iterator		commandListItr = userCommandHandlers.find(command);
+	if (commandListItr == userCommandHandlers.end())
 		return false;
 	else
 	{
-		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
+		std::vector<IRCClientCommandHandler*>::iterator	itr = commandListItr->second.begin();
 		while ( itr != commandListItr->second.end())
 		{
-			if (*itr == handaler)
+			if (*itr == handler)
 				itr = commandListItr->second.erase(itr);
 			else
 				itr++;
@@ -621,9 +621,9 @@ int IRCClient::listUserHandledCommands ( std::vector<std::string> &commandList )
 {
 	commandList.clear();
 
-	tmUserCommandHandalersMap::iterator	itr = userCommandHandalers.begin();
+	tmUserCommandHandlersMap::iterator	itr = userCommandHandlers.begin();
 
-	while (itr != userCommandHandalers.end())
+	while (itr != userCommandHandlers.end())
 	{
 		commandList.push_back(itr->first);
 		itr++;
@@ -635,9 +635,9 @@ int IRCClient::listDefaultHandledCommands ( std::vector<std::string> &commandLis
 {
 	commandList.clear();
 
-	tmCommandHandalerMap::iterator	itr = defaultCommandHandalers.begin();
+	tmCommandHandlerMap::iterator	itr = defaultCommandHandlers.begin();
 
-	while (itr != defaultCommandHandalers.end())
+	while (itr != defaultCommandHandlers.end())
 	{
 		commandList.push_back(itr->first);
 		itr++;
@@ -645,109 +645,109 @@ int IRCClient::listDefaultHandledCommands ( std::vector<std::string> &commandLis
 	return (int)commandList.size();
 }
 
-void IRCClient::addDefaultCommandhandalers ( IRCClientCommandHandaler* handaler )
+void IRCClient::addDefaultCommandhandlers ( IRCClientCommandHandler* handler )
 {
-	defaultCommandHandalers[handaler->getCommandName()] = handaler;
+	defaultCommandHandlers[handler->getCommandName()] = handler;
 }
 
-void IRCClient::clearDefaultCommandhandalers ( void )
+void IRCClient::clearDefaultCommandhandlers ( void )
 {
-	tmCommandHandalerMap::iterator	itr = defaultCommandHandalers.begin();
+	tmCommandHandlerMap::iterator	itr = defaultCommandHandlers.begin();
 
-	while (itr != defaultCommandHandalers.end())
+	while (itr != defaultCommandHandlers.end())
 	{
 		delete(itr->second);
 		itr++;
 	}
-	defaultCommandHandalers.clear();
+	defaultCommandHandlers.clear();
 }
 
-void IRCClient::registerDefaultCommandhandalers ( void )
+void IRCClient::registerDefaultCommandhandlers ( void )
 {
-	registerDefaultEventHandalers();
+	registerDefaultEventHandlers();
 
-	userCommandHandalers.clear();
-	clearDefaultCommandhandalers();
+	userCommandHandlers.clear();
+	clearDefaultCommandhandlers();
 
-	// the "special" handalers
-	addDefaultCommandhandalers(new IRCALLCommand );
-	addDefaultCommandhandalers(new IRCNumericCommand );
+	// the "special" handlers
+	addDefaultCommandhandlers(new IRCALLCommand );
+	addDefaultCommandhandlers(new IRCNumericCommand );
 
 	// basic IRC commands
-	addDefaultCommandhandalers(new IRCNickCommand );
-	addDefaultCommandhandalers(new IRCUserCommand );
-	addDefaultCommandhandalers(new IRCPingCommand );
-	addDefaultCommandhandalers(new IRCPongCommand );
-	addDefaultCommandhandalers(new IRCNoticeCommand );
-	addDefaultCommandhandalers(new IRCJoinCommand );
-	addDefaultCommandhandalers(new IRCModeCommand );
-	addDefaultCommandhandalers(new IRCPrivMsgCommand );
+	addDefaultCommandhandlers(new IRCNickCommand );
+	addDefaultCommandhandlers(new IRCUserCommand );
+	addDefaultCommandhandlers(new IRCPingCommand );
+	addDefaultCommandhandlers(new IRCPongCommand );
+	addDefaultCommandhandlers(new IRCNoticeCommand );
+	addDefaultCommandhandlers(new IRCJoinCommand );
+	addDefaultCommandhandlers(new IRCModeCommand );
+	addDefaultCommandhandlers(new IRCPrivMsgCommand );
 }
 
-// logical event handalers
+// logical event handlers
 
-//tmIRCEventMap							defaultEventHandalers;
-//tmIRCEventListMap					userEventHandalers;
+//tmIRCEventMap							defaultEventHandlers;
+//tmIRCEventListMap					userEventHandlers;
 
-void IRCClient::addDefaultEventHandalers ( teIRCEventType eventType, IRCBasicEventCallback* handaler )
+void IRCClient::addDefaultEventHandlers ( teIRCEventType eventType, IRCBasicEventCallback* handler )
 {
-	if (handaler)
-		defaultEventHandalers[eventType] = handaler;
+	if (handler)
+		defaultEventHandlers[eventType] = handler;
 }
 
-void IRCClient::clearDefaultEventHandalers ( void )
+void IRCClient::clearDefaultEventHandlers ( void )
 {
-	tmIRCEventMap::iterator itr = defaultEventHandalers.begin();
+	tmIRCEventMap::iterator itr = defaultEventHandlers.begin();
 
-	while ( itr != defaultEventHandalers.end())
+	while ( itr != defaultEventHandlers.end())
 	{
 		if (itr->second && (itr->second != this) )
 			delete(itr->second);
 		itr++;
 	}
-	defaultEventHandalers.clear();
+	defaultEventHandlers.clear();
 }
 
-void IRCClient::registerDefaultEventHandalers ( void )
+void IRCClient::registerDefaultEventHandlers ( void )
 {
-	userEventHandalers.clear();
-	clearDefaultEventHandalers();
+	userEventHandlers.clear();
+	clearDefaultEventHandlers();
 
-	addDefaultEventHandalers(eIRCNickNameError,this);
+	addDefaultEventHandlers(eIRCNickNameError,this);
 }
 
-bool IRCClient::registerEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler )
+bool IRCClient::registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler )
 {
-	if (!handaler)
+	if (!handler)
 		return false;
 
-	tmIRCEventListMap::iterator		eventListItr = userEventHandalers.find(eventType);
-	if (eventListItr == userEventHandalers.end())
+	tmIRCEventListMap::iterator		eventListItr = userEventHandlers.find(eventType);
+	if (eventListItr == userEventHandlers.end())
 	{
-		tvIRCEventList handalerList;
-		handalerList.push_back(handaler);
-		userEventHandalers[eventType] = handalerList;
+		tvIRCEventList handlerList;
+		handlerList.push_back(handler);
+		userEventHandlers[eventType] = handlerList;
 	}
 	else
-		eventListItr->second.push_back(handaler);
+		eventListItr->second.push_back(handler);
 
 	return true;
 }
 
-bool IRCClient::removeEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler )
+bool IRCClient::removeEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler )
 {
-	if (!handaler)
+	if (!handler)
 		return false;
 
-	tmIRCEventListMap::iterator		eventListItr = userEventHandalers.find(eventType);
-	if (eventListItr == userEventHandalers.end())
+	tmIRCEventListMap::iterator		eventListItr = userEventHandlers.find(eventType);
+	if (eventListItr == userEventHandlers.end())
 		return false;
 	else
 	{
 		tvIRCEventList::iterator	itr = eventListItr->second.begin();
 		while ( itr != eventListItr->second.end())
 		{
-			if ((*itr)== handaler)
+			if ((*itr)== handler)
 				itr = eventListItr->second.erase(itr);
 			else
 				itr++;
@@ -756,16 +756,16 @@ bool IRCClient::removeEventHandaler ( teIRCEventType eventType, IRCBasicEventCal
 	return true;
 }
 
-void IRCClient::callEventHandaler ( teIRCEventType eventType, trBaseEventInfo &info )
+void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &info )
 {
 	bool callDefault = true;
 
-	tmIRCEventListMap::iterator		eventListItr = userEventHandalers.find(eventType);
+	tmIRCEventListMap::iterator		eventListItr = userEventHandlers.find(eventType);
 
 	// make sure the event type is cool
 	info.eventType = eventType;
 
-	if (eventListItr != userEventHandalers.end() && eventListItr->second.size())	// do we have a custom command handaler
+	if (eventListItr != userEventHandlers.end() && eventListItr->second.size())	// do we have a custom command handler
 	{
 		// someone has to want us to call the defalt now
 		callDefault = false;
@@ -784,8 +784,8 @@ void IRCClient::callEventHandaler ( teIRCEventType eventType, trBaseEventInfo &i
 
 	if (callDefault)	// check for the default
 	{
-		tmIRCEventMap::iterator itr = defaultEventHandalers.find(eventType);
-		if (itr != defaultEventHandalers.end())
+		tmIRCEventMap::iterator itr = defaultEventHandlers.find(eventType);
+		if (itr != defaultEventHandlers.end())
 		{
 			itr->second->process(*this,eventType,info);
 			return;
@@ -819,7 +819,7 @@ void IRCClient::noticeMessage ( trMessageEventInfo	&info )
 		if (getConnectionState() < eTCPConenct)
 			setConnectionState(eTCPConenct);
 
-		callEventHandaler(eIRCNoticeEvent,info);
+		callEventHandler(eIRCNoticeEvent,info);
 	}
 }
 
@@ -832,7 +832,7 @@ void IRCClient::welcomeMessage ( trMessageEventInfo	&info )
 	if (getConnectionState() < eLogedIn)
 		setConnectionState(eLogedIn);
 
-	callEventHandaler(eIRCWelcomeEvent,info);
+	callEventHandler(eIRCWelcomeEvent,info);
 }
 
 void IRCClient::endMOTD ( void )
@@ -842,7 +842,7 @@ void IRCClient::endMOTD ( void )
 		setConnectionState(eTCPConenct);
 
 	trBaseEventInfo	info;	// no info
-	callEventHandaler(eIRCEndMOTDEvent,info);
+	callEventHandler(eIRCEndMOTDEvent,info);
 }	
 
 void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
@@ -868,7 +868,7 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 
 	joinInfo.channel = info.target;
 	joinInfo.user = who;
-	callEventHandaler(joinInfo.eventType,joinInfo);
+	callEventHandler(joinInfo.eventType,joinInfo);
 }
 
 void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic, std::string source )
@@ -880,7 +880,7 @@ void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic,
 	info.target = channel;
 	info.source = source;
 	info.message = topic;
-	callEventHandaler(info.eventType,info);
+	callEventHandler(info.eventType,info);
 }
 
 void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
@@ -897,7 +897,7 @@ void IRCClient::endChannelUsersList ( std::string channel )
 {
 	trBaseEventInfo	info;
 	info.eventType = eIRCChanInfoCompleteEvent;
-	callEventHandaler(info.eventType,info);
+	callEventHandler(info.eventType,info);
 }
 
 void IRCClient::privMessage ( BaseIRCCommandInfo	&info )
@@ -919,7 +919,7 @@ void IRCClient::privMessage ( BaseIRCCommandInfo	&info )
 	else
 		msgInfo.eventType = eIRCPrivateMessageEvent;
 
-	callEventHandaler(msgInfo.eventType,msgInfo);
+	callEventHandler(msgInfo.eventType,msgInfo);
 }
 
 void IRCClient::nickNameError ( int error, std::string message )
@@ -933,7 +933,7 @@ void IRCClient::nickNameError ( int error, std::string message )
 	info.error = error;
 	info.message = message;
 	info.eventType = eIRCNickNameError;
-	callEventHandaler(info.eventType,info);
+	callEventHandler(info.eventType,info);
 }
 
 // info methods

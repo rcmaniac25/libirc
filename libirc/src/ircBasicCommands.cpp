@@ -215,7 +215,7 @@ bool IRCPrivMsgCommand::send ( IRCClient &client, std::string &command, BaseIRCC
 
 	// special case commands
 
-// Generic handaler for ALL
+// Generic handler for ALL
 IRCALLCommand::IRCALLCommand()
 {
 	name = "ALL";

@@ -19,7 +19,7 @@
 
 // special case commands
 // handles ALL posible messages, dosn't actualy DO anythign with them tho
-class IRCALLCommand : public IRCClientCommandHandaler
+class IRCALLCommand : public IRCClientCommandHandler
 {
 public:
 	IRCALLCommand();
@@ -28,7 +28,7 @@ public:
 };
 
 // numerics, handles any IRC numeric return code
-class IRCNumericCommand : public IRCClientCommandHandaler
+class IRCNumericCommand : public IRCClientCommandHandler
 {
 public:
 	IRCNumericCommand();
@@ -39,7 +39,7 @@ public:
 
 // IRC "NICK" command
 // paramaters {NICKNAME}
-class IRCNickCommand : public IRCClientCommandHandaler
+class IRCNickCommand : public IRCClientCommandHandler
 {
 public:
 	IRCNickCommand();
@@ -49,7 +49,7 @@ public:
 
 // IRC "USER" command
 // paramaters {USERNAME, HOST, SERVER, REAL_NAME}
-class IRCUserCommand : public IRCClientCommandHandaler
+class IRCUserCommand : public IRCClientCommandHandler
 {
 public:
 	IRCUserCommand();
@@ -59,7 +59,7 @@ public:
 
 // IRC "PING" command
 // paramaters {}
-class IRCPingCommand : public IRCClientCommandHandaler
+class IRCPingCommand : public IRCClientCommandHandler
 {
 public:
 	IRCPingCommand();
@@ -69,7 +69,7 @@ public:
 
 // IRC "PONG" command
 // paramaters {}
-class IRCPongCommand : public IRCClientCommandHandaler
+class IRCPongCommand : public IRCClientCommandHandler
 {
 public:
 	IRCPongCommand();
@@ -79,7 +79,7 @@ public:
 
 // IRC "NOTICE" command
 // paramaters {}
-class IRCNoticeCommand : public IRCClientCommandHandaler
+class IRCNoticeCommand : public IRCClientCommandHandler
 {
 public:
 	IRCNoticeCommand();
@@ -89,7 +89,7 @@ public:
 
 // IRC "JOIN" command
 // paramaters {chanel1,chanel2......}
-class IRCJoinCommand : public IRCClientCommandHandaler
+class IRCJoinCommand : public IRCClientCommandHandler
 {
 public:
 	IRCJoinCommand();
@@ -99,7 +99,7 @@ public:
 
 // IRC "MODE" command
 // paramaters {target,modes}
-class IRCModeCommand : public IRCClientCommandHandaler
+class IRCModeCommand : public IRCClientCommandHandler
 {
 public:
 	IRCModeCommand();
@@ -109,7 +109,7 @@ public:
 
 // IRC "PRIVMSG" command
 // paramaters {target,modes}
-class IRCPrivMsgCommand : public IRCClientCommandHandaler
+class IRCPrivMsgCommand : public IRCClientCommandHandler
 {
 public:
 	IRCPrivMsgCommand();
