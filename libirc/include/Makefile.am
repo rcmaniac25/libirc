@@ -1,10 +1,12 @@
 # $Id$
 
 include_HEADERS = \
+	TCPConnection.h \
 	avltree.h \
 	bufsock.h \
 	cmd.h \
 	conf.h \
+	config.h \
 	ctcp.h \
 	defs.h \
 	errcodes.h \
@@ -20,11 +22,14 @@ include_HEADERS = \
 	map.h \
 	tcp.h \
 	trace.h \
-	TCPConnection.h \
 	util.h
 
 noinst_HEADERS = \
 	libirc_version.h
+
+EXTRA_DIST = \
+	config.h.in \
+	version
 
 MAINTAINERCLEANFILES = Makefile.in
 
