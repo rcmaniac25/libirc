@@ -68,7 +68,7 @@ protected:
 	IRCChannelManager		*channelManager;
 	tmIRCUserIDMap			users;
 	tmIRCUserIDNameMap	usernames;
-	int									lastID;
+	unsigned int				lastID;
 };
 
 #endif//_IRC_USER_MANAGER_

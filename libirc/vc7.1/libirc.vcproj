@@ -150,6 +150,9 @@
 				<File
 					RelativePath="..\src\irClientEvents.cpp">
 				</File>
+				<File
+					RelativePath="..\src\IRCUserManager.cpp">
+				</File>
 			</Filter>
 			<Filter
 				Name="utils"
@@ -167,6 +170,9 @@
 			</File>
 			<File
 				RelativePath="..\include\IRCEvents.h">
+			</File>
+			<File
+				RelativePath="..\include\IRCUserManager.h">
 			</File>
 			<File
 				RelativePath="..\include\libIRC.h">
