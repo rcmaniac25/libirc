@@ -12,6 +12,16 @@
 
 // implementation of main libIRC classes
 
+//********************************************************************************//
+//															version info																			//
+//********************************************************************************//
+
+#define _MAJOR_VERS	0
+#define _MINOR_VERS	1
+#define _REVISION		1
+
+//********************************************************************************//
+
 #include "libIRC.h"
 #include "ircBasicCommands.h"
 #include "TextUtils.h"
@@ -139,6 +149,18 @@ IRCClient::~IRCClient()
 		tcpConnection.deleteClientConnection(tcpClient);
 
 //	tcpConnection.kill();
+}
+
+std::string IRCClient::getLibVersion ( void )
+{
+	return string_util::format("libIRC %d.%d.%d",_MAJOR_VERS, _MINOR_VERS, _REVISION);
+}
+
+void IRCClient::getLibVersion ( int &major, int &minor, int &rev )
+{
+	major = _MAJOR_VERS;
+	minor = _MINOR_VERS;
+	rev = _REVISION;
 }
 
 // general connection methods
@@ -953,6 +975,11 @@ void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic,
 	info.source = source;
 	info.message = topic;
 	callEventHandler(info.eventType,info);
+}
+
+void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
+{
+
 }
 
 void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )

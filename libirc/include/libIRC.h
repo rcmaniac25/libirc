@@ -126,6 +126,9 @@ public:
   IRCClient();
 	virtual ~IRCClient();
 
+	std::string getLibVersion ( void );
+	void getLibVersion ( int &major, int &minor, int &rev );
+
 	// loging
 	void	setLogHandler ( IRCClientLogHandler * loger );
 
@@ -217,6 +220,9 @@ public:
 	void privMessage ( BaseIRCCommandInfo	&info );
 
 	void nickNameError ( int error, std::string message );
+
+	void modeCommand ( BaseIRCCommandInfo	&info );
+
 
 	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );

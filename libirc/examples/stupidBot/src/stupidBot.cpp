@@ -48,7 +48,6 @@ typedef struct
 	factoidMap	factoids;
 	string_map	joinMessages;
 	std::string config;
-
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -795,6 +794,68 @@ bool allUsersCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
+class addjoinCommand : public botCommandHandaler
+{
+public:
+	addjoinCommand() {name = "addjoin";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool addjoinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	std::string channel = info->getAsString(2);
+
+	std::string message = "Ok, " + from + ", channel, " + channel + " added to startup list";
+	client.sendMessage(info->target,message);
+	client.join(channel);
+	theBotInfo.channels.push_back(channel);
+	return true;
+}
+
+class addmasterCommand : public botCommandHandaler
+{
+public:
+	addmasterCommand() {name = "addmaster";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool addmasterCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	std::string newMaster = info->getAsString(2);
+
+	std::string message = "Ok, " + from + ", user, " + newMaster + " added to masters list";
+	client.sendMessage(info->target,message);
+
+	theBotInfo.masters.push_back(string_util::tolower(newMaster));
+	return true;
+}
+
+class libVersCommand : public botCommandHandaler
+{
+public:
+	libVersCommand() {name = "libversion";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool libVersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	client.sendMessage(info->target,client.getLibVersion());
+	return true;
+}
+
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -808,6 +869,9 @@ void registerBotCommands ( void )
 	installBotCommand(new joinCommand);
 	installBotCommand(new usersCommand);
 	installBotCommand(new allUsersCommand);
+	installBotCommand(new addjoinCommand);
+	installBotCommand(new addmasterCommand);
+	installBotCommand(new libVersCommand);
 }
 
 
