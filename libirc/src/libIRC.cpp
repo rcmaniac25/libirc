@@ -221,7 +221,8 @@ bool IRCClient::disconnect ( std::string reason )
 		}
 
 		channels.clear();
-		userList.clear();
+		users.clear();
+		userNameMap.clear();
 
 		teTCPError err = tcpClient->disconnect();
 
@@ -734,14 +735,21 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
 // user management
 trIRCUser& IRCClient::getUserRecord ( std::string name )
 {
-	tvIRCUserMap::iterator	itr = userList.find(name);
-	if (itr == userList.end())
+	tvIRCUserMap::iterator	itr = userNameMap.find(name);
+	if (itr == userNameMap.end())
 	{
 		trIRCUser	user;
 		user.nick = name;
-		return userList[name] = user;
+
+		int ID = (int)users.size();
+		users.push_back(user);
+
+		trIRCUser	&userRef = users[ID];
+
+		userNameMap[name] = userRef;
+		return userRef;
 	}
-	return userList[name];
+	return userNameMap[name];
 }
 
 std::string IRCClient::getCleanNick ( std::string &nick )
@@ -776,7 +784,7 @@ teNickModes IRCClient::parseNickMode ( std::string &nick )
 
 string_list IRCClient::listUsers ( std::string channel )
 {
-	string_list userNames;
+	string_list userNamesList;
 
 	if (channels.find(channel) != channels.end())
 	{
@@ -784,14 +792,17 @@ string_list IRCClient::listUsers ( std::string channel )
 	}
 	else
 	{
-		tvIRCUserMap::iterator	itr = userList.begin();
-		while (itr != userList.end())
+		tvIRCUserMap::iterator	itr = userNameMap.begin();
+		while (itr != userNameMap.end())
 		{
-			userNames.push_back(itr->second.nick);
+			std::string name = itr->first;
+			trIRCUser	*user = itr->second;
+
+			userNamesList.push_back(name);
 			itr++;
 		}
 	}
-	return userNames;
+	return userNamesList;
 }
 
 string_list IRCClient::listChanOps ( std::string channel )

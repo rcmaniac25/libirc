@@ -73,7 +73,7 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 	{
 		trIRCUser	&user = getUserRecord(getCleanNick(who));
 
-		channels[info.target].join(&user,parseNickMode(who));
+		channels[info.target].join(user,parseNickMode(who));
 		joinInfo.eventType = eIRCUserJoinEvent;
 	}	
 
@@ -110,7 +110,7 @@ void IRCClient::partMessage ( BaseIRCCommandInfo	&info )
 	{
 		trIRCUser	&user = getUserRecord(getCleanNick(who));
 
-		channels[info.target].part(&user);
+		channels[info.target].part(user);
 		partInfo.eventType = eIRCUserPartEvent;
 		partInfo.channel = info.target;
 		partInfo.user = who;
@@ -171,7 +171,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 			modeInfo.message = info.getAsString(2);
 
 			trIRCUser	&ircUser = getUserRecord(user);
-			itr->second.setUserMode(&ircUser,modeInfo.mode,modeInfo.from);
+			itr->second.setUserMode(ircUser,modeInfo.mode,modeInfo.from);
 		}
 		else
 		{	
@@ -182,6 +182,8 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 	else	// it's amode for a user ( like US )
 	{
 		modeInfo.eventType = eIRCUserModeSet;
+		if (modeInfo.mode == "+e")
+			registered = true;
 	}
 
 	callEventHandler(modeInfo.eventType,modeInfo);
@@ -194,7 +196,7 @@ void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
 	{
 		trIRCUser	&user = getUserRecord(getCleanNick(*itr));
 
-		channels[channel].join(&user,parseNickMode(*itr));
+		channels[channel].join(user,parseNickMode(*itr));
 		itr++;
 	}
 }
@@ -206,7 +208,7 @@ bool IRCClient::removeChannelUser ( std::string channel, std::string name )
 
 	trIRCUser	&user = getUserRecord(getCleanNick(name));
 
-	channels[channel].part(&user);
+	channels[channel].part(user);
 	return true;
 }
 
@@ -252,3 +254,26 @@ void IRCClient::nickNameError ( int error, std::string message )
 	info.eventType = eIRCNickNameError;
 	callEventHandler(info.eventType,info);
 }
+
+void IRCClient::nickCommand ( BaseIRCCommandInfo	&info )
+{
+	string_list	params = string_util::tokenize(info.source,std::string("!"));
+	std::string who = params[0];
+
+	trIRCUser	&user = getUserRecord(getCleanNick(who));
+	user.nick = getCleanNick(info.target);
+	
+	tvIRCUserMap::iterator itr = userNameMap.find(user->nick);
+	if (itr != userNameMap.end())
+		userNameMap.erase(itr);
+
+	userNameMap[user->nick] = user;
+
+	trNickChangeEventInfo eventInfo;
+	eventInfo.eventType = eIRCNickNameChange;
+	eventInfo.oldname = who;
+	eventInfo.newName = user.nick;
+	callEventHandler(eventInfo.eventType,eventInfo);
+}
+
+

@@ -27,6 +27,7 @@ IRCNickCommand::IRCNickCommand()
 
 bool IRCNickCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
+	client.nickCommand(info);
 	return true;
 }
 

@@ -26,6 +26,7 @@ typedef enum
 	eIRCNULLEvent = 0,
 	eIRCNoticeEvent,
 	eIRCNickNameError,
+	eIRCNickNameChange,
 	eIRCWelcomeEvent,
 	eIRCEndMOTDEvent,
 	eIRCChannelJoinEvent,
@@ -67,7 +68,7 @@ typedef struct trJoinEventInfo : public trBaseEventInfo
 	std::string user;
 }trJoinEventInfo;
 
-// mode type evetns, used for  eIRCChannelModeSet, eIRCChannelUserModeSet, eIRCUserModeSet
+// mode type evetns, used for  eIRCUserModeSet,eIRCChannelModeSet,eIRCChannelUserModeSet
 typedef struct trModeEventInfo : public trBaseEventInfo
 {
 	std::string target;
@@ -76,6 +77,12 @@ typedef struct trModeEventInfo : public trBaseEventInfo
 	std::string message;
 }trModeEventInfo;
 
+// nick change type evetns, used for  eIRCNickNameChange
+typedef struct trNickChangeEventInfo : public trBaseEventInfo
+{
+	std::string oldname;
+	std::string newName;
+}trNickChangeEventInfo;
 
 // part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent
 typedef struct trPartEventInfo : public trBaseEventInfo

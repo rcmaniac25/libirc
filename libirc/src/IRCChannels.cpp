@@ -120,22 +120,16 @@ void IRCChannel::setMode ( std::string mode )
 	perms.secret = string_util::charExists(mode,'s');
 }
 
-void IRCChannel::setUserMode ( trIRCUser *user, std::string mode, std::string from )
-{
-	if (!user)
-		return;
+void IRCChannel::setUserMode ( trIRCUser &user, std::string mode, std::string from )
 
-	user->channels[name].mode = mergeModes(user->channels[name].mode,mode);
-	user->channels[name].chanOp = string_util::charExists(mode,'o');
-	user->channels[name].voice = string_util::charExists(mode,'v');
-	user->channels[name].quieted = string_util::charExists(mode,'q');
+	user.channels[name].mode = mergeModes(user->channels[name].mode,mode);
+	user.channels[name].chanOp = string_util::charExists(mode,'o');
+	user.channels[name].voice = string_util::charExists(mode,'v');
+	user.channels[name].quieted = string_util::charExists(mode,'q');
 }
 
-void IRCChannel::join ( trIRCUser *user, teNickModes mode )
+void IRCChannel::join ( trIRCUser &user, teNickModes mode )
 {
-	if (!user)
-		return;
-
 	users.push_back(user);
 
 	trIRCChannelUserPermisions	chanPerms;
@@ -144,45 +138,39 @@ void IRCChannel::join ( trIRCUser *user, teNickModes mode )
 	chanPerms.quieted = false;
 	chanPerms.voice = mode != eNoMode;
 
-	user->channels[name] = chanPerms;
+	user.channels[name] = chanPerms;
 }
 
-void IRCChannel::part ( trIRCUser *user )
+void IRCChannel::part ( trIRCUser &user )
 {
-	if (!user)
-		return;
-
 	tvIRCUserRefList::iterator itr = users.begin();
 
 	while ( itr != users.end() )
 	{
-		if ( (*itr)->nick == user->nick )
+		if ( itr->nick == user.nick )
 			itr = users.erase(itr);
 		else
 			itr++;
 	}
 
-	if (user->channels.find(name) != user->channels.end())
-		user->channels.erase(user->channels.find(name));
+	if (user.channels.find(name) != user.channels.end())
+		user.channels.erase(user.channels.find(name));
 }
 
-void IRCChannel::kick ( trIRCUser *user )
+void IRCChannel::kick ( trIRCUser &user )
 {
-	if (!user)
-		return;
-
 	tvIRCUserRefList::iterator itr = users.begin();
 
 	while ( itr != users.end() )
 	{
-		if ( (*itr)->nick == user->nick )
+		if ( itr->nick == user.nick )
 			itr = users.erase(itr);
 		else
 			itr++;
 	}
 
-	if (user->channels.find(name) != user->channels.end())
-		user->channels.erase(user->channels.find(name));
+	if (user.channels.find(name) != user.channels.end())
+		user.channels.erase(user.channels.find(name));
 }
 
 std::string IRCChannel::mergeModes ( std::string mode, std::string modMode )

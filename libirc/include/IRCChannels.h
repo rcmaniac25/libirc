@@ -62,9 +62,9 @@ typedef struct
 	tmIRCChannelUserPermisionsMap	channels;
 }trIRCUser;
 
-typedef std::map<std::string, trIRCUser> tvIRCUserMap;
+typedef std::map<std::string, trIRCUser&> tvIRCUserMap;
 typedef std::vector<trIRCUser> tvIRCUserList;
-typedef std::vector<trIRCUser*> tvIRCUserRefList;
+typedef std::vector<trIRCUser&> tvIRCUserRefList;
 
 typedef struct 
 {
@@ -104,9 +104,9 @@ public:
 	void setMode ( std::string mode );
 	void setUserMode ( trIRCUser *user, std::string mode, std::string from );
 
-	void join ( trIRCUser *user, teNickModes mode );
-	void part ( trIRCUser *user );
-	void kick ( trIRCUser *user );
+	void join ( trIRCUser &user, teNickModes mode );
+	void part ( trIRCUser &user );
+	void kick ( trIRCUser &user );
 
 protected:
 	trIRCChannelPermisions	perms;

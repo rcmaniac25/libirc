@@ -203,31 +203,26 @@ public:
 	// info returned from IRC sessions, used to maintain the internal state, and dispatch high level events from low level messages
 	void setServerHost ( std::string host ) {host = reportedServerHost;}
 	std::string getServerHost ( void ){return reportedServerHost;}
-
-	void noticeMessage ( trMessageEventInfo	&info );
-	void welcomeMessage ( trMessageEventInfo	&info );
-
-	void beginMOTD ( void ){MOTD = "";}
-	void addMOTD ( std::string line ) {MOTD += line + std::string("\n");}
-	void endMOTD ( void );
 	std::string getMOTD ( void ){return MOTD;}
-
-	void joinMessage ( BaseIRCCommandInfo	&info );
-	void partMessage ( BaseIRCCommandInfo	&info );
-
 	void setNick ( std::string text ) {nickname=text;}
 	std::string getNick ( void ) {return nickname;}
 
+	// used by the raw IRC command handalers to update internal states and trigger events
+	void noticeMessage ( trMessageEventInfo	&info );
+	void welcomeMessage ( trMessageEventInfo	&info );
+	void beginMOTD ( void ){MOTD = "";}
+	void addMOTD ( std::string line ) {MOTD += line + std::string("\n");}
+	void endMOTD ( void );
+	void joinMessage ( BaseIRCCommandInfo	&info );
+	void partMessage ( BaseIRCCommandInfo	&info );
 	void setChannelMode ( std::string channel, std::string mode );
 	void setChannelTopicMessage ( std::string channel, std::string topic, std::string source );
 	void addChannelUsers ( std::string channel, string_list newUsers );
 	void endChannelUsersList ( std::string channel );
-
 	void privMessage ( BaseIRCCommandInfo	&info );
-
-	void nickNameError ( int error, std::string message );
-
 	void modeCommand ( BaseIRCCommandInfo	&info );
+	void nickNameError ( int error, std::string message );
+	void nickCommand ( BaseIRCCommandInfo	&info );
 
 	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
@@ -303,8 +298,8 @@ protected:
 	std::string								nickname;
 	tmChannelMap							channels;
 
-	tvIRCUserMap							userList;
-
+	tvIRCUserMap							userNameMap;
+	tvIRCUserList							users;
 	// flood protection
 	float											minCycleTime;
 
