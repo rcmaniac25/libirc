@@ -345,6 +345,9 @@ typedef struct _SDLNet_GenericSocket {
 	int ready;
 } *SDLNet_GenericSocket;
 
+int SDLNet_AddSocket(SDLNet_SocketSet set, SDLNet_GenericSocket sock);
+int SDLNet_DelSocket(SDLNet_SocketSet set, SDLNet_GenericSocket sock);
+
 /* Allocate a socket set for use with SDLNet_CheckSockets()
    This returns a socket set for up to 'maxsockets' sockets, or NULL if
    the function ran out of memory.
