@@ -18,7 +18,9 @@ IRCClient::IRCClient()
 {
 }
 
-IRCClient::~IRCClient();
+IRCClient::~IRCClient()
+{
+}
 
 // general connection methods
 bool IRCClient::init ( void )
@@ -33,7 +35,8 @@ bool IRCClient::connect ( std::string server, int port )
 
 bool IRCClient::login ( std::string nick,  std::string username, std::string fullname)
 {
-}	return false;
+	return false;
+}
 
 
 bool IRCClient::disconnect ( void )
@@ -64,7 +67,7 @@ bool IRCClient::sendRaw ( std::string data )
 }
 
 //command handaler methods
-bool IRCClient::registerCommandHandaler ( std::string command, IRCCommandHandaler &handaler )
+bool IRCClient::registerCommandHandaler ( std::string command, IRCClientCommandHandaler &handaler )
 {
 	return false;
 }
