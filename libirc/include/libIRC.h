@@ -128,6 +128,12 @@ public:
 	// loging
 	void	setLogHandaler ( IRCClientLogHandaler * loger );
 
+	virtual void setLogfile ( std::string file );
+	virtual std::string  getLogfile ( void );
+
+	virtual void setDebugLevel ( int level );
+	virtual int getDebugLevel ( void );
+
   // general connection methods
   virtual bool init ( void );
   virtual bool connect ( std::string server, int port );
@@ -177,12 +183,6 @@ public:
 	// called by the TCP/IP connection when we get data
 	virtual void pending ( TCPClientConnection *connection, int count );
 
-	// debug API
-	virtual void setLogfile ( std::string file );
-	virtual std::string  getLogfile ( void );
-	virtual void setDebugLevel ( int level );
-	virtual int getDebugLevel ( void );
-
 	// tutilitys generaly used only by command handalers
 	// data sending stuff
 	virtual bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
@@ -191,12 +191,9 @@ public:
 	// the most RAWEST data transfer
 	virtual bool sendTextToServer ( std::string &text );
 
-	// utilitys
+	// low level log calls
 	virtual void log ( std::string &text, int level = 0 );
 	virtual void log ( const char *text, int level = 0 );
-
-	// event based stuff
-
 
 	// info returned from IRC sessions, used to maintain the internal state, and dispatch high level events from low level messages
 	void setServerHost ( std::string host ) {host = reportedServerHost;}
@@ -206,8 +203,9 @@ public:
 	void welcomeMessage ( trMessageEventInfo	&info );
 
 	void beginMOTD ( void ){MOTD = "";}
-	void addMOTD ( std::string line ) {MOTD += line;}
+	void addMOTD ( std::string line ) {MOTD += line + std::string("\n");}
 	void endMOTD ( void );
+	std::string getMOTD ( void ){return MOTD;}
 
 protected:
 	friend class IRCClientCommandHandaler;
