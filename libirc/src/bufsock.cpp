@@ -32,9 +32,10 @@ buf_sock_t	buf_sock_connect(const char* host, short port)
 	  return NULL;
 
 #ifdef _WIN32
-	 if(ioctlsocket(s, FIONBIO, (u_long*)1) == SOCKET_ERROR) {
-		 return NULL;
-	 }
+	// if(ioctlsocket(s, FIONBIO, (u_long*)1) == SOCKET_ERROR) {
+	//	 int err = WSAGetLastError();
+	//	 return NULL;
+	// }
 #else
      if(fcntl(s, F_SETFL, O_NONBLOCK) < 0) {
 	  perror("fcntl");

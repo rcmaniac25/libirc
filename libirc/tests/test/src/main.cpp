@@ -23,12 +23,12 @@
 #include <winsock2.h>
 #endif /* _WIN32 */
 
-#include "../src/irc_core.h"
-#include "../src/cmd.h"
-#include "../src/ctcp.h"
-#include "../src/trace.h"
-#include "../src/irc_rpl.h"
-#include "../src/irc_version.h"
+#include "irc_core.h"
+#include "cmd.h"
+#include "ctcp.h"
+#include "trace.h"
+#include "irc_rpl.h"
+#include "irc_version.h"
 
 IRC_CALLBACK(ping) 
 {
@@ -129,8 +129,13 @@ int main(void)
 
     trace_start(2); /* Trace to stderr */
     
-    srv = irc_connect("irc.ludd.luth.se", 6668);
-    irc_login(srv, "kr4x", "jorgen", "jorgen");
+    srv = irc_connect("irc.freenode.net", 6667);
+		if (!srv)
+		{
+			printf("server object NILL");
+			return 0;
+		}
+    irc_login(srv, "libIRCTEst", "libIRCTEst", "libIRCTEst");
     irc_add_server_listener(srv);
     irc_set_callback(ping, CMD_PING);
     irc_set_callback(privmsg, CMD_PRIVMSG);
