@@ -140,7 +140,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 			if (add)
 				userManager.addBan(who,banMask,info.source,getTimeStamp());
 			else	
-				userManager.removeBan(who,banMask)
+				userManager.removeBan(who,banMask);
 
 			banInfo.reason = "ban";
 			banInfo.user = banMask;
