@@ -143,11 +143,14 @@ public:
   virtual bool connect ( std::string server, int port );
 	virtual bool disconnect ( std::string reason );
 
+	void setFloodProtectTime ( float time ){minCycleTime = time;}
+	float getFloodProtectTime ( void ){return minCycleTime;}
+
   // update methods
   virtual bool process ( void );
 
 	// basic IRC operations
-	virtual bool login ( std::string &nick, std::string &username, std::string &fullname);
+	virtual bool login ( std::string &nick, std::string &username, std::string &fullname, std::string &host);
 	virtual bool join ( std::string channel );
 	virtual bool part ( std::string channel, std::string reason );
 	virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
@@ -222,7 +225,6 @@ public:
 	void nickNameError ( int error, std::string message );
 
 	void modeCommand ( BaseIRCCommandInfo	&info );
-
 
 	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
@@ -299,6 +301,9 @@ protected:
 	tmChannelMap							channels;
 
 	tvIRCUserMap							userList;
+
+	// flood protection
+	float											minCycleTime;
 };
 
 #endif //_LIBIRC_H_

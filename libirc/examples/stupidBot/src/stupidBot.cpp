@@ -38,6 +38,7 @@ typedef struct
 	int					port;
 	string_list	nicks;
 	int					nick;
+	std::string username;
 	std::string host;
 	std::string realName;
 	string_list channels;
@@ -149,6 +150,10 @@ void readConfig ( std::string file )
 			else if (command == "port")
 			{
 				theBotInfo.port = atoi(dataStr.c_str());
+			}
+			else if (command == "username")
+			{
+				theBotInfo.username = dataStr;
 			}
 			else if (command == "host")
 			{
@@ -262,6 +267,7 @@ void saveConfig ( void )
 	fprintf(fp,"server:%s%s",theBotInfo.server.c_str(),lineEnd.c_str());
 	fprintf(fp,"port:%d%s%s",theBotInfo.port,lineEnd.c_str(),lineEnd.c_str());
 
+	fprintf(fp,"username:%s%s",theBotInfo.username.c_str(),lineEnd.c_str());
 	fprintf(fp,"host:%s%s",theBotInfo.host.c_str(),lineEnd.c_str());
 	fprintf(fp,"realname:%s%s%s",theBotInfo.realName.c_str(),lineEnd.c_str(),lineEnd.c_str());
 
@@ -348,7 +354,7 @@ void saveConfig ( void )
 
 void login ( void )
 {
-	client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.host,theBotInfo.realName);
+	client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
 }
 
 void joinChannels ( void )
@@ -461,7 +467,7 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			if (theBotInfo.nick < (int)theBotInfo.nicks.size())
 			{
 				// try our next name
-				client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.host,theBotInfo.realName);
+				client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
 				return false;
 			}
 			else	// we are out of names, let the default try it
@@ -855,6 +861,35 @@ bool libVersCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
+class longTestCommand : public botCommandHandaler
+{
+public:
+	longTestCommand() {name = "longtest";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool longTestCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	std::string longString ;
+
+	if (info->params.size() <= 2)
+	{
+		longString = "this is a realy,";
+
+		for ( int i =0; i < 100; i++)
+			longString += " realy,";
+
+		longString += " long string";
+
+	}
+	else
+	{
+		longString = "this is a long string\nwith\nsome\nnewlines in it\n\nIsn't it cool?";
+	}
+
+	client.sendMessage(info->target,longString);
+	return true;
+}
 
 void registerBotCommands ( void )
 {
@@ -872,6 +907,7 @@ void registerBotCommands ( void )
 	installBotCommand(new addjoinCommand);
 	installBotCommand(new addmasterCommand);
 	installBotCommand(new libVersCommand);
+	installBotCommand(new longTestCommand);
 }
 
 

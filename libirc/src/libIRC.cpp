@@ -17,8 +17,8 @@
 //********************************************************************************//
 
 #define _MAJOR_VERS	0
-#define _MINOR_VERS	1
-#define _REVISION		1
+#define _MINOR_VERS	0
+#define _REVISION		2
 
 //********************************************************************************//
 
@@ -166,6 +166,7 @@ void IRCClient::getLibVersion ( int &major, int &minor, int &rev )
 // general connection methods
 bool IRCClient::init ( void )
 {
+	minCycleTime = 0.1f;
 	registered = false;
 	nickname = "";
 	// if any old conenctions are around, kill em
@@ -237,7 +238,7 @@ bool IRCClient::process ( void )
 	return tcpConnection.update()==eTCPNoError;
 }
 
-bool IRCClient::login ( std::string &nick, std::string &username, std::string &fullname)
+bool IRCClient::login ( std::string &nick, std::string &username, std::string &fullname, std::string &host )
 {
 	if (!tcpClient || !tcpClient->connected())
 		return false;
@@ -254,6 +255,9 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 	if (!fullname.size())
 		fullname = "Lazy libIRC programer";
 
+	if (!host.size())
+		fullname = "localhost";
+
 	requestedNick = nick;
 
 	IRCCommandINfo	info;
@@ -267,7 +271,7 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 
 	info.params.clear();
 	info.params.push_back(username);
-	info.params.push_back(std::string("localhost"));
+	info.params.push_back(host);
 	info.params.push_back(ircServerName);
 	info.params.push_back(fullname);
 
@@ -342,25 +346,36 @@ bool IRCClient::part ( std::string channel, std::string reason )
 
 bool IRCClient::sendMessage ( std::string target, std::string message, bool isAction )
 {
-	IRCCommandINfo	commandInfo;
-	commandInfo.target = target;
 
-	std::string messageToSend;
+	std::string messageHeader;
+	std::string messageFooter;
+
 
 	int headerLen = (int)strlen("PRIVMSG  :") + (int)target.size();
 	if(isAction)
 		headerLen += (int)strlen("*ACTION **");
 
 	if(isAction)
-		messageToSend += (char)0x01 + std::string("ACTION ");
-
-	messageToSend += message;
+		messageHeader += (char)0x01 + std::string("ACTION ");
 
 	if(isAction)
-		messageToSend +=(char)0x01;
+		messageFooter +=(char)0x01;
 
-	commandInfo.params.push_back(messageToSend);
-	sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+	string_list	messages = string_util::slice(message,256-headerLen,true);
+
+	string_list::iterator	itr = messages.begin();
+	while ( itr != messages.end() )
+	{
+		std::string message = messageHeader+*itr+messageFooter;
+		int len = (int)message.size();
+
+		IRCCommandINfo	commandInfo;
+		commandInfo.target = target;
+		commandInfo.params.clear();
+		commandInfo.params.push_back(message);
+		sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+		itr++;
+	}
 	return true;
 }
 
@@ -490,6 +505,8 @@ bool IRCClient::sendTextToServer ( std::string &text )
 	else
 		return false;
 
+	// prevent that thar flooding
+	IRCOSSleep(minCycleTime);
 	return true;
 }
 
