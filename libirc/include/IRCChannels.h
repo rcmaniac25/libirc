@@ -54,6 +54,7 @@ typedef struct
 	tmIRCChannelUserPermisionsMap	channels;
 }trIRCUser;
 
+typedef std::map<std::string, trIRCUser> tvIRCUserMap;
 typedef std::vector<trIRCUser> tvIRCUserList;
 typedef std::vector<trIRCUser*> tvIRCUserRefList;
 

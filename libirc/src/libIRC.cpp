@@ -150,6 +150,7 @@ IRCClient::~IRCClient()
 // general connection methods
 bool IRCClient::init ( void )
 {
+	registered = false;
 	nickname = "";
 	// if any old conenctions are around, kill em
 	if (tcpClient)
@@ -214,6 +215,7 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 	if (!fullname.size())
 		fullname = "Lazy libIRC programer";
 
+	requestedNick = nick;
 
 	IRCCommandINfo	info;
 	info.params.push_back(nick);
@@ -349,7 +351,6 @@ void IRCClient::processIRCLine ( std::string line )
 	// notify any handalers for this specific command
 	receveCommand(commandInfo.command,commandInfo);
 }
-
 
 bool IRCClient::sendIRCCommandToServer ( teIRCCommands	command, std::string &data)
 {
@@ -652,6 +653,7 @@ void IRCClient::registerDefaultCommandhandalers ( void )
 	addDefaultCommandhandalers(new IRCNoticeCommand );
 	addDefaultCommandhandalers(new IRCJoinCommand );
 	addDefaultCommandhandalers(new IRCModeCommand );
+	addDefaultCommandhandalers(new IRCPrivMsgCommand );
 }
 
 // logical event handalers
@@ -671,7 +673,7 @@ void IRCClient::clearDefaultEventHandalers ( void )
 
 	while ( itr != defaultEventHandalers.end())
 	{
-		if (itr->second)
+		if (itr->second && (itr->second != this) )
 			delete(itr->second);
 		itr++;
 	}
@@ -683,6 +685,7 @@ void IRCClient::registerDefaultEventHandalers ( void )
 	userEventHandalers.clear();
 	clearDefaultEventHandalers();
 
+	addDefaultEventHandalers(eIRCNickNameError,this);
 }
 
 bool IRCClient::registerEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler )
@@ -763,6 +766,21 @@ void IRCClient::callEventHandaler ( teIRCEventType eventType, trBaseEventInfo &i
 	return;
 }
 
+// user management
+trIRCUser& IRCClient::getUserRecord ( std::string name )
+{
+	if (name.c_str()[0] == '@')
+		name.erase(0,1);
+
+	tvIRCUserMap::iterator	itr = userList.find(name);
+	if (itr == userList.end())
+	{
+		trIRCUser	user;
+		user.nick = name;
+	}
+	return userList[name];
+}
+
 // event trigers from low level messages
 // this way the low level events don't need the logic for the high level events.
 
@@ -780,6 +798,7 @@ void IRCClient::noticeMessage ( trMessageEventInfo	&info )
 void IRCClient::welcomeMessage ( trMessageEventInfo	&info )
 {
 	setNick(info.target);
+	requestedNick = info.target;
 
 	// we know we are conencted here
 	if (getConnectionState() < eLogedIn)
@@ -804,17 +823,134 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 
 	std::string who = goodies[0];
 
+	trJoinEventInfo	joinInfo;
 	if (who == getNick())	// we joined a channel
 	{	
 		IRCChannel	channel;
 		channel.setName(info.target);
 		channels[channel.getName()] = channel;
+
+		joinInfo.eventType = eIRCChannelJoinEvent;
 	}
 	else	// someone else joined a channel we are in
 	{
-		//channels[info.target].join()
+		channels[info.target].join(&(getUserRecord(who)));
+		joinInfo.eventType = eIRCUserJoinEvent;
+	}	
+
+	joinInfo.channel = info.target;
+	joinInfo.user = who;
+	callEventHandaler(joinInfo.eventType,joinInfo);
+}
+
+void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic, std::string source )
+{
+	channels[channel].setTopic(topic);
+
+	trMessageEventInfo	info;
+	info.eventType = eIRCTopicChangeEvent;
+	info.target = channel;
+	info.source = source;
+	info.message = topic;
+	callEventHandaler(info.eventType,info);
+}
+
+void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
+{
+	string_list::iterator	itr = newUsers.begin();
+	while ( itr != newUsers.end() )
+	{
+		channels[channel].join(&(getUserRecord(*itr)));
+		itr++;
 	}
 }
+
+void IRCClient::endChannelUsersList ( std::string channel )
+{
+	trBaseEventInfo	info;
+	info.eventType = eIRCChanInfoCompleteEvent;
+	callEventHandaler(info.eventType,info);
+}
+
+void IRCClient::privMessage ( BaseIRCCommandInfo	&info )
+{
+	trMessageEventInfo	msgInfo;
+	msgInfo.source = info.source;
+	msgInfo.target = info.target;
+	msgInfo.message = info.getAsString();
+	msgInfo.params = info.params;
+	msgInfo.from = string_util::tokenize(msgInfo.source,std::string("!"))[0];
+
+	// lop off the ':'
+	msgInfo.message.erase(msgInfo.message.begin());
+	msgInfo.params[0].erase(msgInfo.params[0].begin());
+
+	// figure out who the message is from, is it form a channel or from a dude
+	if (info.target.c_str()[0] == '#' )
+		msgInfo.eventType = eIRCChannelMessageEvent;
+	else
+		msgInfo.eventType = eIRCPrivateMessageEvent;
+
+	callEventHandaler(msgInfo.eventType,msgInfo);
+}
+
+void IRCClient::nickNameError ( int error, std::string message )
+{
+	trNickErrorEventInfo	info;
+	info.error = error;
+
+	if (getConnectionState() < eLogedIn)
+		setConnectionState(eTCPConenct);
+
+	info.error = error;
+	info.message = message;
+	info.eventType = eIRCNickNameError;
+	callEventHandaler(info.eventType,info);
+}
+
+// info methods
+string_list IRCClient::listChanels ( void )
+{
+	string_list	chanList;
+
+	tmChannelMap::iterator itr = channels.begin();
+
+	while ( itr != channels.end() )
+	{
+		chanList.push_back(itr->first);
+		itr++;
+	}
+	return chanList;
+}
+
+// default event handling
+
+bool IRCClient::process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info )
+{
+	switch (eventType)
+	{
+		case eIRCNickNameError:
+		{
+			// atempt to keep adding crap to the nick till it goes
+			requestedNick += '_';
+
+			IRCCommandINfo	info;
+			info.params.push_back(requestedNick);
+
+			if (!sendIRCCommand(eCMD_NICK,info))
+			{
+				log("Nick Error Resned Failed: NICK command not sent",0);
+				return false;
+			}
+			if (getConnectionState() < eSentNickAndUSer)
+				setConnectionState(eSentNickAndUSer);
+		}
+		break;
+	}
+	return true;
+}
+
+
 
 // Local Variables: ***
 // mode:C++ ***

@@ -120,7 +120,7 @@ public:
 	virtual void log ( IRCClient &client, int level, std::string line ) = 0;
 };
 
-class IRCClient : public TCPClientDataPendingListener
+class IRCClient : public TCPClientDataPendingListener, IRCBasicEventCallback
 {
 public:
   IRCClient();
@@ -151,7 +151,7 @@ public:
 
 	// IRC info operations
 	// virtual string_utils::string_list listUsers ( std::string channel );
-	// virtual string_utils::string_list listChanels ( void );
+	virtual string_list listChanels ( void );
 
 	//event handaler methods.... for higher level API
 	virtual bool registerEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler );
@@ -213,6 +213,17 @@ public:
 	void setNick ( std::string text ) {nickname=text;}
 	std::string getNick ( void ) {return nickname;}
 
+	void setChannelTopicMessage ( std::string channel, std::string topic, std::string source );
+	void addChannelUsers ( std::string channel, string_list newUsers );
+	void endChannelUsersList ( std::string channel );
+
+	void privMessage ( BaseIRCCommandInfo	&info );
+
+	void nickNameError ( int error, std::string message );
+
+	// used by the defalt event handalers
+	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
+
 protected:
 	friend class IRCClientCommandHandaler;
 
@@ -237,12 +248,12 @@ protected:
 		eTCPConenct,
 		eSentNickAndUSer,
 		eLogedIn,
-		eRegistered,
-		eInChannel,
 		eLastState
 	}teIRCConnectionState;
 
 	teIRCConnectionState	ircConenctonState;
+
+	bool									registered;
 
 	virtual teIRCConnectionState getConnectionState ( void ){return ircConenctonState;}
 	virtual void setConnectionState ( teIRCConnectionState state ){ircConenctonState = state;}
@@ -269,6 +280,9 @@ protected:
 	void clearDefaultEventHandalers ( void );
 	void registerDefaultEventHandalers ( void );
 
+	// user management
+	trIRCUser& getUserRecord ( std::string name );
+
 	// loging
 	IRCClientLogHandaler			*logHandaler;
 	std::string								logfile;
@@ -276,8 +290,11 @@ protected:
 
 	// info from the connection
 	std::string								MOTD;
+	std::string								requestedNick;
 	std::string								nickname;
 	tmChannelMap							channels;
+
+	tvIRCUserMap							userList;
 };
 
 #endif //_LIBIRC_H_

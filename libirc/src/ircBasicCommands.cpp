@@ -62,7 +62,7 @@ bool IRCUserCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 	std::string commandLine;
 
 	//username host server fullname
-	commandLine = ircInfo.params[0] + delim + ircInfo.params[1] + delim + ircInfo.params[2] + delim + ircInfo.params[3];
+	commandLine = ircInfo.params[0] + delim + ircInfo.params[1] + delim + ircInfo.params[2] + delim + std::string(":") + ircInfo.params[3];
 	client.sendIRCCommandToServer(eCMD_USER,commandLine);
 
 	return true;
@@ -188,6 +188,30 @@ bool IRCModeCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 	return true;
 }
 
+// IRC "PRIVMSG" command
+IRCPrivMsgCommand::IRCPrivMsgCommand()
+{
+	name = "PRIVMSG";
+}
+
+bool IRCPrivMsgCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	client.privMessage(info);
+	return true;
+}
+
+bool IRCPrivMsgCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	IRCCommandINfo	&ircInfo = (IRCCommandINfo&)info;
+
+	std::string commandLine;
+	ircInfo.target = 
+	//username host server fullname
+	commandLine = ircInfo.target + delim + std::string(":") + info.getAsString();
+	client.sendIRCCommandToServer(eCMD_PRIVMSG,commandLine);
+	return true;
+}
+
 	// special case commands
 
 // Generic handaler for ALL
@@ -300,7 +324,23 @@ bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIR
 		case RPL_CHANNELMODEIS:
 		case RPL_UNIQOPIS:
 		case RPL_NOTOPIC:
+			break;
+
 		case RPL_TOPIC:
+			{	
+				// first string is the channel this is for
+				std::string channel = info.params[0];
+
+				// get that topic
+				std::string topic = info.getAsString(1);
+				// the first thing is a : we don't want that ether
+				topic.erase(topic.begin());
+
+				// let the big guy know we got some
+				client.setChannelTopicMessage(channel,topic,info.source);
+			}
+			break;
+
 		case RPL_INVITING:
 		case RPL_SUMMONING:
 		case RPL_INVITELIST:
@@ -309,10 +349,32 @@ bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIR
 		case RPL_ENDOFEXCEPTLIST:
 		case RPL_VERSION:
 		case RPL_WHOREPLY:
+			break;
+
 		case RPL_NAMREPLY:
+			{	
+				// first string is the channel this is for
+				std::string channel = info.params[1];
+
+				string_list userList = info.params;
+				// we don't need the = channel, we saved it
+				userList.erase(userList.begin(),userList.begin()+2);
+
+				// the first thing is a : we don't want that ether
+				userList[0].erase(userList[0].begin());
+
+				// let the big guy know we got some
+				client.addChannelUsers(channel,userList);
+			}
+			break;
 		case RPL_LINKS:
 		case RPL_ENDOFLINKS:
+			break;
+
 		case RPL_ENDOFNAMES:
+			client.endChannelUsersList(info.params[0]);
+			break;
+
 		case RPL_BANLIST:
 		case RPL_ENDOFBANLIST:
 		case RPL_ENDOFWHOWAS:
@@ -361,10 +423,15 @@ bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIR
 		case ERR_NOMOTD:
 		case ERR_NOADMININFO:
 		case ERR_FILEERROR:
+			break;
+
 		case ERR_NONICKNAMEGIVEN:
 		case ERR_ERRONEUSNICKNAME:
 		case ERR_NICKNAMEINUSE:
 		case ERR_NICKCOLLISION:
+			client.nickNameError(numeric,info.getAsString());
+			break;
+
 		case ERR_UNAVAILRESOURCE:
 		case ERR_USERNOTINCHANNEL:
 		case ERR_NOTONCHANNEL:

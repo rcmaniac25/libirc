@@ -24,6 +24,7 @@ typedef enum
 {
 	eIRCNULLEvent = 0,
 	eIRCNoticeEvent,
+	eIRCNickNameError,
 	eIRCWelcomeEvent,
 	eIRCEndMOTDEvent,
 	eIRCChannelJoinEvent,
@@ -36,6 +37,8 @@ typedef enum
 	eIRCUserJoinEvent,
 	eIRCUserPartEvent,
 	eIRCUserKickedEvent,
+	eIRCTopicChangeEvent,
+	eIRCChanInfoCompleteEvent,
 	eIRCLastEvent
 }teIRCEventType;
 
@@ -45,6 +48,13 @@ typedef struct trBaseEventInfo
 {
 	teIRCEventType	eventType;
 }trBaseEventInfo;
+
+// nickname error type events, used for eIRCNickNameError
+typedef struct trNickErrorEventInfo : public trBaseEventInfo
+{
+	int	error;
+	std::string message;
+}trNickErrorEventInfo;
 
 // join type evetns, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent
 typedef struct trJoinEventInfo : public trBaseEventInfo
@@ -70,11 +80,12 @@ typedef struct trKickBanEventInfo : public trBaseEventInfo
 	std::string kicker;
 }trKickBanEventInfo;
 
-// message events, used for eIRCChannelMessageEvent, eIRCPrivateMessageEvent, eIRCNoticeEvent, eIRCWelcomeEvent
+// message events, used for eIRCChannelMessageEvent, eIRCPrivateMessageEvent, eIRCNoticeEvent, eIRCWelcomeEvent, eIRCTopicChangeEvent
 typedef struct trMessageEventInfo : public trBaseEventInfo
 {
 	std::string	target;
 	std::string source;
+	std::string from;
 	std::string message;
 	std::vector<std::string> params;
 }trMessageEventInfo;

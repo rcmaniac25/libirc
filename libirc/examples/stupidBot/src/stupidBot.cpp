@@ -49,6 +49,69 @@ void joinChannels ( void )
 	}
 }
 
+void joinedChannel ( trJoinEventInfo *info )
+{
+	IRCCommandINfo	commandInfo;
+
+	commandInfo.target = info->channel;
+	commandInfo.params.push_back (std::string("Hey everybody!"));
+//	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+}
+
+void channelMessage ( trMessageEventInfo *info )
+{
+	std::string myNick = client.getNick();
+
+	IRCCommandINfo	commandInfo;
+	commandInfo.target = info->target;
+
+	std::string firstWord = info->params[0];
+	if (*(firstWord.end()-1) == ':')
+		firstWord.erase(firstWord.end()-1);
+
+	if ( firstWord == myNick )
+	{
+		// its for me
+		if ( info->params[1] == "Hello")
+		{
+			commandInfo.params.push_back( std::string("Hey ") + info->from + std::string(" how are you?"));
+			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+		}
+		else if ( info->params[1] == "status")
+		{
+			commandInfo.params.push_back( std::string("online"));
+			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+		}
+		else if ( info->params[1] == "channel")
+		{
+			commandInfo.params.push_back(info->target);
+			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+		}
+		else if ( info->params[1] == "channels")
+		{
+			string_list	chans = client.listChanels();
+			string_list::iterator itr = chans.begin();
+			std::string theLine = info->from + std::string(" I am presently in") + string_util::format(" %d channels, including; ",chans.size());
+			while ( itr != chans.end() )
+			{
+				theLine += *itr;
+				itr++;
+				if ( itr != chans.end() )
+					theLine += ", ";
+			}
+			commandInfo.params.push_back(theLine);
+			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+		}
+		else
+		{
+			commandInfo.params.push_back( info->from + std::string(" WTF are you on about?"));
+			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+
+		}
+	}
+}
+
+
 class myEventCaller : public IRCBasicEventCallback
 {
 public:
@@ -66,6 +129,27 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 		case eIRCEndMOTDEvent:
 			joinChannels();
 			break;
+
+		case eIRCChannelJoinEvent:
+			joinedChannel((trJoinEventInfo*)&info);
+			break;
+
+		case eIRCChannelMessageEvent:
+			channelMessage ((trMessageEventInfo*)&info);
+			break;
+
+		case eIRCNickNameError:
+			theBotInfo.nick++;
+			if (theBotInfo.nick < (int)theBotInfo.nicks.size())
+			{
+				// try our next name
+				client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.host,theBotInfo.realName);
+				return false;
+			}
+			else	// we are out of names, let the default try it
+				return true;
+
+			break;
 	}
 	return true;
 }
@@ -78,6 +162,9 @@ void registerEventHandalers ( void )
 {
 	client.registerEventHandaler(eIRCNoticeEvent,&eventHandaler);
 	client.registerEventHandaler(eIRCEndMOTDEvent,&eventHandaler);
+	client.registerEventHandaler(eIRCChannelJoinEvent,&eventHandaler);
+	client.registerEventHandaler(eIRCChannelMessageEvent,&eventHandaler);
+	client.registerEventHandaler(eIRCNickNameError,&eventHandaler);
 }
 
 void initInfo ( void )
@@ -87,16 +174,15 @@ void initInfo ( void )
 	theBotInfo.server = "irc.freenode.net";
 	theBotInfo.port = 6667;
 
-	theBotInfo.nicks.push_back(std::string("boboBot"));
-	theBotInfo.nicks.push_back(std::string("boboBot1"));
-	theBotInfo.nicks.push_back(std::string("boboBot2"));
+	theBotInfo.nicks.push_back(std::string("stupid_Bot"));
+	theBotInfo.nicks.push_back(std::string("stupiderBot"));
+	theBotInfo.nicks.push_back(std::string("stupidestBot"));
 
 	theBotInfo.host = "stupidBot";
 	theBotInfo.realName = "a libIRC bot";
 
 	theBotInfo.channels.push_back(std::string("#opencombat"));
-	theBotInfo.channels.push_back(std::string("#brlcad"));
-	theBotInfo.channels.push_back(std::string("#bzflag"));
+	//theBotInfo.channels.push_back(std::string("#bzflag"));
 }
 
 void main ( void )
