@@ -648,12 +648,20 @@ void IRCUserManager::messageReceved ( std::string &target, std::string &source, 
 
 void IRCUserManager::modeReceved ( std::string &target, std::string &source, std::string &mode )
 {
-	string_list	nameParts = string_util::tokenize(source,std::string("!"));
-	std::string sourceUser = getCleanNick(nameParts[0]);
+	string_list	nameParts;
+	std::string sourceUser;
+	
+	if (string_util::charExists(source,'!'))
+	{
+		nameParts = string_util::tokenize(source,std::string("!"));
+		sourceUser = getCleanNick(nameParts[0]);
+	}
+	else
+		sourceUser = source;
 
 	trIRCUserRecord	&userRecord = getUserInfo(sourceUser);
 
-	if (!userRecord.host.size() && nameParts[1].size())
+	if (!userRecord.host.size() && nameParts.size()>1 && nameParts[1].size())
 		userRecord.host = nameParts[1];
 
 	if ( target[0] == '#')
@@ -755,6 +763,7 @@ trIRCChannelRecord& IRCUserManager::getChannelInfo ( std::string &channel )
 		setDefaultChannelPerms(channelRecord.perms);
 		channelRecord.id = lastChannelID;
 		channels[lastChannelID] = channelRecord;
+		channelNameLookup[channel] = lastChannelID;
 		return getChannelInfo(lastChannelID++);
 	}
 	return getChannelInfo(itr->second);
