@@ -105,12 +105,9 @@ bool IRCClient::part ( std::string channel, std::string reason )
 		log("part Failed: PART command not sent",0);
 		return false;
 	}
-	// make sure we have a record of it
-	if (channels.find(channel) == channels.end())
-		return false;
 
 	// notify that we parted the channel
-	removeChannelUser(channel,getNick());
+	userManager.userPartChannel(getNick(),channel);
 
 	trPartEventInfo	eventInfo;
 
@@ -120,7 +117,7 @@ bool IRCClient::part ( std::string channel, std::string reason )
 
 	callEventHandler(eventInfo.eventType,eventInfo);
 
-	channels.erase(channels.find(channel));
+	// todo, we realy should go and remove the channel from our listing and kill any dead users
 	return true;
 }
 

@@ -139,9 +139,6 @@
 				Name="IRC Client"
 				Filter="">
 				<File
-					RelativePath="..\src\IRCChannels.cpp">
-				</File>
-				<File
 					RelativePath="..\src\ircCommands.cpp">
 				</File>
 				<File
@@ -165,9 +162,6 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
-			<File
-				RelativePath="..\include\IRCChannels.h">
-			</File>
 			<File
 				RelativePath="..\include\IRCEvents.h">
 			</File>

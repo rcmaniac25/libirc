@@ -220,10 +220,6 @@ bool IRCClient::disconnect ( std::string reason )
 			return false;
 		}
 
-		channels.clear();
-		users.clear();
-		userNameMap.clear();
-
 		teTCPError err = tcpClient->disconnect();
 
 		ircConenctonState = eNotConnected;
@@ -732,114 +728,42 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
 	return;
 }
 
-// user management
-trIRCUser& IRCClient::getUserRecord ( std::string name )
-{
-	tvIRCUserMap::iterator	itr = userNameMap.find(name);
-	if (itr == userNameMap.end())
-	{
-		trIRCUser	user;
-		user.nick = name;
-
-		int ID = (int)users.size();
-		users.push_back(user);
-
-		trIRCUser	&userRef = users[ID];
-
-		userNameMap[name] = userRef;
-		return userRef;
-	}
-	return userNameMap[name];
-}
-
-std::string IRCClient::getCleanNick ( std::string &nick )
-{
-	if (nick.size() < 2)
-		return nick;
-
-	if (nick[0] == '@' || nick[0] == '+')
-	{
-		std::string	temp = nick;
-		temp.erase(temp.begin());
-		return temp;
-	}
-	return nick;
-}
-
-teNickModes IRCClient::parseNickMode ( std::string &nick )
-{
-	if (nick.size() < 2)
-		return eNoMode;
-
-	if (nick[0] == '@')
-		return eOperator;
-
-	if (nick[0] == '+')
-		return eVoice;
-
-	return eNoMode;
-}
-
 // info methods
 
 string_list IRCClient::listUsers ( std::string channel )
 {
-	string_list userNamesList;
-
-	if (channels.find(channel) != channels.end())
-	{
-		return channels.find(channel)->second.listUsers();
-	}
-	else
-	{
-		tvIRCUserMap::iterator	itr = userNameMap.begin();
-		while (itr != userNameMap.end())
-		{
-			std::string name = itr->first;
-			trIRCUser	*user = itr->second;
-
-			userNamesList.push_back(name);
-			itr++;
-		}
-	}
-	return userNamesList;
+	if (channel.size())
+		return userManager.listChannelUserNames(channel);
+	
+	return userManager.listUserNames();
 }
 
 string_list IRCClient::listChanOps ( std::string channel )
 {
 	string_list userNames;
 
-	if (channels.find(channel) != channels.end())
-	{
-		return channels.find(channel)->second.listUsers(true);
+	int channelID = userManager.getChannelID(channel);
+	std::vector<int> userList = userManager.listChannelUsers(channelID);
+	std::vector<int>::iterator itr = userList.begin();
 
+	while ( itr != userList.end() )
+	{
+			if (userManager.userIsOp(*itr,channelID))
+				userNames.push_back(userManager.getUserNick(*itr));
+
+			itr++;
 	}
 	return userNames;
 }
 
-
 string_list IRCClient::listChanels ( void )
 {
-	string_list	chanList;
-
-	tmChannelMap::iterator itr = channels.begin();
-
-	while ( itr != channels.end() )
-	{
-		chanList.push_back(itr->first);
-		itr++;
-	}
-	return chanList;
+	return userManager.listChannelNames();
 }
 
 trIRCChannelPermisions IRCClient::getChanPerms ( std::string channel )
 {
-	trIRCChannelPermisions perms;
-	perms.mode = "NONE";
-
-	if (channels.find(channel) != channels.end())
-		return channels.find(channel)->second.getChanPerms();
-	return perms;
+	return userManager.getChannelPerms(channel);
 }
 
 // default event handling

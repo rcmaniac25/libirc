@@ -19,7 +19,7 @@
 #include "ircCommands.h"
 #include "IRCEvents.h"
 #include "TCPConnection.h"
-#include "IRCChannels.h"
+#include "IRCUserManager.h"
 
 // global includes
 #include <string>
@@ -283,12 +283,8 @@ protected:
 	void clearDefaultEventHandlers ( void );
 	void registerDefaultEventHandlers ( void );
 
-	// user management
-	trIRCUser& getUserRecord ( std::string name );
-	bool removeChannelUser (std::string channel, std::string name );
-
 	// loging
-	IRCClientLogHandler			*logHandler;
+	IRCClientLogHandler				*logHandler;
 	std::string								logfile;
 	int												debugLogLevel;
 
@@ -296,15 +292,10 @@ protected:
 	std::string								MOTD;
 	std::string								requestedNick;
 	std::string								nickname;
-	tmChannelMap							channels;
 
-	tvIRCUserMap							userNameMap;
-	tvIRCUserList							users;
+	IRCUserManager						userManager;
 	// flood protection
 	float											minCycleTime;
-
-	teNickModes parseNickMode ( std::string &nick );
-	std::string getCleanNick ( std::string &nick );
 };
 
 #endif //_LIBIRC_H_

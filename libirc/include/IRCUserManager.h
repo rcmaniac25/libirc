@@ -65,10 +65,10 @@ typedef struct
 	int																			id;
 	std::string															name;
 	trIRCChannelPermisions									perms;
-	std::vector<int>												users;
 	std::map<int,trIRCChannelUserPermisions>userPerms;
 	std::string															lastMessage;
 	int																			lastMessageUser;
+	std::string															topic;
 }trIRCChannelRecord;
 
 typedef struct 
@@ -96,8 +96,6 @@ public:
 
 		std::string getUserHost ( int id );
 		std::string getUserHost ( std::string &name );
-		void setUserHost ( int id, std::string &host );
-		void setUserHost ( std::string &name, std::string &host );
 
 		std::string getUserLastMessage ( int id );
 		std::string getUserLastMessage ( std::string &name );
@@ -152,6 +150,9 @@ public:
 		trIRCChannelPermisions getChannelPerms ( int id );
 		trIRCChannelPermisions getChannelPerms ( std::string &channel );
 
+		std::string getChannelTopic ( int id );
+		std::string getChannelTopic( std::string &channel );
+
 		std::string getChannelLastMessage ( int id );
 		std::string getChannelLastMessage ( std::string &channel );
 
@@ -165,6 +166,9 @@ public:
 		std::vector<std::string> listChanneUserlNames ( int id );
 		std::vector<std::string> listChannelUserNames ( std::string &name );
 
+		std::vector<int> listChannels ( void );
+		std::vector<std::string> listChannelNames ( void );
+
 
 		// state update from the IRC data stream
 		void userJoinChannel ( int user,  int channel );
@@ -172,17 +176,15 @@ public:
 		void userJoinChannel ( std::string &user, int channel );
 		void userJoinChannel ( std::string &user, std::string &channel );
 
-		void userJoinChannel ( int user,  int channel );
+		void userPartChannel ( int user,  int channel );
 		void userPartChannel ( int user, std::string &channel );
 		void userPartChannel ( std::string &user, int channel );
 		void userPartChannel ( std::string &user, std::string &channel );
 
 		void nickChange ( std::string &oldNick, std::string &newNick );
-
 		void messageReceved ( std::string &target, std::string &source, std::string &message );
-
 		void modeReceved ( std::string &target, std::string &source, std::string &mode );
-
+		void topicReceved ( std::string &channel, std::string &topic, bool clear = false );
 
 		// utilitys
 		void purgeNonChannelUsers ( void );
@@ -198,6 +200,14 @@ protected:
 	trIRCChannelRecord& getChannelInfo ( std::string &channel );
 
 	std::string getCleanNick ( std::string &nick );
+
+	void setDefaultUserPerms ( trIRCUserPermisions &perms );
+	void setDefaultChannelPerms ( trIRCChannelPermisions &perms );
+	void setDefaultChannelUserPerms ( trIRCChannelUserPermisions &perms );
+
+	void parseUserPerms ( std::string mode, trIRCUserPermisions &perms );
+	void parseChannelPerms ( std::string mode, trIRCChannelPermisions &perms );
+	void parseChannelUserPerms ( std::string mode, trIRCChannelUserPermisions &perms );
 
 	std::map<int,trIRCUserRecord>	users;
 	std::map<int,trIRCChannelRecord> channels;
