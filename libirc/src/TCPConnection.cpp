@@ -202,7 +202,7 @@ void TCPClientConnection::readData ( void )
 	while (!done)
 	{
 		dataRead =  SDLNet_TCP_Recv(info->socket, chunk, (int)info->readChunkSize);
-		if (dataRead <0)
+		if (dataRead > 0)
 		{
 			if (data)
 				data = (unsigned char*)realloc(data,totalSize+dataRead);
@@ -213,6 +213,9 @@ void TCPClientConnection::readData ( void )
 			{
 				memcpy(&data[totalSize],chunk,dataRead);
 				totalSize += dataRead;
+
+				if (dataRead < info->readChunkSize)
+					done = true;
 			}
 			else	// there was an error
 				done = true;
@@ -252,6 +255,16 @@ teTCPError TCPClientConnection::sendData ( void *data, int len )
 		return setError(eTCPConnectionFailed);
 
 	return setError(eTCPNoError);
+}
+
+teTCPError TCPClientConnection::sendData ( const char *data, int len )
+{
+	return sendData((void*)data,len);
+}
+
+teTCPError TCPClientConnection::sendData ( std::string data )
+{
+	return sendData(data.c_str(),(int)data.size());
 }
 
 // data pending listeners
@@ -498,7 +511,7 @@ teTCPError TCPConnection::update ( void )
 	if (info->clientSocketSet)
 	{
 		int items = SDLNet_CheckSockets(info->clientSocketSet,info->timeout);
-		if (items = -1)
+		if (items == -1)
 			return eTCPSelectFailed;
 		if (items > 0)
 		{

@@ -95,6 +95,8 @@ public:
 
 	// data send
 	teTCPError sendData ( void *data, int len );
+	teTCPError sendData ( const char *data, int len );
+	teTCPError sendData ( std::string data );
 
 	// utils
 	void setReadChunkSize ( unsigned int size );
