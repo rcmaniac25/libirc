@@ -17,10 +17,25 @@
 
 #include "libIRC.h"
 
+IRCClient	client;
+
+class myEndMOTDCallback : public IRCBasicEventCallback
+{
+public:
+	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
+};
+
+bool myEndMOTDCallback::process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info )
+{
+	printf("********************** starting up ************************\n");
+	ircClient.join("#opencombat");
+	return true;
+}
+
+myEndMOTDCallback	startupCallback;
+
 void main ( void )
 {
-	IRCClient	client;
-
 	client.setDebugLevel(5);
 
 	// clear the log
@@ -28,12 +43,10 @@ void main ( void )
 
 	// set the log
 	client.setLogfile("irc.log");
+	client.registerEventHandaler(eIRCNoticeEvent,&startupCallback);
 
 	client.connect("irc.freenode.net",6667);
 	client.login(std::string("TheLoneliestBot"),std::string("here"),std::string("William Shatner"));
-
-	client.sendTextToServer(std::string("JOIN #opencombat"));
-	client.sendTextToServer(std::string("MODE #opencombat"));
 
 	while (client.process())
 	{
