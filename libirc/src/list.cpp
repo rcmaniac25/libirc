@@ -123,7 +123,7 @@ static slist_t _slist_alloc(void* value)
 {
      slist_t node;
 
-     node = malloc(sizeof(struct _slist));
+     node = (slist_t)malloc(sizeof(struct _slist));
      node->value = value;
      node->next = NULL;
 

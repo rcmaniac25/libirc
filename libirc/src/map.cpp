@@ -69,12 +69,12 @@ map_t map_create(map_type_t type, map_prop_value_t props[], unsigned int num_pro
      
      if(MT_TREE == type) {
 #ifdef USE_MAP_AVLTREE
-	  key_cmp_func_t     key_cmp_func = find_prop(props, MP_KEY_CMP_FUNC, num_props);
-	  destructor_t        val_destructor_func = find_prop(props, MP_VALUE_DESTRUCTOR, num_props);
+	  key_cmp_func_t     key_cmp_func = (key_cmp_func_t)find_prop(props, MP_KEY_CMP_FUNC, num_props);
+	  destructor_t        val_destructor_func = (destructor_t)find_prop(props, MP_VALUE_DESTRUCTOR, num_props);
 
 	  assert(key_cmp_func != NULL);
 
-	  map = malloc(sizeof(struct _map));	  
+	  map = (map_t)malloc(sizeof(struct _map));	  
 	  map->type = type;
 	  map->impl.tree = avl_create(key_cmp_func, val_destructor_func);
 #else

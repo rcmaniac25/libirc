@@ -42,14 +42,14 @@ buf_sock_t	buf_sock_connect(const char* host, short port)
      }
 #endif
      
-     sock = malloc(sizeof(struct _buf_sock));
+     sock = (buf_sock_t)malloc(sizeof(struct _buf_sock));
      assert(sock != NULL);
      if(NULL == sock) {
 	  tcp_close(s);
 	  return NULL;
      }
      sock->s = s;
-     sock->buf = malloc(1024);
+     sock->buf = (char*)malloc(1024);
      sock->buf_size = 1024;
      sock->cur_ptr = 0;
      
@@ -83,7 +83,7 @@ buf_sock_status_t buf_sock_read_lines(buf_sock_t sock, buf_lines_t* lines)
 
      max_bytes = sock->buf_size - sock->cur_ptr;
      while(max_bytes < 10) {
-	  char* new_buf = realloc(sock->buf, sock->buf_size * 2);
+	  char* new_buf = (char*)realloc(sock->buf, sock->buf_size * 2);
 	  if(NULL == new_buf)
 	       return BS_NO_MEM;
 	  
@@ -171,7 +171,7 @@ static buf_sock_status_t _buf_sock_examine_buffer(buf_sock_t sock, buf_lines_t* 
 	  return BS_INCOMPLETE_READ;
 
      lines->num = num_lines;
-     lines->lines = malloc(num_lines * sizeof(char*));
+     lines->lines = (char**)malloc(num_lines * sizeof(char*));
 
      for(cur_line = 0, begin_string = 0, i = 0; cur_line < num_lines; ++i) {
 	  if(sock->buf[i] == '\n') {

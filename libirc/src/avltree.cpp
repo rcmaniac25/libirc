@@ -57,7 +57,7 @@ avl_tree_t avl_create(key_cmp_func_t key_cmp_func, destructor_t val_destructor_f
      avl_tree_t   avl;
      assert(key_cmp_func != NULL);
 
-     avl = malloc(sizeof(struct _avl_tree));
+     avl = (avl_tree_t)malloc(sizeof(struct _avl_tree));
      avl->root = NULL;
      avl->key_cmp_func = key_cmp_func;
      avl->val_destructor_func = val_destructor_func;
@@ -121,7 +121,7 @@ static avl_node_t _avl_add(avl_node_t node, key_cmp_func_t key_cmp_func, void* k
      int cmp;
 
      if(NULL == node) {
-	  node = malloc(sizeof(struct _avl_node));
+	  node = (avl_node_t)malloc(sizeof(struct _avl_node));
 	  node->key = key;
 	  node->value = data;
 	  node->left = node->right = NULL;

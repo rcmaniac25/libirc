@@ -76,10 +76,10 @@ tcp_close(SOCKET s)
 
 int tcp_recv(SOCKET s, void* buf, int len)
 {
-	return recv(s, buf, len, 0);
+	return recv(s, (char*)buf, len, 0);
 }
 
 int tcp_send(SOCKET s, const void* buf, int len)
 {
-	return send(s, buf, len, 0);
+	return send(s, (char*)buf, len, 0);
 }
