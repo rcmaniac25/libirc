@@ -4,6 +4,7 @@ include_HEADERS = \
 	TCPConnection.h \
 	TextUtils.h	\
 	Singleton.h \
+	IRCChannels.h \
 	IRCNumerics.h \
 	IRCEvents.h \
 	ircCommands.h \
