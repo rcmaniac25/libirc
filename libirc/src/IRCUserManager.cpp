@@ -130,10 +130,25 @@ void IRCUserManager::modeReceved ( std::string &target, std::string &source, std
 
 
 // utilitys
-void IRCUserManager::purgeNonChannelUsers ( void );
-void IRCUserManager::purgeLastMessages ( void );
-void IRCUserManager::setPurgeOnLastPart ( bool purge ){autoPurgeOnLastPart = purge;}
-bool IRCUserManager::purgeOnLastPart ( void ){return autoPurgeOnLastPart;}
+void IRCUserManager::purgeNonChannelUsers ( void )
+{
+	std::map<int,trIRCUserRecord>::iterator userItr = users.begin();
+	while (userItr != users.end())
+	{
+		(userItr++)->second.lastMessage = "";
+
+}
+
+void IRCUserManager::purgeLastMessages ( void )
+{
+	std::map<int,trIRCUserRecord>::iterator userItr = users.begin();
+	while (userItr != users.end())
+		(userItr++)->second.lastMessage = "";
+
+	std::map<int,trIRCChannelRecord>::iterator chanItr = channels.begin();
+	while (chanItr != channels.end())
+		(chanItr++)->second.lastMessage = "";
+}
 
 trIRCUserRecord& IRCUserManager::getUserInfo ( int id )
 {
