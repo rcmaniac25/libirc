@@ -103,16 +103,7 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\src\IRCChannels.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ircCommands.cpp">
-			</File>
-			<File
 				RelativePath="..\src\libIRC.cpp">
-			</File>
-			<File
-				RelativePath="..\src\TextUtils.cxx">
 			</File>
 			<Filter
 				Name="commandHandalers"
@@ -143,6 +134,29 @@
 						RelativePath="..\src\sdl_net\SDLnetUDP.cpp">
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="IRC Client"
+				Filter="">
+				<File
+					RelativePath="..\src\IRCChannels.cpp">
+				</File>
+				<File
+					RelativePath="..\src\ircCommands.cpp">
+				</File>
+				<File
+					RelativePath="..\src\irClientCommands.cpp">
+				</File>
+				<File
+					RelativePath="..\src\irClientEvents.cpp">
+				</File>
+			</Filter>
+			<Filter
+				Name="utils"
+				Filter="">
+				<File
+					RelativePath="..\src\TextUtils.cxx">
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

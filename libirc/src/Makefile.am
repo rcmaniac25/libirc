@@ -14,6 +14,8 @@ libIRC_la_SOURCES = 	\
 	ircCommands.cpp	\
 	IRCChannels.cpp	\
 	libIRC.cpp 		\
+	ircClientCommands.cpp \
+	ircClientEvents.cpp   \
 	ircBasicCommands.cpp
 
 libIRC_la_CPPFLAGS = -I$(top_srcdir)/src/sdl_net
