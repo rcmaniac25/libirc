@@ -15,6 +15,9 @@
 #ifndef __IRC_COMMANDS_H__
 #define __IRC_COMMANDS_H__
 
+#include <string>
+#include <vector>
+
 /* Commands used in the IRC protocol (RFC 1459) */
 #define CMD_NICK	"NICK"
 #define CMD_USER	"USER"
@@ -53,6 +56,63 @@
 #define CMD_USERHOST	"USERHOST"
 #define CMD_ISON	"ISON"
 
+// IRC command enumerations
+typedef enum
+{
+	eCMD_NULL = 0,
+	eCMD_NICK,
+	eCMD_USER,
+	eCMD_PING,
+	eCMD_PONG,
+	eCMD_PRIVMSG,
+	eCMD_JOIN,
+	eCMD_PART,
+	eCMD_NOTICE,
+	eCMD_MODE,
+	eCMD_TOPIC,	
+	eCMD_NAMES,	
+	eCMD_LIST,	
+	eCMD_INVITE,
+	eCMD_KICK,	
+	eCMD_VERSION,	
+	eCMD_STATS,	
+	eCMD_LINKS,	
+	eCMD_TIME,	
+	eCMD_CONNECT,	
+	eCMD_TRACE,	
+	eCMD_ADMIN,	
+	eCMD_INFO,	
+	eCMD_WHO,		
+	eCMD_WHOIS,	
+	eCMD_WHOWAS,
+	eCMD_QUIT,	
+	eCMD_OPER,	
+	eCMD_KILL,	
+	eCMD_AWAY,	
+	eCMD_REHASH,
+	eCMD_RESTART,
+	eCMD_SUMMON,
+	eCMD_USERS,	
+	eCMD_WALLOPS,
+	eCMD_USERHOST,
+	eCMD_ISON,
+	eCMD_IRC_LASTCMD
+}teIRCCommands;
+
+class IRCCommandParser
+{
+public:
+	IRCCommandParser();
+	~IRCCommandParser();
+
+	std::string getCommandName ( teIRCCommands id );
+	teIRCCommands getCommandID ( std::string &name);
+private:
+	std::vector<std::string>	commandNameList;
+};
+
+IRCCommandParser	ircCommandParser;
+
 /* Commands used in the CTCP protocol(http://www.invlogic.com/irc/ctcp.html)*/
 #define CMD_CTCP_ACTION		"ACTION"
 #define CMD_CTCP_VERSION	"VERSION"
@@ -62,5 +122,33 @@
 #define CMD_CTCP_USERINFO	"USERINFO"
 #define CMD_CTCP_TIME		"TIME"
 #define CMD_CTCP_ERRMSG		"ERRMSG"
+
+typedef enum
+{
+	eCMD_CTCP_NULL = 0,
+	eCMD_CTCP_ACTION,
+	eCMD_CTCP_VERSION,
+	eCMD_CTCP_PING,
+	eCMD_CTCP_PONG,
+	eCMD_CTCP_CLIENTINFO,
+	eCMD_CTCP_USERINFO,
+	eCMD_CTCP_TIME,
+	eCMD_CTCP_ERRMSG,
+	eCMD_CTCP_LASTCMD
+}teCTCPCommands;
+
+class CTCPCommandParser
+{
+public:
+	CTCPCommandParser();
+	~CTCPCommandParser();
+
+	std::string getCommandName ( teCTCPCommands id );
+	teCTCPCommands getCommandID ( std::string &name);
+private:
+	std::vector<std::string>	commandNameList;
+};
+
+CTCPCommandParser	ctcpCommandParser;
 
 #endif // __IRC_COMMANDS_H__ 
