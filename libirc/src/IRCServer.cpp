@@ -26,48 +26,107 @@
 	#include <stdio.h>
 #endif
 
+class DefaultIRCLogHandler : public IRCClientLogHandler
+{
+public:
+	virtual ~DefaultIRCLogHandler(){return;}
+	virtual void log ( IRCClient &client, int level, std::string line )
+	{
+		printf("log# %d:%s\n",level,line.c_str());
+
+		if (client.getLogfile().size())
+		{
+			FILE *fp = fopen(client.getLogfile().c_str(),"at");
+
+			if (fp)
+			{
+				fprintf(fp,"log# %d:%s\n",level,line.c_str());
+				fclose(fp);
+			}
+		}
+	}
+};
+
+DefaultIRCLogHandler	defaultLoger;
+
+
 IRCServer::IRCServer()
 :tcpConnection(TCPConnection::instance())
 {
+	tcpServer = NULL;
+	init();
+
+	debugLogLevel = 0;
+	logHandler = &defaultLoger;
 }
 
 IRCServer::~IRCServer()
 {
 }
 
-void	IRCServer::setLogHandler ( IRCServerLogHandler * loger )
+void IRCServer::setLogHandler ( IRCServerLogHandler * loger )
 {
-
+	if (!loger)
+		logHandler = &defaultLoger;
+	else
+		logHandler = loger;
 }
 
 void IRCServer::setLogfile ( std::string file )
 {
-
+	logfile = file;
 }
 
-std::string  IRCServer::getLogfile ( void )
+std::IRCServer  IRCClient::getLogfile ( void )
 {
-	return std::string("file");
+	return logfile;
 }
 
 void IRCServer::setDebugLevel ( int level )
 {
-
+	debugLogLevel = level;
 }
 
 int IRCServer::getDebugLevel ( void )
 {
-	return 0;
+	return debugLogLevel;
 }
 
 bool IRCServer::init ( void )
 {
-	return false;
+	minCycleTime = 0.1f;
+	
+	// if any old conenctions are around, kill em
+	if (tcpServer)
+		tcpConnection.deleteServerConnection(tcpServer);
+
+	tcpServer = NULL;
+	ircServerPort = _DEFAULT_IRC_PORT;
+
+	// just get us a new empty connection
+	tcpServer = tcpConnection.newServerConnection(0,1);
+
+	if (tcpServer)
+		tcpServer->addListener(this);
+
+	return tcpServer != NULL;
 }
 
 bool IRCServer::listen ( int maxConnections, int port )
 {
-	return false;
+	if (!tcpServer || !maxConnections)
+		return false;
+
+	ircServerPort = _DEFAULT_IRC_PORT;
+	if ( port > 0 )
+		ircServerPort = (unsigned short)port;
+
+	tcpServer->
+	teTCPError err = tcpClient->connect(server,ircServerPort);
+
+	ircConenctonState = err == eTCPNoError ? eTCPConenct : eNotConnected;
+
+	return err == eTCPNoError;
 }
 
 bool IRCServer::disconnect ( std::string reason )
@@ -82,12 +141,13 @@ bool IRCServer::process ( void )
 
 void IRCServer::log ( std::string text, int level )
 {
-	return;
+	if (level <= debugLogLevel && logHandler)
+		logHandler->log(*this,level,text);
 }
 
 void IRCServer::log ( const char *text, int level )
 {
-
+	log(std::string(text),level);
 }
 
 bool IRCServer::process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info )

@@ -376,13 +376,20 @@ const std::string TCPServerConnectedPeer::getAddress ( void )
 struct TCPServerConnection::TCPServerConnectionInfo
 {	
 	teTCPError	lastError;
+	int			maxUsers;
+	IPaddress	serverIP;
+	TCPsocket	socket;
+	int readChunkSize;
 };
 
 TCPServerConnection::TCPServerConnection()
 {
 	info = new TCPServerConnectionInfo;
 	info->lastError = eTCPNotInit;
+	info->serverIP.port = info->maxUsers = 0;
+	info->socket = NULL;
 	parent = NULL;
+	readChunkSize = 512;
 }
 
 TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int connections, TCPConnection *parentConnection )
@@ -390,17 +397,65 @@ TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int conn
 	info = new TCPServerConnectionInfo;
 	info->lastError = eTCPNotInit;
 	parent = parentConnection;
-
-	//if (server.size() && port != 0)
-	//	connect(server,port);
+	info->socket = NULL;
+	readChunkSize = 512;
+	listen(port,connections);
 }
-
 
 TCPServerConnection::~TCPServerConnection()
 {
 	// do some TCP/IPish things here
 	if (info)
 		delete(info);
+}
+
+teTCPError TCPServerConnection::listen ( unsigned short port, unsigned int connections )
+{
+	disconnect();
+
+	if (!info)
+		return setError(eTCPNotInit);
+
+	if ( port == 0)
+		return setError(eTCPBadPort);
+
+	info->maxUsers = connections;
+	info->serverIP.host = INADDR_ANY;
+	info->serverIP.port = port;
+
+	info->socket = SDLNet_TCP_Open(&info->serverIP);
+	if ( info->socket == NULL )
+		return setError(eTCPConnectionFailed);
+
+	if (parent)
+		parent->addClientSocket(this);
+
+	return setError(eTCPNoError);
+}
+
+teTCPError TCPServerConnection::disconnect( void )
+{
+	if (!info)
+		return setError(eTCPNotInit);
+
+	if (!listening())
+		return setError(eTCPSocketNFG);
+
+	SDLNet_TCP_Close(info->socket);
+	info->socket = NULL;
+
+	if (parent)
+		parent->removeServerSocket(this);
+
+	return setError(eTCPNoError);
+}
+
+bool TCPServerConnection::listening ( void )
+{
+	if (!info)
+		return false;
+
+	return info->socket != NULL;
 }
 
 teTCPError TCPServerConnection::getLastError ( void )
@@ -515,7 +570,25 @@ teTCPError TCPConnection::update ( void )
 	if (!info)
 		return eTCPNotInit;
 
+	bool	selectError = false;
 	if (info->clientSocketSet)
+	{
+		int items = SDLNet_CheckSockets(info->clientSocketSet,info->timeout);
+		if (items == -1)
+			selectError = true;
+		if (items > 0)
+		{
+			tmClientSocketMap::iterator itr = info->clientSockets.begin();
+			while (itr != info->clientSockets.end())
+			{
+				if (SDLNet_SocketReady(itr->first))
+					itr->second->readData();
+				itr++;
+			}
+		}
+	}
+
+	if (info->serverSocketSet)
 	{
 		int items = SDLNet_CheckSockets(info->clientSocketSet,info->timeout);
 		if (items == -1)
@@ -531,7 +604,8 @@ teTCPError TCPConnection::update ( void )
 			}
 		}
 	}
-	return eTCPNoError;
+
+	return selectError ? eTCPSelectFailed : eTCPNoError;
 }
 
 void TCPConnection::setUpdateTimeout ( int timeout )
@@ -612,6 +686,23 @@ bool TCPConnection::addClientSocket ( TCPClientConnection* client )
 
 bool TCPConnection::addServerSocket ( TCPServerConnection* server )
 {
+	if (info->serverSocketSet)
+		SDLNet_FreeSocketSet(info->serverSocketSet);
+
+	info->serverSockets[server->info->socket] = server;
+
+	info->clientSocketSet = SDLNet_AllocSocketSet((int)info->serverSockets.size());
+
+	if (!info->clientSocketSet)
+		return false;
+
+	tmClientSocketMap::iterator itr = info->clientSockets.begin();
+	while (itr != info->clientSockets.end())
+	{
+		SDLNet_TCP_AddSocket(info->clientSocketSet,itr->first);
+		itr++;
+	}
+
 	return true;
 }
 

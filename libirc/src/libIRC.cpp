@@ -74,6 +74,62 @@ void getLibVersion ( int &major, int &minor, int &rev )
 	rev = _REVISION;
 }
 
+// base message class
+
+BaseIRCCommandInfo::BaseIRCCommandInfo()
+{
+	type = eUnknown;
+	command = "NULL";
+}
+
+BaseIRCCommandInfo::~BaseIRCCommandInfo()
+{
+}
+
+void BaseIRCCommandInfo::parse ( std::string line )
+{
+	params = string_util::tokenize(line,std::string(" "));
+	raw = line;
+	prefixed = line.c_str()[0] ==':';
+	if (prefixed)
+	{
+		params[0].erase(params[0].begin());
+		source = params[0];
+		// pull off the source
+		params.erase(params.begin());
+	}
+	else
+		source = "HOST";
+
+	// make sure we have a command
+	if (params.size() > 0)
+	{
+		command = params[0];
+		// pull off the command
+		params.erase(params.begin());
+	}
+	else
+		command = "NULL";
+
+	// make sure we have a target
+	if (params.size() > 0)
+	{
+		target = params[0];
+		// pull off the command
+		params.erase(params.begin());
+
+		// pull off the :
+		if (target.c_str()[0] == ':')
+			target.erase(target.begin());
+	}
+	else
+		target = "NULL";
+}
+
+std::string BaseIRCCommandInfo::getAsString ( int start, int end )
+{
+	return string_util::getStringFromList(params," ",start,end);
+}
 
 // Local Variables: ***
 // mode:C++ ***

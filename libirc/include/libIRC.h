@@ -27,6 +27,8 @@
 // global includes
 #include <string>
 
+#define _DEFAULT_IRC_PORT	6667
+
 // simple OS indpendent sleep function
 // used by so many things, so we have one here
 void IRCOSSleep ( float fTime );
@@ -34,6 +36,64 @@ std::string getTimeStamp ( void );
 
 std::string getLibVersion ( void );
 void getLibVersion ( int &major, int &minor, int &rev );
+
+// info that is passed to a command handler
+// handles standard commands and CTCP
+
+// the types of command info structures
+typedef enum
+{
+	eUnknown = 0,
+	eIRCCommand,
+	eCTCPCommand,
+	eDDECommand
+}commndInfoTypes;
+
+// base struct in witch all info structures are derived
+class BaseIRCCommandInfo
+{
+public:
+	BaseIRCCommandInfo();
+	virtual ~BaseIRCCommandInfo();
+
+	void parse ( std::string line );
+	std::string getAsString ( int start = 0, int end = -1 );
+
+	commndInfoTypes	type;
+	std::string command;
+
+	std::string raw;
+	std::vector<std::string> params;
+	bool prefixed;
+	std::string source;
+	std::string target;
+};
+
+// a normal Internet Relay Chat command
+class IRCCommandINfo : public BaseIRCCommandInfo
+{
+public:
+	teIRCCommands						 ircCommand;
+};
+
+// a Client To Client Protocol command
+class CTCPCommandINfo : public BaseIRCCommandInfo
+{
+public:
+	teCTCPCommands					 ctcpCommand;
+	std::string from;
+	std::string to;
+	bool				request;
+};
+
+// a Direct Client Connect command
+class DCCCommandINfo : public BaseIRCCommandInfo
+{
+	std::string from;
+	std::string to;
+	bool				request;
+	std::string data;
+};
 
 #endif //_LIBIRC_H_
 

@@ -80,21 +80,15 @@ protected:
 	// networking
 	TCPServerConnection		*tcpServer;	
 	TCPConnection			&tcpConnection;
-
+	int						ircServerPort;
 
 	// loging
 	IRCServerLogHandler				*logHandler;
-	std::string								logfile;
-	int												debugLogLevel;
+	std::string						logfile;
+	int								debugLogLevel;
 
-	// info from the connection
-	std::string								MOTD;
-	std::string								requestedNick;
-	std::string								nickname;
-
-	IRCUserManager						userManager;
 	// flood protection
-	float											minCycleTime;
+	float							minCycleTime;
 };
 
 #endif //_IRC_SERVER_H_

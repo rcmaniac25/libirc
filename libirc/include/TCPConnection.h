@@ -168,6 +168,12 @@ public:
 	TCPServerConnection( unsigned short port, unsigned int connections, TCPConnection *parentConnection );
 	~TCPServerConnection();
 
+	teTCPError listen ( unsigned short port, unsigned int connections );
+	teTCPError disconnect( void );
+
+	// status
+	bool listening ( void );
+
 	// error handaling
 	teTCPError getLastError ( void );
 	teTCPError setError ( teTCPError error );
