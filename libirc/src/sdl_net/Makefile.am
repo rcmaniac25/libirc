@@ -1,7 +1,8 @@
 # $Id$
 
-lib_LTLIBRARIES = libSDLnet.la
+noinst_LTLIBRARIES = libSDLnet.la
 
+libSDLnet_la_LDFLAGS = -static
 libSDLnet_la_SOURCES = \
 	SDLnet.cpp \
 	SDLnetTCP.cpp \
