@@ -183,9 +183,10 @@ bool IRCModeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 
 bool IRCModeCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
-	// MODE TARGET modes
-	client.sendIRCCommandToServer(eCMD_MODE,info.getAsString());
-	return true;
+  // MODE TARGET modes
+  std::string infostring = info.getAsString();
+  client.sendIRCCommandToServer(eCMD_MODE, infostring);
+  return true;
 }
 
 // IRC "PRIVMSG" command

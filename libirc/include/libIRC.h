@@ -188,7 +188,7 @@ public:
 	virtual bool sendTextToServer ( std::string &text );
 
 	// low level log calls
-	virtual void log ( std::string &text, int level = 0 );
+	virtual void log ( std::string text, int level = 0 );
 	virtual void log ( const char *text, int level = 0 );
 
 	// info returned from IRC sessions, used to maintain the internal state, and dispatch high level events from low level messages

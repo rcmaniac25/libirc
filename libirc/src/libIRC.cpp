@@ -360,15 +360,19 @@ void IRCClient::processIRCLine ( std::string line )
 	// let the command parse it out into paramaters and find the command
 	BaseIRCCommandInfo	commandInfo;
 	commandInfo.parse(line);
+	std::string handler;
 
 	if (!commandInfo.prefixed)
 		commandInfo.source = getServerHost();
 
 	// call the "ALL" handaler special if there is one
-	receveCommand(std::string("ALL"),commandInfo);
+	handler = std::string("ALL");
+	receveCommand(handler,commandInfo);
 
-	if (atoi(commandInfo.command.c_str()) != 0)
-		receveCommand(std::string("NUMERIC"),commandInfo);
+	if (atoi(commandInfo.command.c_str()) != 0) {
+	  handler = std::string("NUMERIC");
+	  receveCommand(handler,commandInfo);
+	}
 
 	// notify any handalers for this specific command
 	receveCommand(commandInfo.command,commandInfo);
@@ -376,12 +380,14 @@ void IRCClient::processIRCLine ( std::string line )
 
 bool IRCClient::sendIRCCommandToServer ( teIRCCommands	command, std::string &data)
 {
-	return sendTextToServer(ircCommandParser.getCommandName(command) + ircCommandDelimator + data);
+  std::string text = ircCommandParser.getCommandName(command) + ircCommandDelimator + data;
+  return sendTextToServer(text);
 }
 
 bool IRCClient::sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data)
 {
-	return sendTextToServer(ctcpCommandParser.getCommandName(command) + ircCommandDelimator + data);
+  std::string text = ctcpCommandParser.getCommandName(command) + ircCommandDelimator + data;
+  return sendTextToServer(text);
 }
 
 // utility methods
@@ -442,7 +448,7 @@ void IRCClient::log ( const char *text, int level )
 	log(std::string(text),level);
 }
 
-void IRCClient::log ( std::string &text, int level )
+void IRCClient::log ( std::string text, int level )
 {
 	if (level <= debugLogLevel && logHandaler)
 		logHandaler->log(*this,level,text);
