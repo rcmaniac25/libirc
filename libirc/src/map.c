@@ -27,7 +27,6 @@
 #include "hashtable.h"
 #include "avltree.h"
 
-
 #if !defined(USE_MAP_AVLTREE) && !defined(USE_MAP_HASHTABLE)
 #error You must either define USE_MAP_AVLTREE or USE_MAP_HASHTABLE in order use maps
 #endif

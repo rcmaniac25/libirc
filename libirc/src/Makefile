@@ -36,7 +36,6 @@ all: $(OBJS)
 	$(CC) -o libirc.so $(OBJS) $(LDFLAGS)
 	$(AR) cru libirc.a $(OBJS)
 
-	
 clean:
 	rm -f $(OBJS) libirc.so libirc.a
 
