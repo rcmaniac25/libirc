@@ -80,6 +80,7 @@ void IRCClient::partMessage ( BaseIRCCommandInfo	&info )
 	
 	userManager.userPartChannel(who,info.target);
 	if (who == getNick())
+		userManager.removeChannel(info.target);
 
 	partInfo.eventType = who == getNick() ? eIRCChannelPartEvent : eIRCUserPartEvent;
 	partInfo.channel = info.target;
@@ -169,6 +170,8 @@ void IRCClient::privMessage ( BaseIRCCommandInfo	&info )
 	// lop off the ':'
 	msgInfo.message.erase(msgInfo.message.begin());
 	msgInfo.params[0].erase(msgInfo.params[0].begin());
+
+	userManager.messageReceved(info.target,info.source,msgInfo.message);
 
 	// figure out who the message is from, is it form a channel or from a dude
 	if (info.target.c_str()[0] == '#' )

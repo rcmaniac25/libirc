@@ -380,7 +380,7 @@ bool IRCUserManager::channelExists ( int id )
 
 bool IRCUserManager::channelExists ( std::string &name )
 {
-	return channelNameLookup.find(name) != channelNameLookup.end();
+	return channelNameLookup.find(getCleanChanName(name)) != channelNameLookup.end();
 }
 
 int IRCUserManager::getChannelID ( std::string &channel )
@@ -551,9 +551,10 @@ void IRCUserManager::userJoinChannel ( std::string &user, std::string &channel )
 	if ( user[0] == '+' )
 		perms.voice = true;
 
-	channelRecord.userPerms[userRecord.id] = perms;
 	if ( !userInChannel(userRecord.id,channelRecord.id) )
 		userRecord.channels.push_back(channelRecord.id);
+
+	channelRecord.userPerms[userRecord.id] = perms;
 }
 
 void IRCUserManager::userPartChannel ( int user,  int channel )
@@ -573,6 +574,8 @@ void IRCUserManager::userPartChannel ( int user,  int channel )
 			else
 				itr++;
 		}
+		if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
+			removeUser(user);
 	}
 }
 
@@ -593,6 +596,8 @@ void IRCUserManager::userPartChannel ( int user, std::string &channel )
 			else
 				itr++;
 		}
+		if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
+			removeUser(user);
 	}
 }
 
@@ -613,6 +618,8 @@ void IRCUserManager::userPartChannel ( std::string &user, int channel )
 			else
 				itr++;
 		}
+		if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
+			removeUser(user);
 	}
 }
 
@@ -633,6 +640,8 @@ void IRCUserManager::userPartChannel ( std::string &user, std::string &channel )
 			else
 				itr++;
 		}
+		if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
+			removeUser(user);
 	}
 }
 
@@ -719,6 +728,32 @@ void IRCUserManager::topicReceved ( std::string &channel, std::string &topic, bo
 	channelRecord.topic += topic;
 }
 
+void IRCUserManager::removeChannel ( int channel )
+{
+	if (!channelExists(channel))
+		return;
+
+	trIRCChannelRecord &channelRecord = getChannelInfo(channel);
+
+	std::vector<int> userList = listChannelUsers(channel);
+
+	std::vector<int>::iterator	itr = userList.begin();
+	while ( itr != userList.end() )
+	{
+		removeChannelFromUser(*itr,channel);
+		itr++;
+	}
+
+	if ( autoPurgeOnLastPart )
+		purgeNonChannelUsers();
+}
+
+void IRCUserManager::removeChannel ( std::string channel )
+{
+	if(channelExists(channel))
+		removeChannel(getChannelID(channel));
+}
+
 
 // utilitys
 void IRCUserManager::purgeNonChannelUsers ( void )
@@ -776,16 +811,16 @@ trIRCChannelRecord& IRCUserManager::getChannelInfo ( int id )
 
 trIRCChannelRecord& IRCUserManager::getChannelInfo ( std::string &channel )
 {
-	std::map<std::string,int>::iterator itr = channelNameLookup.find(channel);
+	std::map<std::string,int>::iterator itr = channelNameLookup.find(getCleanChanName(channel));
 
 	if ( itr == channelNameLookup.end())
 	{
 		trIRCChannelRecord	channelRecord;
-		channelRecord.name = channel;
+		channelRecord.name = getCleanChanName(channel);
 		setDefaultChannelPerms(channelRecord.perms);
 		channelRecord.id = lastChannelID;
 		channels[lastChannelID] = channelRecord;
-		channelNameLookup[channel] = lastChannelID;
+		channelNameLookup[getCleanChanName(channel)] = lastChannelID;
 		return getChannelInfo(lastChannelID++);
 	}
 	return getChannelInfo(itr->second);
@@ -794,15 +829,20 @@ trIRCChannelRecord& IRCUserManager::getChannelInfo ( std::string &channel )
 std::string IRCUserManager::getCleanNick ( std::string &nick )
 {
 	if (nick.size() < 2)
-		return nick;
+		return string_util::tolower(nick);
 
 	if (nick[0] == '@' || nick[0] == '+')
 	{
 		std::string	temp = nick;
 		temp.erase(temp.begin());
-		return temp;
+		return string_util::tolower(temp);
 	}
-	return nick;
+	return string_util::tolower(nick);
+}
+
+std::string IRCUserManager::getCleanChanName ( std::string &name )
+{
+	return string_util::tolower(name);
 }
 
 void IRCUserManager::setDefaultUserPerms ( trIRCUserPermisions &perms )
@@ -880,3 +920,47 @@ void IRCUserManager::parseChannelUserPerms ( std::string mode, trIRCChannelUserP
 	perms.quieted = string_util::charExists(mode,'q');
 
 }
+
+void IRCUserManager::removeChannelFromUser ( int user, int channel )
+{
+	trIRCUserRecord &userRecord = getUserInfo(user);
+
+	std::vector<int>::iterator chanItr = userRecord.channels.begin();
+
+	while ( chanItr != userRecord.channels.begin() )
+	{
+		if ( *chanItr == channel)
+			chanItr = userRecord.channels.erase(chanItr);
+		else
+			chanItr++;
+	}
+}
+
+void IRCUserManager::removeUser ( int user )
+{
+	std::map<int,trIRCUserRecord>::iterator userItr = users.find(user);
+	if (userItr != users.end())
+	{
+		if ( userItr->second.channels.size() )
+		{
+			std::vector<int>::iterator itr = userItr->second.channels.begin();
+			{
+				trIRCChannelRecord	&channelRecord = getChannelInfo(*itr);
+				channelRecord.userPerms.erase(channelRecord.userPerms.find(user));
+				itr++;
+			}
+		}
+		userItr->second.channels.clear();
+		userNameLookup.erase(userNameLookup.find(userItr->second.nick));
+		userItr = users.erase(userItr);
+	}
+}
+
+void IRCUserManager::removeUser ( std::string name )
+{
+	if (userExists(name))
+		removeUser(getUserID(name));
+}
+
+
+

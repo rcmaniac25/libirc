@@ -123,10 +123,10 @@ bool IRCClient::part ( std::string channel, std::string reason )
 
 bool IRCClient::sendMessage ( std::string target, std::string message, bool isAction )
 {
-
 	std::string messageHeader;
 	std::string messageFooter;
 
+	int sliceBoundry = 400;
 
 	int headerLen = (int)strlen("PRIVMSG  :") + (int)target.size();
 	if(isAction)
@@ -138,7 +138,7 @@ bool IRCClient::sendMessage ( std::string target, std::string message, bool isAc
 	if(isAction)
 		messageFooter +=(char)0x01;
 
-	string_list	messages = string_util::slice(message,256-headerLen,true);
+	string_list	messages = string_util::slice(message,sliceBoundry-headerLen,true);
 
 	string_list::iterator	itr = messages.begin();
 	while ( itr != messages.end() )

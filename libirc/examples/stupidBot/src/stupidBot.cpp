@@ -915,6 +915,120 @@ bool chanPermsCommand::command ( std::string command, std::string source, std::s
 	return true;
 }
 
+class userInfoCommand : public botCommandHandaler
+{
+public:
+	userInfoCommand() {name = "userinfo";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool userInfoCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (info->params.size() < 3)
+	{
+		client.sendMessage(info->target,"Usage, userinfo SOME_USER");
+		return true;
+	}
+
+	std::string userName = info->params[2];
+
+	IRCUserManager	&userManager = client.getUserManager();
+
+	if (!userManager.userExists(userName))
+	{
+		client.sendMessage(info->target,std::string("Sorry ") + source + " I don't know about " + userName);
+		return true;
+	}
+
+	int userID = userManager.getUserID(userName);
+
+	client.sendMessage(info->target,std::string("OK ") + from);
+	client.sendMessage(info->target,userName + "'s host is " + userManager.getUserHost(userID));
+	if ( !userManager.userHasChannels(userID) )
+		client.sendMessage(info->target,"and isn't in any channels");
+	else
+	{
+		string_list chans = userManager.listUserChannelNames(userID);
+		std::string message = "is in the folowing channel";
+		if ( chans.size() > 1)
+			message += "s";
+
+		string_list::iterator itr = chans.begin();
+		while ( itr != chans.end() )
+			message += std::string(" ") + *(itr++);
+		client.sendMessage(info->target,message);
+	}
+
+	if ( userManager.userIsIdentified(userID) )
+		client.sendMessage(info->target,"and is identified");
+
+	trIRCUserPermisions	perms = userManager.getUserPerms(userID);
+
+	if (perms.mode.size())
+		client.sendMessage(info->target,std::string("MODE is set to \"") + perms.mode + "\"");
+
+	std::string lastSaid = userManager.getUserLastMessage(userID);
+	if ( lastSaid.size() )
+	{
+		client.sendMessage(info->target,std::string("last said \"") + lastSaid + "\"");
+		if (userManager.getUserLastMessageChannel(userID) != -1)
+			client.sendMessage(info->target,std::string("in ") + userManager.getUserLastMessageChannelName(userID) );
+	}
+	return true;
+}
+
+class chanInfoCommand : public botCommandHandaler
+{
+public:
+	chanInfoCommand() {name = "chaninfo";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool chanInfoCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (info->params.size() < 3)
+	{
+		client.sendMessage(info->target,"Usage, chaninfo SOME_CHANNEL");
+		return true;
+	}
+
+	std::string channelName = info->params[2];
+
+	IRCUserManager	&userManager = client.getUserManager();
+
+	if (!userManager.channelExists(channelName))
+	{
+		client.sendMessage(info->target,std::string("Sorry ") + from + " I don't know about " + channelName);
+		return true;
+	}
+
+	int chanID = userManager.getChannelID(channelName);
+
+	client.sendMessage(info->target,std::string("OK ") + from);
+	client.sendMessage(info->target,channelName + "'s topic is " + userManager.getChannelTopic(chanID));
+
+	string_list ops = client.listChanOps(channelName);
+
+	std::string message = "it's operators are, ";
+	string_list::iterator itr = ops.begin();
+	while ( itr != ops.end() )
+		message += std::string(" ") + *(itr++);
+	client.sendMessage(info->target,message);
+
+	trIRCChannelPermisions	perms = userManager.getChannelPerms(chanID);
+
+	if (perms.mode.size())
+		client.sendMessage(info->target,std::string("MODE is set to \"") + perms.mode + "\"");
+
+	std::string lastSaid = userManager.getChannelLastMessage(chanID);
+	if ( lastSaid.size() )
+	{
+		client.sendMessage(info->target,std::string("last message was \"") + lastSaid + "\"");
+		client.sendMessage(info->target,std::string("by ") + userManager.getChannelLastMessageUserName(chanID));
+	}
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -933,7 +1047,8 @@ void registerBotCommands ( void )
 	installBotCommand(new libVersCommand);
 	installBotCommand(new longTestCommand);
 	installBotCommand(new chanPermsCommand);
-
+	installBotCommand(new userInfoCommand);
+	installBotCommand(new chanInfoCommand);
 }
 
 

@@ -162,6 +162,8 @@ public:
 
 	virtual trIRCChannelPermisions getChanPerms ( std::string channel );
 
+	IRCUserManager& getUserManager ( void ){return userManager;}
+
 	//event handler methods.... for higher level API
 	virtual bool registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
 	virtual bool removeEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );

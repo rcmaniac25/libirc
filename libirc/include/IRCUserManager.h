@@ -192,6 +192,9 @@ public:
 		void modeReceved ( std::string &target, std::string &source, std::string &mode );
 		void topicReceved ( std::string &channel, std::string &topic, bool clear = false );
 
+		void removeChannel ( int channel );
+		void removeChannel ( std::string channel );
+
 		// utilitys
 		void purgeNonChannelUsers ( void );
 		void purgeLastMessages ( void );
@@ -206,6 +209,7 @@ protected:
 	trIRCChannelRecord& getChannelInfo ( std::string &channel );
 
 	std::string getCleanNick ( std::string &nick );
+	std::string getCleanChanName ( std::string &name );
 
 	void setDefaultUserPerms ( trIRCUserPermisions &perms );
 	void setDefaultChannelPerms ( trIRCChannelPermisions &perms );
@@ -214,6 +218,11 @@ protected:
 	void parseUserPerms ( std::string mode, trIRCUserPermisions &perms );
 	void parseChannelPerms ( std::string mode, trIRCChannelPermisions &perms );
 	void parseChannelUserPerms ( std::string mode, trIRCChannelUserPermisions &perms );
+
+	void removeChannelFromUser ( int user, int channel );
+
+	void removeUser ( int user );
+	void removeUser ( std::string name );
 
 	std::map<int,trIRCUserRecord>	users;
 	std::map<int,trIRCChannelRecord> channels;
