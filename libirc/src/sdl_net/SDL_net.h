@@ -217,6 +217,11 @@ int SDLNet_TCP_Recv(TCPsocket sock, void *data, int maxlen);
 /* Close a TCP network socket */
 void SDLNet_TCP_Close(TCPsocket sock);
 
+#ifdef _WIN32
+#ifndef socklen_t
+#define socklen_t int
+#endif //socklen_t
+#endif //_WIN32
 
 /***********************************************************************/
 /* UDP network API                                                     */
