@@ -16,6 +16,7 @@
 #define _IRC_SERVER_H_
 
 // IRC includes
+#include "libIRC.h"
 #include "ircCommands.h"
 #include "IRCEvents.h"
 #include "TCPConnection.h"

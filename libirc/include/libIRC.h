@@ -21,9 +21,6 @@
 #include "TCPConnection.h"
 #include "IRCUserManager.h"
 
-#include "IRCClient.h"
-#include "IRCServer.h"
-
 // global includes
 #include <string>
 
@@ -94,6 +91,9 @@ class DCCCommandINfo : public BaseIRCCommandInfo
 	bool				request;
 	std::string data;
 };
+
+#include "IRCClient.h"
+#include "IRCServer.h"
 
 #endif //_LIBIRC_H_
 

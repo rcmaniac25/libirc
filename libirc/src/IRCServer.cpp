@@ -26,11 +26,11 @@
 	#include <stdio.h>
 #endif
 
-class DefaultIRCLogHandler : public IRCClientLogHandler
+class DefaultServerIRCLogHandler : public IRCServerLogHandler
 {
 public:
-	virtual ~DefaultIRCLogHandler(){return;}
-	virtual void log ( IRCClient &client, int level, std::string line )
+	virtual ~DefaultServerIRCLogHandler(){return;}
+	virtual void log ( IRCServer &client, int level, std::string line )
 	{
 		printf("log# %d:%s\n",level,line.c_str());
 
@@ -47,7 +47,7 @@ public:
 	}
 };
 
-DefaultIRCLogHandler	defaultLoger;
+DefaultServerIRCLogHandler	defaultLoger;
 
 
 IRCServer::IRCServer()
@@ -77,7 +77,7 @@ void IRCServer::setLogfile ( std::string file )
 	logfile = file;
 }
 
-std::IRCServer  IRCClient::getLogfile ( void )
+std::string  IRCServer::getLogfile ( void )
 {
 	return logfile;
 }
@@ -121,10 +121,9 @@ bool IRCServer::listen ( int maxConnections, int port )
 	if ( port > 0 )
 		ircServerPort = (unsigned short)port;
 
-	tcpServer->
-	teTCPError err = tcpClient->connect(server,ircServerPort);
+	teTCPError err = tcpServer->listen(ircServerPort,0);
 
-	ircConenctonState = err == eTCPNoError ? eTCPConenct : eNotConnected;
+	//ircConenctonState = err == eTCPNoError ? eTCPConenct : eNotConnected;
 
 	return err == eTCPNoError;
 }

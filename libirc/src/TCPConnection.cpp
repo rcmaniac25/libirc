@@ -389,7 +389,7 @@ TCPServerConnection::TCPServerConnection()
 	info->serverIP.port = info->maxUsers = 0;
 	info->socket = NULL;
 	parent = NULL;
-	readChunkSize = 512;
+	info->readChunkSize = 512;
 }
 
 TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int connections, TCPConnection *parentConnection )
@@ -398,7 +398,7 @@ TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int conn
 	info->lastError = eTCPNotInit;
 	parent = parentConnection;
 	info->socket = NULL;
-	readChunkSize = 512;
+	info->readChunkSize = 512;
 	listen(port,connections);
 }
 
@@ -428,7 +428,7 @@ teTCPError TCPServerConnection::listen ( unsigned short port, unsigned int conne
 		return setError(eTCPConnectionFailed);
 
 	if (parent)
-		parent->addClientSocket(this);
+		parent->addServerSocket(this);
 
 	return setError(eTCPNoError);
 }
