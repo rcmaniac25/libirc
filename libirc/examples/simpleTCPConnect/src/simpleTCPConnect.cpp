@@ -27,11 +27,26 @@ public:
 
 };
 
+int state = -1;
+
+void sendToServer ( TCPClientConnection *connection, std::string text )
+{
+	std::string messageToSend = text;
+
+	if (messageToSend.size())
+	{
+		messageToSend += " \r\n";
+
+		connection->sendData((void*)messageToSend.c_str(),(int)messageToSend.size());
+		printf("Sending Message: '%s'\n",text.c_str());
+	}
+}
+
 void myClientDataPendingListener::pending ( TCPClientConnection *connection, int count )
 {
 	printf("Receved %d messages from connection\n",count);
 
-	tvPacketList	packetList = connection->getPackets();
+	tvPacketList	&packetList = connection->getPackets();
 
 	tvPacketList::iterator itr = packetList.begin();
 
@@ -50,11 +65,29 @@ void myClientDataPendingListener::pending ( TCPClientConnection *connection, int
 			memcpy(data,packet.get(len),len);
 			std::string line = (char*)data;
 			free(data);
-			printf("Message %d: '%s'\n",message,line.c_str);
+			printf("Message %d: '%s'\n",message,line.c_str());
 		}
 		message++;
 		itr++;
 	}
+
+	std::string messateToSend;
+
+	switch (state)
+	{
+		case -1:
+			sendToServer(connection,"NICK libIRCTestApp");
+			sendToServer(connection,"USER libirctest foo bar :libirctest");
+			state = 0;
+		break;
+
+		case 0:
+			sendToServer(connection,"JOIN #BZFlag");
+			sendToServer(connection,"MODE #BZFlag");
+			state =1;
+		break;
+	}
+	packetList.clear();
 }
 
 void main ( void )
@@ -93,6 +126,9 @@ void main ( void )
 	printf("Connection to %s:%d completed\n",server.c_str(),port);
 
 	// now run till we die
+	//printf("sending some newlines\n");
+	//char	somestuff[]="\n\n\n";
+	//client->sendData(somestuff,(int)strlen(somestuff));
 
 	while (!tcpConnection.update())
 	{
