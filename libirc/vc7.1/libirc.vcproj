@@ -151,6 +151,9 @@
 			<File
 				RelativePath="..\src\Singleton.h">
 			</File>
+			<File
+				RelativePath="..\include\TextUtils.h">
+			</File>
 			<Filter
 				Name="commandHandalers"
 				Filter="">
