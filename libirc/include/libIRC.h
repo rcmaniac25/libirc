@@ -136,10 +136,17 @@ protected:
 	int										debugLogLevel;
 	std::string						logfile;
 
+	// data sending stuff
+	bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
+	bool sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data);
+
 	bool sendTextToServer ( std::string &text );
 
+	// utilitys
 	void log ( std::string &text, int level = 0 );
+	void log ( const char *text, int level = 0 );
 
+	// IRC "constants"
 	std::string		ircMessageTerminator;
 };
 

@@ -13,7 +13,7 @@
 #include "ircCommands.h"
 
 
-extern IRCCommandParser	ircCommandParser;
+IRCCommandParser	ircCommandParser;
 
 // maps IRC commands to IDs and vice/versa
 IRCCommandParser::IRCCommandParser()
@@ -63,7 +63,7 @@ IRCCommandParser::~IRCCommandParser()
 	commandNameList.clear();
 }
 
-std::string IRCCommandParser::getCommandName ( teIRCCommands id );
+std::string IRCCommandParser::getCommandName ( teIRCCommands id )
 {
 	return commandNameList[id];
 }
@@ -84,7 +84,7 @@ teIRCCommands IRCCommandParser::getCommandID ( std::string &name)
 }
 
 
-extern CTCPCommandParser	ctcpCommandParser;
+CTCPCommandParser	ctcpCommandParser;
 
 // maps IRC commands to IDs and vice/versa
 CTCPCommandParser::CTCPCommandParser()
@@ -106,7 +106,7 @@ CTCPCommandParser::~CTCPCommandParser()
 	commandNameList.clear();
 }
 
-std::string CTCPCommandParser::getCommandName ( teCTCPCommands id );
+std::string CTCPCommandParser::getCommandName ( teCTCPCommands id )
 {
 	return commandNameList[id];
 }

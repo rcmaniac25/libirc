@@ -111,7 +111,7 @@ private:
 	std::vector<std::string>	commandNameList;
 };
 
-IRCCommandParser	ircCommandParser;
+extern IRCCommandParser	ircCommandParser;
 
 /* Commands used in the CTCP protocol(http://www.invlogic.com/irc/ctcp.html)*/
 #define CMD_CTCP_ACTION		"ACTION"
@@ -149,6 +149,6 @@ private:
 	std::vector<std::string>	commandNameList;
 };
 
-CTCPCommandParser	ctcpCommandParser;
+extern CTCPCommandParser	ctcpCommandParser;
 
 #endif // __IRC_COMMANDS_H__ 

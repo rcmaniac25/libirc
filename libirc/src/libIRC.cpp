@@ -34,7 +34,7 @@ void IRCOSSleep ( float fTime )
 // IRC class stuff
 
 IRCClient::IRCClient()
-tcpConnection(TCPConnection::instance())
+:tcpConnection(TCPConnection::instance())
 {
 	init();
 	tcpClient = NULL;
@@ -86,8 +86,11 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 	if (!tcpClient || !tcpClient->connected())
 		return false;
 
+	char	someNumber[64];
+	sprintf(someNumber,"%d",rand());
+
 	if (!nick.size())
-		nick << "SomeLazyUser" << ((int)this);
+		nick = std::string("SomeLazyUser") + std::string(someNumber);
 
 	if (!username.size())
 		username = "libIRCUser";
@@ -143,9 +146,18 @@ void IRCClient::pending ( TCPClientConnection *connection, int count )
 	log("Data Pending notification",5);
 }
 
+bool IRCClient::sendIRCCommandToServer ( teIRCCommands	command, std::string &data)
+{
+	return sendTextToServer(ircCommandParser.getCommandName(command) + data);
+}
+
+bool IRCClient::sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data)
+{
+	return sendTextToServer(ctcpCommandParser.getCommandName(command) + data);
+}
 
 // utility methods
-bool IRCClient::sendTextToServer ( std::string text )
+bool IRCClient::sendTextToServer ( std::string &text )
 {
 	if (!tcpClient || !tcpClient->connected())
 		return false;
@@ -189,7 +201,12 @@ bool IRCClient::sendTextToServer ( std::string text )
 	return true;
 }
 
-void IRCClient::log ( std::string &text, int level = 0 )
+void IRCClient::log ( const char *text, int level )
+{
+	log(std::string(text),level);
+}
+
+void IRCClient::log ( std::string &text, int level )
 {
 	if (level <= debugLogLevel)
 	{
@@ -201,7 +218,7 @@ void IRCClient::log ( std::string &text, int level = 0 )
 
 			if (fp)
 			{
-				fprintf("log# %d:%s\n",level,text.c_str());
+				fprintf(fp,"log# %d:%s\n",level,text.c_str());
 				fclose(fp);
 			}
 		}
