@@ -448,7 +448,14 @@ void TCPServerConnection::callDataPendingListeners ( int count )
 }
 
 
-// master connections class, Make this a singleton? there should only ever be one
+// master connections class
+
+/*const int NO_VARIANT = (-1); */
+
+// initialize the singleton
+template <>
+TCPConnection* Singleton<TCPConnection>::_instance = (TCPConnection*)0;
+
 
 typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
 typedef std::map<TCPsocket, TCPServerConnection* > tmServerSocketMap;

@@ -18,6 +18,8 @@
 #include <vector>
 #include <string>
 
+#include "Singleton.h"
+
 class TCPConnection;
 
 typedef enum
@@ -194,12 +196,9 @@ protected:
 // takes care of loading and clearing out the TCP stack if it needs it
 // gives out client and server connections
 // handles the non blocking updates of connections.
-class TCPConnection
+class TCPConnection : public Singleton<TCPConnection>
 {
 public:
-	TCPConnection();
-	~TCPConnection();
-
 	// initalises the socket system, on windows inits WSA
 	// called automaticly by the constructor, but exposted
 	// in case the client needs to reinit the socket system
@@ -228,6 +227,11 @@ public:
 	std::string getLocalHost ( void );
 
 protected:
+	friend class Singleton<TCPConnection>;
+
+	TCPConnection();
+	~TCPConnection();
+
 	friend	class TCPClientConnection;
 	friend	class TCPServerConnection;
 
