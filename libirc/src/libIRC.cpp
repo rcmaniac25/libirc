@@ -120,7 +120,7 @@ void BaseIRCCommandInfo::parse ( std::string line )
 
 std::string BaseIRCCommandInfo::getAsString ( int start, int end )
 {
-	return getStringFromList(params," ",start,end);
+	return string_util::getStringFromList(params," ",start,end);
 }
 
 // IRC class stuff
@@ -346,6 +346,10 @@ bool IRCClient::sendMessage ( std::string target, std::string message, bool isAc
 	commandInfo.target = target;
 
 	std::string messageToSend;
+
+	int headerLen = (int)strlen("PRIVMSG  :") + (int)target.size();
+	if(isAction)
+		headerLen += (int)strlen("*ACTION **");
 
 	if(isAction)
 		messageToSend += (char)0x01 + std::string("ACTION ");

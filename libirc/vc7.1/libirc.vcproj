@@ -111,6 +111,9 @@
 			<File
 				RelativePath="..\src\libIRC.cpp">
 			</File>
+			<File
+				RelativePath="..\src\TextUtils.cxx">
+			</File>
 			<Filter
 				Name="commandHandalers"
 				Filter="">
