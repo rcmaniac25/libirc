@@ -69,8 +69,8 @@ fi
 if test -r $path_to_vers_sh/../configure.ac ; then
 	version_script=`grep VERSION $path_to_vers_sh/../configure.ac | grep -v SUBST | head -4`
 	eval $version_script
-	if test ! "x$LIBIRC_VERSION" = "x" ; then
-		RELEASE="$LIBIRC_VERSION"
+	if test ! "x$LIBSIGNUMGL_VERSION" = "x" ; then
+		RELEASE="$LIBSIGNUMGL_VERSION"
 	else
 		RELEASE='??.??.??'
 	fi
@@ -120,7 +120,7 @@ fi
 
 cat << EOF
 char ${VARIABLE}[] = "\\
-@(#) libIRC ${RELEASE}   ${TITLE}\n\\
+@(#) LIBSIGNUMGL ${RELEASE}   ${TITLE}\n\\
     ${DATE}, Compilation ${VERSION}\n\\
     ${USER}@${HOST}:${DIR}\n";
 EOF
