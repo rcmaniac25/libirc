@@ -718,6 +718,9 @@ bool partCommand::command ( std::string command, std::string source, std::string
 	client.sendMessage(info->target,message);
 
 	client.part(info->target, getRandomString(theBotInfo.partMessages));
+
+	if (!client.listChanels().size())
+		part = true;
 	return true;
 }
 
