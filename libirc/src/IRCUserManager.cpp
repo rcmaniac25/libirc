@@ -63,6 +63,17 @@ IRCUserManager::~IRCUserManager()
 }
 
 // user info API
+
+bool IRCUserManager::userExists ( int id )
+{
+		return users.find(id)!= users.end();
+}
+
+bool IRCUserManager::userExists ( std::string &name )
+{
+	return userNameLookup.find(getCleanNick(name)) != userNameLookup.end();
+}
+
 std::string IRCUserManager::getUserNick ( int id )
 {
 	return users[id].nick;
@@ -361,6 +372,17 @@ std::vector<std::string> IRCUserManager::listChannelNames ( void )
 }
 
 // channel API
+
+bool IRCUserManager::channelExists ( int id )
+{
+	return channels.find(id) != channels.end();
+}
+
+bool IRCUserManager::channelExists ( std::string &name )
+{
+	return channelNameLookup.find(name) != channelNameLookup.end();
+}
+
 int IRCUserManager::getChannelID ( std::string &channel )
 {
 	return getChannelInfo(channel).id;

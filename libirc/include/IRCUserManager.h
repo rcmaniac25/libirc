@@ -91,6 +91,9 @@ public:
 		~IRCUserManager();
 
 		// user info API
+		bool userExists ( int id );
+		bool userExists ( std::string &name );
+
 		int getUserID ( std::string &name );
 		std::string getUserNick ( int id );
 
@@ -144,6 +147,9 @@ public:
 		std::vector<std::string> listUserChannelNames ( std::string &name );
 
 		// channel API
+		bool channelExists ( int id );
+		bool channelExists ( std::string &name );
+
 		int getChannelID ( std::string &channel );
 		std::string getChannelName ( int id );
 
