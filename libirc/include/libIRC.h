@@ -60,6 +60,7 @@ public:
 	std::vector<std::string> params;
 	bool prefixed;
 	std::string source;
+	std::string target;
 };
 
 // a normal Internet Relay Chat command
