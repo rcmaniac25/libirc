@@ -75,22 +75,33 @@ void BaseIRCCommandInfo::parse ( std::string line )
 	prefixed = line.c_str()[0] ==':';
 	if (prefixed)
 	{
-		params[0].erase(0,0);
+		params[0].erase(params[0].begin());
+		source = params[0];
+		// pull off the source
+		params.erase(params.begin());
 	}
-	source = params[0];
-
-	// pull off the source
-	params.erase(0,0);
+	else
+		source = "HOST";
 
 	// make sure we have a command
 	if (params.size() > 0)
 	{
 		command = params[0];
 		// pull off the command
-		params.erase(0,0);
+		params.erase(params.begin());
 	}
 	else
 		command = "NULL";
+
+	// make sure we have a target
+	if (params.size() > 0)
+	{
+		target = params[0];
+		// pull off the command
+		params.erase(params.begin());
+	}
+	else
+		target = "NULL";
 }
 
 std::string BaseIRCCommandInfo::getAsString ( int pos )
@@ -254,35 +265,30 @@ void IRCClient::pending ( TCPClientConnection *connection, int count )
 		unsigned int	len;
 		char* data  = (char*)packet.get(len);
 		unsigned int count = 0;
-		char	*temp;
 
-		while ( count < len )
+		while (count < len)
 		{
-			temp = strchr(data+count,0);
-			if (temp)	// there was a NULL, lets read up to it
+			if (data[count] == 13)
 			{
-				theLine += &(data[count]);
-
-				// send the line off
-				// do some processing on the line and send it
-				processIRCLine(theLine);
-
-				theLine = "";
-				lastRecevedData = theLine;
-				count += (int)strlen(&data[count])+1;
+				if (theLine.size())
+				{
+					processIRCLine(theLine);
+					theLine = "";
+				}
+				if (count != len-1)
+					count++;
 			}
 			else
 			{
-				// the line goes over a packet, we will get more data soon, so just hang onto the last set of data
-				char	*tempData = (char*)malloc(len-count+1);
-				memcpy(tempData,&data[count],len-count);
-				tempData[len-count] = 0;
-
-				lastRecevedData = tempData;
-				free(tempData);
-				count = len;
+				if (data[count] != 10)
+				{
+					theLine += data[count];
+				}
 			}
+			count++;
 		}
+		// save off anything left
+		lastRecevedData = theLine;
 
 		packets.erase(packets.begin());
 	}
@@ -407,7 +413,7 @@ bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info
 
 	bool callDefault = true;
 
-	if (commandListItr != userCommandHandalers.end() || !commandListItr->second.size())	// do we have a custom command handaler
+	if (commandListItr != userCommandHandalers.end() && commandListItr->second.size())	// do we have a custom command handaler
 	{
 		// someone has to want us to call the defalt now
 		callDefault = false;
@@ -457,7 +463,7 @@ bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &in
 
 	bool callDefault = true;
 
-	if (commandListItr != userCommandHandalers.end() || !commandListItr->second.size())	// do we have a custom command handaler
+	if (commandListItr != userCommandHandalers.end() && commandListItr->second.size())	// do we have a custom command handaler
 	{
 		// someone has to want us to call the defalt now
 		callDefault = false;
@@ -470,7 +476,8 @@ bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &in
 				callDefault = true;
 			itr++;
 		}
-		return true;
+		if (!callDefault)
+			return true;
 	}
 
 	if (callDefault)	// check for the default
@@ -596,6 +603,8 @@ void IRCClient::registerDefaultCommandhandalers ( void )
 	addDefaultCommandhandalers(new IRCALLCommand );
 	addDefaultCommandhandalers(new IRCNickCommand );
 	addDefaultCommandhandalers(new IRCUserCommand );
+	addDefaultCommandhandalers(new IRCPingCommand );
+	addDefaultCommandhandalers(new IRCPongCommand );
 }
 
 // Local Variables: ***
