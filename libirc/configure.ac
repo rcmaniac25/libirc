@@ -146,7 +146,7 @@ dnl ***********************
 
 # Allow user to specify flags without relying on environment
 AC_ARG_WITH(cflags, AC_HELP_STRING(--with-cflags,
-		    [Specify additional flags to pass to the C compiler]) ,
+		[Specify additional flags to pass to the C compiler]),
 	[
 		if test "x$withval" != "xno" ; then
 			CFLAGS="$CFLAGS $withval"
@@ -154,7 +154,7 @@ AC_ARG_WITH(cflags, AC_HELP_STRING(--with-cflags,
 	]	
 )
 AC_ARG_WITH(cppflags, AC_HELP_STRING(--with-cppflags,
-		      [Specify additional flags to pass to C preprocessor]) ,
+		[Specify additional flags to pass to C preprocessor]),
 	[
 		if test "x$withval" != "xno"; then
 			CPPFLAGS="$CPPFLAGS $withval"
@@ -162,7 +162,7 @@ AC_ARG_WITH(cppflags, AC_HELP_STRING(--with-cppflags,
 	]
 )
 AC_ARG_WITH(ldflags, AC_HELP_STRING(--with-ldflags,
-		     [Specify additional flags to pass to linker]) ,
+		[Specify additional flags to pass to linker]),
 	[
 		if test "x$withval" != "xno" ; then
 			LDFLAGS="$LDFLAGS $withval"
@@ -170,7 +170,7 @@ AC_ARG_WITH(ldflags, AC_HELP_STRING(--with-ldflags,
 	]	
 )
 AC_ARG_WITH(libs, AC_HELP_STRING(--with-libs,
-		  [Specify additional libraries to link against]) ,
+		[Specify additional libraries to link against]),
 	[
 		if test "x$withval" != "xno" ; then
 			LIBS="$LIBS $withval"
@@ -178,13 +178,23 @@ AC_ARG_WITH(libs, AC_HELP_STRING(--with-libs,
 	]	
 )
 
+# build examples
+AC_MSG_CHECKING(whether to build the libIRC examples)
+build_examples=no
+AC_ARG_WITH(examples, AC_HELP_STRING(--with-examples,
+		[build the libIRC examples (default=no)]),
+	[if test "x$enable_examples" != "xno" ; then
+		build_examples=yes
+	fi]
+)
+AC_MSG_RESULT($build_examples)
+
 # doxygen
 AC_MSG_CHECKING(whether to generate documentation with doxygen)
 use_doxygen=no
-AC_ARG_ENABLE(doxygen,
-	AC_HELP_STRING(--enable-doxygen,
+AC_ARG_ENABLE(doxygen, AC_HELP_STRING(--enable-doxygen,
 		[enable documentation generation with doxygen (default=no)]),
-	[if test "xenable_doxygen" != "xno" ; then
+	[if test "x$enable_doxygen" != "xno" ; then
 		use_doxygen=yes
 	fi]
 )
@@ -193,8 +203,7 @@ AC_MSG_RESULT($use_doxygen)
 # optimized
 dnl optimized has alias(es)
 use_optimized=no
-AC_ARG_ENABLE(optimized,
-	AC_HELP_STRING(--enable-optimized,
+AC_ARG_ENABLE(optimized, AC_HELP_STRING(--enable-optimized,
 		[enable optimized compilation (default=no)]),
 	[if test "x$enable_optimized" != "xno" ; then
 		use_optimized=yes
@@ -204,8 +213,7 @@ AC_ARG_ENABLE(optimized,
 # warnings
 dnl warnings has alias(es)
 use_warnings=no
-AC_ARG_ENABLE(warnings,
-	AC_HELP_STRING(--enable-warnings,
+AC_ARG_ENABLE(warnings,	AC_HELP_STRING(--enable-warnings,
 		[enable verbose compilation warnings (default=no)]),
 	[if test "x$enable_warnings" != "xno" ; then
 		use_warnings=yes
@@ -215,8 +223,7 @@ AC_ARG_ENABLE(warnings,
 # debug
 dnl debug has alias(es)
 use_debug=yes
-AC_ARG_ENABLE(debug,
-	AC_HELP_STRING(--disable-debug,
+AC_ARG_ENABLE(debug, AC_HELP_STRING(--disable-debug,
 		[disable debug symbols (default=no)]),
 	[if test "x$disable_debug" != "xno" ; then
 		use_debug=no
@@ -226,8 +233,7 @@ AC_ARG_ENABLE(debug,
 # profiling
 dnl profiling has alias(es)
 use_profiling=no
-AC_ARG_ENABLE(profiling,
-	AC_HELP_STRING(--enable-profiling,
+AC_ARG_ENABLE(profiling, AC_HELP_STRING(--enable-profiling,
 		[enable profiling (default=no)]),
 	[if test "x$enable_profiling" != "xno" ; then
 		use_profiling=yes
@@ -394,6 +400,8 @@ if test "x$use_doxygen" = "xyes" ; then
 		AC_MSG_NOTICE([>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>])
 		AC_MSG_ERROR([*** Unable to find doxygen ***])
 	fi
+	AC_MSG_NOTICE([>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>])
+	AC_MSG_ERROR([*** Feature unimplemented ***])
 fi
 AC_MSG_CHECKING(whether to enable doxygen)
 AC_MSG_RESULT($use_doxygen)
@@ -593,12 +601,22 @@ dnl *********************************
 
 
 
+
 dnl ***************************
 dnl *** Configure Makefiles ***
 dnl ***************************
 
+AM_CONDITIONAL(BUILD_EXAMPLES, [test "x$build_examples" != "xno"])
+
 AC_CONFIG_FILES([
 	Makefile
+	examples/Makefile
+	examples/simpleIRCConnect/Makefile
+	examples/simpleIRCConnect/src/Makefile
+	examples/simpleTCPConnect/Makefile
+	examples/simpleTCPConnect/src/Makefile
+	examples/stupidBot/Makefile
+	examples/stupidBot/src/Makefile
 	include/Makefile
 	misc/Makefile
 	src/Makefile
@@ -654,6 +672,7 @@ echo Build profile release ................: $use_profiling
 echo Build static libraries ...............: $enable_static
 echo Build shared/dynamic libraries .......: $enable_shared
 echo Print verbose compilation warnings ...: $use_warnings
+echo Build examples .......................: $build_examples
 echo Generate doxygen documentation .......: $use_doxygen
 echo
 if test "x$time_elapsed" != "xunknown" ; then

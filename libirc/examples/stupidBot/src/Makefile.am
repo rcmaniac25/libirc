@@ -1,0 +1,8 @@
+# $Id$
+
+noinst_PROGRAMS = stupidBot
+
+stupidBot_SOURCES = stupidBot.cpp
+stupidBot_LDADD = $(top_builddir)/src/libIRC.la
+
+MAINTAINERCLEANFILES = Makefile.in

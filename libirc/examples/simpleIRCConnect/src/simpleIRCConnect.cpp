@@ -34,7 +34,7 @@ bool myEndMOTDCallback::process ( IRCClient &ircClient, teIRCEventType	eventType
 
 myEndMOTDCallback	startupCallback;
 
-void main ( void )
+int main ( int argc, char *argv[] )
 {
 	client.setDebugLevel(5);
 
@@ -46,10 +46,15 @@ void main ( void )
 	client.registerEventHandler(eIRCNoticeEvent,&startupCallback);
 
 	client.connect("irc.freenode.net",6667);
-	client.login(std::string("TheLoneliestBot"),std::string("here"),std::string("William Shatner"));
+	std::string name = std::string("billybot");
+	std::string username = std::string("billy");
+	std::string fullname = std::string("William Shatner");
+	client.login(name, username, fullname);
 
 	while (client.process())
 	{
 		IRCOSSleep(1);
 	}
-};
+
+	return 0;
+}

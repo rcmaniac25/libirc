@@ -1,11 +1,19 @@
 # $Id$
 
+if BUILD_EXAMPLES
+EXAMPLES=examples
+else
+EXAMPLES=
+endif
+
 SUBDIRS = \
+	$(EXAMPLES) \
 	include \
 	misc \
 	src
 
 DIST_SUBDIRS = \
+	examples \
 	include \
 	misc \
 	src \
@@ -35,6 +43,9 @@ MAINTAINERCLEANFILES = \
 	configure \
 	libtool
 
+examples: all-am
+	cd examples && $(MAKE) $(AM_MAKEFLAGS)
+
 
 # Print out an informative summary.  As just about everything seems to
 # end up calling the all-am hook, which in turns calls the all-local
@@ -49,6 +60,7 @@ all-local:
 	@@ECHO@
 	@@ECHO@ "libIRC @LIBIRC_VERSION@, Build @CONFIG_DATE@"
 	@@ECHO@
+	@@ECHO@ "$(MAKECMDGOALS) is goals"
 	@if test "x$(MAKECMDGOALS)" = "xall-am" ; then \
 	  @ECHO@ @ECHO_N@ "Elapsed compilation time: " ;\
 	  sh $(top_srcdir)/misc/elapsed.sh `cat $(top_builddir)/include/libirc_version.h | grep Compilation` ;\

@@ -88,7 +88,7 @@ void myClientDataPendingListener::pending ( TCPClientConnection *connection, int
 	packetList.clear();
 }
 
-void main ( void )
+int main ( int argc, char *argv[] )
 {
 	TCPConnection	&tcpConnection =TCPConnection::instance();
 
@@ -104,7 +104,7 @@ void main ( void )
 	if (!client)
 	{
 		printf("Client init failed\n");
-		return;
+		return 1;
 	}
 
 	client->addListener(&listener);
@@ -119,7 +119,7 @@ void main ( void )
 
 		// it failed so clean it up
 		tcpConnection.deleteClientConnection(client);
-		return;
+		return 1;
 	}
 
 	// it worked
@@ -136,4 +136,5 @@ void main ( void )
 		IRCOSSleep(1);
 	}
 
-};
+	return 0;
+}

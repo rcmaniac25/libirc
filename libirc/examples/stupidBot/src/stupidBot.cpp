@@ -432,7 +432,8 @@ void channelMessage ( trMessageEventInfo *info )
 		}
 		if ( command == "raw")
 		{
-			client.sendTextToServer(info->getAsString(2));
+			std::string text = info->getAsString(2);
+			client.sendTextToServer(text);
 		}
 		else if ( command == "part")
 		{
@@ -580,7 +581,7 @@ void initInfo ( std::string config )
 	theBotInfo.joinMessages["#libirc"] = "Greetings Program!";*/
 }
 
-void main ( int argc, char** argv )
+int main ( int argc, char *argv[] )
 {
 	std::string Config = "sample.cfg";
 
@@ -609,7 +610,9 @@ void main ( int argc, char** argv )
 	{
 		client.disconnect("Quiting");
 	}
-};
+
+	return 0;
+}
 
 class quitCommand : public botCommandHandaler
 {
