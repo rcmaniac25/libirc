@@ -181,6 +181,17 @@ bool IRCClient::connect ( std::string server, int port )
 	return err == eTCPNoError;
 }
 
+bool IRCClient::disconnect ( void )
+{
+	return false;
+}
+
+// update loop methods
+bool IRCClient::process ( void )
+{
+	return tcpConnection.update()==eTCPNoError;
+}
+
 bool IRCClient::login ( std::string &nick, std::string &username, std::string &fullname)
 {
 	if (!tcpClient || !tcpClient->connected())
@@ -219,19 +230,35 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 		log("Login Failed: USER command not sent",0);
 		return false;
 	}
-	ircConenctonState = eSentNickAndUSer;
+
+	if (getConnectionState() < eSentNickAndUSer)
+		setConnectionState(eSentNickAndUSer);
+
 	return  true;
 }
 
-bool IRCClient::disconnect ( void )
+bool IRCClient::join ( std::string channel )
 {
-	return false;
-}
+	// we need to have at LEAST sent the username and stuff
+	if (getConnectionState() < eSentNickAndUSer)
+		return false;
 
-// update loop methods
-bool IRCClient::process ( void )
-{
-	return tcpConnection.update()==eTCPNoError;
+	IRCCommandINfo	info;
+	info.params.push_back(channel);
+
+	if (!sendIRCCommand(eCMD_JOIN,info))
+	{
+		log("Goin Failed: JOIN command not sent",0);
+		return false;
+	}
+
+	if (!sendIRCCommand(eCMD_MODE,info))
+	{
+		log("Goin Failed: MODE command not sent",0);
+		return false;
+	}
+
+	return true;
 }
 
 // sending commands
@@ -307,6 +334,9 @@ void IRCClient::processIRCLine ( std::string line )
 
 	// call the "ALL" handaler special if there is one
 	receveCommand(std::string("ALL"),commandInfo);
+
+	if (atoi(commandInfo.command.c_str()) != 0)
+		receveCommand(std::string("NUMERIC"),commandInfo);
 
 	// notify any handalers for this specific command
 	receveCommand(commandInfo.command,commandInfo);
@@ -597,15 +627,166 @@ void IRCClient::clearDefaultCommandhandalers ( void )
 
 void IRCClient::registerDefaultCommandhandalers ( void )
 {
+	registerDefaultEventHandalers();
+
 	userCommandHandalers.clear();
 	clearDefaultCommandhandalers();
 
+	// the "special" handalers
 	addDefaultCommandhandalers(new IRCALLCommand );
+	addDefaultCommandhandalers(new IRCNumericCommand );
+
+	// basic IRC commands
 	addDefaultCommandhandalers(new IRCNickCommand );
 	addDefaultCommandhandalers(new IRCUserCommand );
 	addDefaultCommandhandalers(new IRCPingCommand );
 	addDefaultCommandhandalers(new IRCPongCommand );
+	addDefaultCommandhandalers(new IRCNoticeCommand );
+	addDefaultCommandhandalers(new IRCJoinCommand );
+	addDefaultCommandhandalers(new IRCModeCommand );
 }
+
+// logical event handalers
+
+//tmIRCEventMap							defaultEventHandalers;
+//tmIRCEventListMap					userEventHandalers;
+
+void IRCClient::addDefaultEventHandalers ( teIRCEventType eventType, IRCBasicEventCallback* handaler )
+{
+	if (handaler)
+		defaultEventHandalers[eventType] = handaler;
+}
+
+void IRCClient::clearDefaultEventHandalers ( void )
+{
+	tmIRCEventMap::iterator itr = defaultEventHandalers.begin();
+
+	while ( itr != defaultEventHandalers.end())
+	{
+		if (itr->second)
+			delete(itr->second);
+		itr++;
+	}
+	defaultEventHandalers.clear();
+}
+
+void IRCClient::registerDefaultEventHandalers ( void )
+{
+	userEventHandalers.clear();
+	clearDefaultEventHandalers();
+
+}
+
+bool IRCClient::registerEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler )
+{
+	if (!handaler)
+		return false;
+
+	tmIRCEventListMap::iterator		eventListItr = userEventHandalers.find(eventType);
+	if (eventListItr == userEventHandalers.end())
+	{
+		tvIRCEventList handalerList;
+		handalerList.push_back(handaler);
+		userEventHandalers[eventType] = handalerList;
+	}
+	else
+		eventListItr->second.push_back(handaler);
+
+	return true;
+}
+
+bool IRCClient::removeEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler )
+{
+	if (!handaler)
+		return false;
+
+	tmIRCEventListMap::iterator		eventListItr = userEventHandalers.find(eventType);
+	if (eventListItr == userEventHandalers.end())
+		return false;
+	else
+	{
+		tvIRCEventList::iterator	itr = eventListItr->second.begin();
+		while ( itr != eventListItr->second.end())
+		{
+			if ((*itr)== handaler)
+				itr = eventListItr->second.erase(itr);
+			else
+				itr++;
+		}
+	}
+	return true;
+}
+
+void IRCClient::callEventHandaler ( teIRCEventType eventType, trBaseEventInfo &info )
+{
+	bool callDefault = true;
+
+	tmIRCEventListMap::iterator		eventListItr = userEventHandalers.find(eventType);
+
+	// make sure the event type is cool
+	info.eventType = eventType;
+
+	if (eventListItr != userEventHandalers.end() && eventListItr->second.size())	// do we have a custom command handaler
+	{
+		// someone has to want us to call the defalt now
+		callDefault = false;
+		// is this right?
+		// should we do them all? or just the first one that "HANDLES" it?
+		tvIRCEventList::iterator	itr = eventListItr->second.begin();
+		while (itr != eventListItr->second.end())
+		{
+			if ( (*itr)->process(*this,eventType,info))
+				callDefault = true;
+			itr++;
+		}
+		if (!callDefault)
+			return;
+	}
+
+	if (callDefault)	// check for the default
+	{
+		tmIRCEventMap::iterator itr = defaultEventHandalers.find(eventType);
+		if (itr != defaultEventHandalers.end())
+		{
+			itr->second->process(*this,eventType,info);
+			return;
+		}
+	}
+	return;
+}
+
+// event trigers from low level messages
+// this way the low level events don't need the logic for the high level events.
+
+void IRCClient::noticeMessage ( trMessageEventInfo	&info )
+{
+	if (info.params[1] == "Looking")
+	{
+		if (getConnectionState() < eTCPConenct)
+			setConnectionState(eTCPConenct);
+
+		callEventHandaler(eIRCNoticeEvent,info);
+	}
+}
+
+void IRCClient::welcomeMessage ( trMessageEventInfo	&info )
+{
+	// we know we are conencted here
+	if (getConnectionState() < eLogedIn)
+		setConnectionState(eLogedIn);
+
+	callEventHandaler(eIRCWelcomeEvent,info);
+}
+
+void IRCClient::endMOTD ( void )
+{
+	// we know we are conencted here
+	if (getConnectionState() < eTCPConenct)
+		setConnectionState(eTCPConenct);
+
+	trBaseEventInfo	info;	// no info
+	callEventHandaler(eIRCEndMOTDEvent,info);
+}	
 
 // Local Variables: ***
 // mode:C++ ***

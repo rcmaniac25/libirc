@@ -17,6 +17,7 @@
 
 // IRC includes
 #include "ircCommands.h"
+#include "IRCEvents.h"
 #include "TCPConnection.h"
 
 // global includes
@@ -124,26 +125,39 @@ public:
   IRCClient();
 	virtual ~IRCClient();
 
+	// loging
+	void	setLogHandaler ( IRCClientLogHandaler * loger );
+
   // general connection methods
   virtual bool init ( void );
   virtual bool connect ( std::string server, int port );
-  virtual bool login ( std::string &nick, std::string &username, std::string &fullname);
   virtual bool disconnect ( void );
 
-  // update loop methods
+  // update methods
   virtual bool process ( void );
 
-  // sending commands
-  virtual bool send ( std::string command, std::string target, std::string data );
-  virtual bool send ( std::string &command, BaseIRCCommandInfo &info );
-  virtual bool sendRaw ( std::string data );
+	// basic IRC operations
+	virtual bool login ( std::string &nick, std::string &username, std::string &fullname);
+	virtual bool join ( std::string channel );
+	// virtual bool part ( std::string channel );
+	// virtual bool	sendMessage ( std::string target, std::string message, bool isAction = false );
 
-  //command handaler methods
+	// IRC info operations
+	// virtual string_utils::string_list listUsers ( std::string channel );
+	// virtual string_utils::string_list listChanels ( void );
+
+	//event handaler methods.... for higher level API
+	virtual bool registerEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler );
+	virtual bool removeEventHandaler ( teIRCEventType eventType, IRCBasicEventCallback *handaler );
+	virtual void callEventHandaler ( teIRCEventType eventType, trBaseEventInfo &info );
+
+  //command handaler methods... for lower level API
 	virtual bool registerCommandHandaler ( IRCClientCommandHandaler *handaler );
 	virtual bool removeCommandHandaler ( IRCClientCommandHandaler *handaler );
 	virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
 	virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
 
+	// command sending and receving methods called by handalers
 	virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
 	virtual bool sendIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
 	virtual bool sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
@@ -152,8 +166,10 @@ public:
 	virtual bool receveIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
 	virtual bool receveCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
 
-
-	void	setLogHandaler ( IRCClientLogHandaler * loger );
+	// sending commands
+	virtual bool send ( std::string command, std::string target, std::string data );
+	virtual bool send ( std::string &command, BaseIRCCommandInfo &info );
+	virtual bool sendRaw ( std::string data );
 
 	// --------------------------------------------------------------------------------------
 	// generaly not called by the client app
@@ -169,26 +185,40 @@ public:
 
 	// tutilitys generaly used only by command handalers
 	// data sending stuff
-	bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
-	bool sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data);
+	virtual bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
+	virtual bool sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data);
 
 	// the most RAWEST data transfer
-	bool sendTextToServer ( std::string &text );
+	virtual bool sendTextToServer ( std::string &text );
 
 	// utilitys
-	void log ( std::string &text, int level = 0 );
-	void log ( const char *text, int level = 0 );
+	virtual void log ( std::string &text, int level = 0 );
+	virtual void log ( const char *text, int level = 0 );
+
+	// event based stuff
+
+
+	// info returned from IRC sessions, used to maintain the internal state, and dispatch high level events from low level messages
+	void setServerHost ( std::string host ) {host = reportedServerHost;}
+	std::string getServerHost ( void ){return reportedServerHost;}
+
+	void noticeMessage ( trMessageEventInfo	&info );
+	void welcomeMessage ( trMessageEventInfo	&info );
+
+	void beginMOTD ( void ){MOTD = "";}
+	void addMOTD ( std::string line ) {MOTD += line;}
+	void endMOTD ( void );
 
 protected:
 	friend class IRCClientCommandHandaler;
 
+	// networking
 	TCPClientConnection		*tcpClient;	
 	TCPConnection					&tcpConnection;
-	int										debugLogLevel;
-	std::string						logfile;
 
 	// irc data
 	std::string						ircServerName;
+	std::string						reportedServerHost;
 	unsigned short				ircServerPort;
 	std::string						lastRecevedData;
 
@@ -208,10 +238,10 @@ protected:
 		eLastState
 	}teIRCConnectionState;
 
+	teIRCConnectionState	ircConenctonState;
+
 	virtual teIRCConnectionState getConnectionState ( void ){return ircConenctonState;}
 	virtual void setConnectionState ( teIRCConnectionState state ){ircConenctonState = state;}
-
-	teIRCConnectionState	ircConenctonState;
 
 	// receved data processing
 	void processIRCLine ( std::string line );
@@ -227,7 +257,21 @@ protected:
 	void clearDefaultCommandhandalers ( void );
 	void registerDefaultCommandhandalers ( void );
 
+	// event handalers
+	tmIRCEventMap							defaultEventHandalers;
+	tmIRCEventListMap					userEventHandalers;
+
+	void addDefaultEventHandalers ( teIRCEventType eventType, IRCBasicEventCallback* handaler );
+	void clearDefaultEventHandalers ( void );
+	void registerDefaultEventHandalers ( void );
+
+	// loging
 	IRCClientLogHandaler			*logHandaler;
+	std::string								logfile;
+	int												debugLogLevel;
+
+	// info from the connection
+	std::string								MOTD;
 };
 
 #endif //_LIBIRC_H_

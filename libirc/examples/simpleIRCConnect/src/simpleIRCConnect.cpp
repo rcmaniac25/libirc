@@ -17,7 +17,6 @@
 
 #include "libIRC.h"
 
-
 void main ( void )
 {
 	IRCClient	client;
@@ -31,10 +30,10 @@ void main ( void )
 	client.setLogfile("irc.log");
 
 	client.connect("irc.freenode.net",6667);
-	client.login(std::string("libIRCTest2"),std::string("libIRCTest2"),std::string("libIRCTest2"));
+	client.login(std::string("TheLoneliestBot"),std::string("here"),std::string("William Shatner"));
 
-	client.sendTextToServer(std::string("JOIN #brlcad"));
-	client.sendTextToServer(std::string("MODE #brlcad"));
+	client.sendTextToServer(std::string("JOIN #opencombat"));
+	client.sendTextToServer(std::string("MODE #opencombat"));
 
 	while (client.process())
 	{

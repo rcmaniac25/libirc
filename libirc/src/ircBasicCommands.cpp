@@ -14,30 +14,9 @@
 
 #include "ircBasicCommands.h"
 #include "TextUtils.h"
+#include "IRCEvents.h"
 
 std::string delim = " ";
-
-// Generic handaler for ALL
-IRCALLCommand::IRCALLCommand()
-{
-	name = "ALL";
-}
-
-bool IRCALLCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
-{
-	// just log it out
-	client.log(string_util::format("ALL::command %s from %s for %s containing %s",info.command.c_str(),info.source.c_str(),info.target.c_str(),info.getAsString().c_str()),4);
-	client.log(string_util::format("ALL::raw %s",info.raw.c_str()),6);
-	client.log(std::string(" "),6);
-	return true;
-}
-
-bool IRCALLCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
-{
-	// just log it out
-	client.log(string_util::format("ALL::command %s: to server containing %s",command.c_str(),info.getAsString().c_str()),4);
-	return true;
-}
 
 // IRC "NICK" command
 
@@ -89,7 +68,6 @@ bool IRCUserCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 	return true;
 }
 
-
 // IRC "PING" command
 IRCPingCommand::IRCPingCommand()
 {
@@ -115,7 +93,6 @@ bool IRCPingCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 }
 
 // IRC "PONG" command
-
 IRCPongCommand::IRCPongCommand()
 {
 	name = "PONG";
@@ -136,4 +113,295 @@ bool IRCPongCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 	client.sendIRCCommandToServer(eCMD_PONG,commandLine);
 	return true;
 }
+
+// IRC "NOTICE" command
+IRCNoticeCommand::IRCNoticeCommand()
+{
+	name = "NOTICE";
+}
+
+bool IRCNoticeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	trMessageEventInfo	messageInfo;
+
+	messageInfo.eventType = eIRCNoticeEvent;
+	messageInfo.source = info.source;
+	messageInfo.params = info.params;
+	messageInfo.message = info.getAsString();
+	client.noticeMessage(messageInfo);
+	return true;
+}
+
+bool IRCNoticeCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// we do nothing on a pong
+	return true;
+}
+
+// IRC "JOIN" command
+IRCJoinCommand::IRCJoinCommand()
+{
+	name = "JOIN";
+}
+
+bool IRCJoinCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// we got a join message, see what the deal is
+	return true;	
+}
+
+bool IRCJoinCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	std::string commandLine;
+
+	string_list::iterator itr = info.params.begin();
+
+	while ( itr != info.params.end() )
+	{
+		commandLine += *itr;
+		itr++;
+
+		if (itr != info.params.end())
+			commandLine += ",";
+	}
+	// JOIN CHANNEL1,CHANNEL2,....,CHANNELN
+	client.sendIRCCommandToServer(eCMD_JOIN,commandLine);
+	return true;
+}
+
+// IRC "MODE" command
+IRCModeCommand::IRCModeCommand()
+{
+	name = "MODE";
+}
+
+bool IRCModeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// we got a mode message, see what the deal is
+	return true;	
+}
+
+bool IRCModeCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// MODE TARGET modes
+	client.sendIRCCommandToServer(eCMD_MODE,info.getAsString());
+	return true;
+}
+
+	// special case commands
+
+// Generic handaler for ALL
+IRCALLCommand::IRCALLCommand()
+{
+	name = "ALL";
+}
+
+bool IRCALLCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// just log it out
+	client.log(string_util::format("ALL::command %s from %s for %s containing %s",info.command.c_str(),info.source.c_str(),info.target.c_str(),info.getAsString().c_str()),4);
+	client.log(string_util::format("ALL::raw %s",info.raw.c_str()),6);
+	client.log(std::string(" "),6);
+	return true;
+}
+
+bool IRCALLCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// just log it out
+	client.log(string_util::format("ALL::command %s: to server containing %s",command.c_str(),info.getAsString().c_str()),4);
+	return true;
+}
+
+// numerics
+
+IRCNumericCommand::IRCNumericCommand()
+{
+	name = "NUMERIC";
+}
+
+bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	int numeric = atoi(info.command.c_str());
+
+	switch(numeric)
+	{
+		case 0:
+			client.log(string_util::format("NUMERIC::Unknown code: %s",info.command.c_str()),2);
+		break;
+
+		case RPL_WELCOME:// "Welcome to the Internet Relay Network <nick>!<user>@<host>"
+			{
+				trMessageEventInfo	messageInfo;
+
+				messageInfo.eventType = eIRCNoticeEvent;
+				messageInfo.source = info.source;
+				messageInfo.params = info.params;
+				messageInfo.message = info.getAsString();
+
+				client.welcomeMessage(messageInfo);
+			}
+			break;
+
+		case RPL_YOURHOST: //"Your host is <servername>, running version <ver>"
+			client.setServerHost(info.params[3]);
+			break;
+
+		case RPL_CREATED: //"This server was created <date>"
+		case RPL_MYINFO: //"<servername> <version> <available user modes> <available channel modes>"
+		case RPL_BOUNCE: //	"Try server <server name>, port <port number>"
+		case RPL_TRACELINK: //"Link <version & debug level> <destination> <next server> V<protocol version> <link uptime in seconds> <backstream sendq> <upstream sendq>"
+		case RPL_TRACECONNECTING: //"Try. <class> <server>"
+		case RPL_TRACEHANDSHAKE: //"H.S. <class> <server>"
+		case RPL_TRACEUNKNOWN:
+		case RPL_TRACEOPERATOR:
+		case RPL_TRACEUSER:
+		case RPL_TRACESERVER:
+		case RPL_TRACESERVICE:
+		case RPL_TRACENEWTYPE:
+		case RPL_TRACECLASS:
+		case RPL_TRACERECONNECT:
+		case RPL_STATSLINKINFO:
+		case RPL_STATSCOMMANDS:
+		case RPL_ENDOFSTATS:
+		case RPL_UMODEIS:
+		case RPL_SERVLIST:
+		case RPL_SERVLISTEND:
+		case RPL_STATSUPTIME:
+		case RPL_STATSOLINE:
+		case RPL_LUSERCLIENT:
+		case RPL_LUSEROP:
+		case RPL_LUSERUNKNOWN:
+		case RPL_LUSERCHANNELS:
+		case RPL_LUSERME:
+		case RPL_ADMINME:
+		case RPL_ADMINLOC1:
+		case RPL_ADMINLOC2:
+		case RPL_ADMINEMAIL:
+		case RPL_TRACELOG:
+		case RPL_TRACEEND:
+		case RPL_TRYAGAIN:
+		case RPL_AWAY:
+		case RPL_USERHOST:
+		case RPL_ISON:
+		case RPL_UNAWAY:
+		case RPL_NOWAWAY:
+		case RPL_WHOISUSER:
+		case RPL_WHOISSERVER:
+		case RPL_WHOISOPERATOR:
+		case RPL_WHOWASUSER:
+		case RPL_ENDOFWHO:
+		case RPL_WHOISIDLE:
+		case RPL_ENDOFWHOIS:
+		case RPL_WHOISCHANNELS:
+		case RPL_LISTSTART:
+		case RPL_LIST:
+		case RPL_LISTEND:
+		case RPL_CHANNELMODEIS:
+		case RPL_UNIQOPIS:
+		case RPL_NOTOPIC:
+		case RPL_TOPIC:
+		case RPL_INVITING:
+		case RPL_SUMMONING:
+		case RPL_INVITELIST:
+		case RPL_ENDOFINVITELIST:
+		case RPL_EXCEPTLIST:
+		case RPL_ENDOFEXCEPTLIST:
+		case RPL_VERSION:
+		case RPL_WHOREPLY:
+		case RPL_NAMREPLY:
+		case RPL_LINKS:
+		case RPL_ENDOFLINKS:
+		case RPL_ENDOFNAMES:
+		case RPL_BANLIST:
+		case RPL_ENDOFBANLIST:
+		case RPL_ENDOFWHOWAS:
+		case RPL_INFO:
+			break;
+
+		case RPL_MOTD:
+				client.addMOTD(info.getAsString());
+			break;
+
+		case RPL_ENDOFINFO:
+			//client.endMOTD();
+			break;
+
+		case RPL_MOTDSTART:
+			client.beginMOTD();
+			break;
+		
+		case RPL_ENDOFMOTD:
+			client.endMOTD();
+			break;
+
+		case RPL_YOUREOPER:
+		case RPL_REHASHING:
+		case RPL_YOURESERVICE:
+		case RPL_TIME:
+		case RPL_USERSSTART:
+		case RPL_USERS:
+		case RPL_ENDOFUSERS:
+		case RPL_NOUSERS:
+		case ERR_NOSUCHNICK:
+		case ERR_NOSUCHSERVER:
+		case ERR_NOSUCHCHANNEL:
+		case ERR_CANNOTSENDTOCHAN:
+		case ERR_TOOMANYCHANNELS:
+		case ERR_WASNOSUCHNICK:
+		case ERR_TOOMANYTARGETS:
+		case ERR_NOSUCHSERVICE:
+		case ERR_NOORIGIN:
+		case ERR_NORECIPIENT:
+		case ERR_NOTEXTTOSEND:
+		case ERR_NOTOPLEVEL:
+		case ERR_WILDTOPLEVEL:
+		case ERR_BADMASK:
+		case ERR_UNKNOWNCOMMAND:
+		case ERR_NOMOTD:
+		case ERR_NOADMININFO:
+		case ERR_FILEERROR:
+		case ERR_NONICKNAMEGIVEN:
+		case ERR_ERRONEUSNICKNAME:
+		case ERR_NICKNAMEINUSE:
+		case ERR_NICKCOLLISION:
+		case ERR_UNAVAILRESOURCE:
+		case ERR_USERNOTINCHANNEL:
+		case ERR_NOTONCHANNEL:
+		case ERR_USERONCHANNEL:
+		case ERR_NOLOGIN:
+		case ERR_SUMMONDISABLED:
+		case ERR_USERSDISABLED:
+		case ERR_NOTREGISTERED:
+		case ERR_NEEDMOREPARAMS:
+		case ERR_ALREADYREGISTRED:
+		case ERR_NOPERMFORHOST:
+		case ERR_PASSWDMISMATCH:
+		case ERR_YOUREBANNEDCREEP:
+		case ERR_YOUWILLBEBANNED:
+		case ERR_KEYSET:
+		case ERR_CHANNELISFULL:
+		case ERR_UNKNOWNMODE:
+		case ERR_INVITEONLYCHAN:
+		case ERR_BANNEDFROMCHAN:
+		case ERR_BADCHANNELKEY:
+		case ERR_BADCHANMASK:
+		case ERR_NOCHANMODES:
+		case ERR_BANLISTFULL:
+		case ERR_NOPRIVILEGES:
+		case ERR_CHANOPRIVSNEEDED:
+		case ERR_CANTKILLSERVER:
+		case ERR_RESTRICTED:
+		case ERR_UNIQOPPRIVSNEEDED:
+		case ERR_NOOPERHOST:
+		case ERR_UMODEUNKNOWNFLAG:
+		case ERR_USERSDONTMATCH:
+		default:
+			client.log(string_util::format("NUMERIC::code: %d",numeric),4);
+			break;
+
+	}
+	return true;
+}
+
+
 

@@ -17,7 +17,7 @@
 
 #include "libIRC.h"
 
-// The debug command
+// special case commands
 // handles ALL posible messages, dosn't actualy DO anythign with them tho
 class IRCALLCommand : public IRCClientCommandHandaler
 {
@@ -27,6 +27,15 @@ public:
 	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
 
+// numerics, handles any IRC numeric return code
+class IRCNumericCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCNumericCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+// Text based IRC commands
 
 // IRC "NICK" command
 // paramaters {NICKNAME}
@@ -37,7 +46,6 @@ public:
 	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
-
 
 // IRC "USER" command
 // paramaters {USERNAME, HOST, SERVER, REAL_NAME}
@@ -69,7 +77,35 @@ public:
 	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
 
+// IRC "NOTICE" command
+// paramaters {}
+class IRCNoticeCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCNoticeCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
 
+// IRC "JOIN" command
+// paramaters {chanel1,chanel2......}
+class IRCJoinCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCJoinCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+// IRC "MODE" command
+// paramaters {target,modes}
+class IRCModeCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCModeCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
 
 
 #endif //_IRC_BASIC_COMMANDS_

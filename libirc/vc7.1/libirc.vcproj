@@ -146,6 +146,12 @@
 				RelativePath="..\include\ircCommands.h">
 			</File>
 			<File
+				RelativePath="..\include\IRCEvents.h">
+			</File>
+			<File
+				RelativePath="..\include\IRCNumerics.h">
+			</File>
+			<File
 				RelativePath="..\include\libIRC.h">
 			</File>
 			<File

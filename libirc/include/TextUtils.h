@@ -596,6 +596,9 @@ inline int unescape_lookup(std::string text, char escaper, char sep)
 // so we can keep a map with strings as the key
 inline  bool operator < (const std::string &s1,const std::string &s2) { return (s1.compare(s2)<0);}
 
+// because lists of strings are used ALL over the place
+typedef std::vector<std::string>	string_list;
+
 
 #endif // __TEXTUTILS_H__
 
