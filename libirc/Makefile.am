@@ -7,10 +7,10 @@ EXAMPLES=
 endif
 
 SUBDIRS = \
-	$(EXAMPLES) \
 	include \
 	misc \
-	src
+	src \
+	$(EXAMPLES) \
 
 DIST_SUBDIRS = \
 	examples \
