@@ -97,29 +97,50 @@ public:
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
 };
 
-class IRCClient
+class IRCClient : public TCPClientDataPendingListener
 {
 public:
   IRCClient();
-  ~IRCClient();
+	virtual ~IRCClient();
 
   // general connection methods
-  bool init ( void );
-  bool connect ( std::string server, int port );
-  bool login ( std::string nick,  std::string username, std::string fullname);
-  bool disconnect ( void );
+  virtual bool init ( void );
+  virtual bool connect ( std::string server, int port );
+  virtual bool login ( std::string &nick, std::string &username, std::string &fullname);
+  virtual bool disconnect ( void );
 
   // update loop methods
-  bool process ( void );
+  virtual bool process ( void );
 
   // sending commands
-  bool send ( std::string command, std::string target, std::string data );
-  bool send ( std::string &command, BaseIRCCommandInfo &info );
-  bool sendRaw ( std::string data );
+  virtual bool send ( std::string command, std::string target, std::string data );
+  virtual bool send ( std::string &command, BaseIRCCommandInfo &info );
+  virtual bool sendRaw ( std::string data );
 
   //command handaler methods
-  bool registerCommandHandaler ( std::string command, IRCClientCommandHandaler &handaler );
-  int listCommandHandalers ( std::vector<std::string> &commandList );
+  virtual bool registerCommandHandaler ( std::string command, IRCClientCommandHandaler &handaler );
+  virtual int listCommandHandalers ( std::vector<std::string> &commandList );
+
+	// called by the TCP/IP connection when we get data
+	virtual void pending ( TCPClientConnection *connection, int count );
+
+
+	// debug API
+	virtual void setLogfile ( std::string file );
+	virtual void setDebugLevel ( int level );
+	virtual int getDebugLevel ( void );
+
+protected:
+	TCPClientConnection		*tcpClient;	
+	TCPConnection					&tcpConnection;
+	int										debugLogLevel;
+	std::string						logfile;
+
+	bool sendTextToServer ( std::string &text );
+
+	void log ( std::string &text, int level = 0 );
+
+	std::string		ircMessageTerminator;
 };
 
 #endif //_LIBIRC_H_

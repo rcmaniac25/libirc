@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../include;../src/sdl_net"
+				AdditionalIncludeDirectories="../include;../src/sdl_net;../src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;CALLBACK_COLLECTION_IS_AVLTREE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -103,6 +103,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\src\ircCommands.cpp">
+			</File>
+			<File
 				RelativePath="..\src\libIRC.cpp">
 			</File>
 			<Filter
@@ -182,6 +185,9 @@
 			</File>
 			<File
 				RelativePath="..\include\libIRC.h">
+			</File>
+			<File
+				RelativePath="..\src\Singleton.h">
 			</File>
 			<Filter
 				Name="old"

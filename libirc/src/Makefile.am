@@ -10,6 +10,7 @@ libIRC_la_SOURCES = \
 	bufsock.cpp \
 	ctcp.cpp \
 	hashtable.cpp \
+	ircCommands.cpp
 	irc_core.cpp \
 	irc_funcs.cpp \
 	libIRC.cpp \
