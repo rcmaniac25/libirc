@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <map>
+#include "TextUtils.h"
 
 class IRCClient;
 
@@ -88,6 +89,8 @@ typedef struct trMessageEventInfo : public trBaseEventInfo
 	std::string from;
 	std::string message;
 	std::vector<std::string> params;
+
+	std::string getAsString ( int start = 0, int end = -1 ) {return getStringFromList(params," ",start,end);}
 }trMessageEventInfo;
 
 class IRCBasicEventCallback

@@ -599,6 +599,33 @@ inline  bool operator < (const std::string &s1,const std::string &s2) { return (
 // because lists of strings are used ALL over the place
 typedef std::vector<std::string>	string_list;
 
+// dump out a string from a list range deliminated, helpfull for geting stuff back out of tokenized lists
+inline std::string getStringFromList ( string_list &params, std::string delim = " ", int start = 0, int end = -1 )
+{
+	int realEnd = (int)params.size();
+	if ( end != -1 )
+		realEnd = end;
+
+	std::vector<std::string>::iterator itr = params.begin() + start;
+
+	std::string  temp;
+
+	int i = start;
+	while ( itr != params.end())
+	{
+		temp += *itr;
+		itr++;
+		i++;
+
+		if ( i >= realEnd )
+			itr == params.end();
+
+		if (itr != params.end())
+			temp += delim;
+	}
+	return temp;
+}
+
 
 #endif // __TEXTUTILS_H__
 

@@ -18,6 +18,9 @@
 #include "libIRC.h"
 #include "TextUtils.h"
 
+#include <string>
+#include <map>
+
 typedef struct 
 {
 	std::string server;
@@ -27,6 +30,9 @@ typedef struct
 	std::string host;
 	std::string realName;
 	string_list channels;
+	std::string	master;
+
+	std::map<std::string,std::string> joinMessages;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -53,10 +59,15 @@ void joinChannels ( void )
 
 void joinedChannel ( trJoinEventInfo *info )
 {
+	std::map<std::string,std::string>::iterator itr = theBotInfo.joinMessages.find(info->channel);
+
+	if (itr == theBotInfo.joinMessages.end())
+		return;
+
 	IRCCommandINfo	commandInfo;
 
 	commandInfo.target = info->channel;
-	commandInfo.params.push_back (std::string("Go Go SupidBot"));
+	commandInfo.params.push_back (itr->second);
 	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
 
@@ -76,7 +87,7 @@ void channelMessage ( trMessageEventInfo *info )
 		// its for me
 		if ( info->params[1] == "quit")
 		{
-			if (info->from == "Patlabor221")
+			if (info->from == theBotInfo.master)
 				part = true;
 		}
 		else if ( info->params[1] == "Hello")
@@ -114,6 +125,52 @@ void channelMessage ( trMessageEventInfo *info )
 		else if ( info->params[1] == "dance")
 		{
 				client.sendMessage(info->target,"waves it like it just don't care",true);
+		}
+		else if ( info->params[1] == "raw")
+		{
+			client.sendTextToServer(info->getAsString(2));
+		}
+		else if ( info->params[1] == "part")
+		{
+			if (info->from == theBotInfo.master)
+				client.part(info->target, "I must go");
+		}
+		else if ( info->params[1] == "join")
+		{
+			if (info->from == theBotInfo.master)
+				client.join(info->getAsString(2));
+		}
+		else if ( info->params[1] == "users")
+		{
+			string_list userList = client.listUsers(info->target);
+			string_list::iterator itr = userList.begin();
+
+			std::string theLine = info->from + std::string(" this channel contains ");
+			while( itr != userList.end())
+			{
+				theLine += *itr;
+				itr++;
+				if ( itr != userList.end() )
+					theLine += ", ";
+			}
+			commandInfo.params.push_back(theLine);
+			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+		}
+		else if ( info->params[1] == "allusers")
+		{
+			string_list userList = client.listUsers(std::string(""));
+			string_list::iterator itr = userList.begin();
+
+			std::string theLine = info->from + std::string(" I know of ");
+				while( itr != userList.end())
+				{
+					theLine += *itr;
+					itr++;
+					if ( itr != userList.end() )
+						theLine += ", ";
+				}
+				commandInfo.params.push_back(theLine);
+				client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 		}
 		else
 		{
@@ -183,6 +240,8 @@ void initInfo ( void )
 {
 	theBotInfo.nick = 0;
 
+	theBotInfo.master = "Patlabor221";
+
 	theBotInfo.server = "irc.freenode.net";
 	theBotInfo.port = 6667;
 
@@ -193,9 +252,13 @@ void initInfo ( void )
 	theBotInfo.host = "stupidBot";
 	theBotInfo.realName = "a libIRC bot";
 
-	theBotInfo.channels.push_back(std::string("#bzflag"));
 	theBotInfo.channels.push_back(std::string("#opencombat"));
 	theBotInfo.channels.push_back(std::string("#brlcad"));
+
+	theBotInfo.joinMessages["#opencombat"] = "May the Force Be With You";
+	theBotInfo.joinMessages["#brlcad"] = "Whoa!";
+	theBotInfo.joinMessages["#bzflag"] = "I'm not even suposed to be here today";
+	theBotInfo.joinMessages["#libirc"] = "Greetings Program!";
 }
 
 void main ( void )
@@ -220,6 +283,6 @@ void main ( void )
 
 	if (part)
 	{
-		client.disconnect();
+		client.disconnect("Quiting");
 	}
 };

@@ -154,19 +154,73 @@ bool IRCJoinCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 {
 	std::string commandLine;
 
+	if (info.params.size())
+	{
 	string_list::iterator itr = info.params.begin();
 
-	while ( itr != info.params.end() )
-	{
-		commandLine += *itr;
-		itr++;
+		while ( itr != info.params.end() )
+		{
+			commandLine += *itr;
+			itr++;
 
-		if (itr != info.params.end())
-			commandLine += ",";
+			if (itr != info.params.end())
+				commandLine += ",";
+		}
 	}
+	else
+		commandLine = info.target;
+
 	// JOIN CHANNEL1,CHANNEL2,....,CHANNELN
 	client.sendIRCCommandToServer(eCMD_JOIN,commandLine);
 	return true;
+}
+
+// IRC "PART" command
+IRCPartCommand::IRCPartCommand()
+{
+	name = "PART";
+}
+
+bool IRCPartCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	client.partMessage(info);
+	return true;	
+}
+
+bool IRCPartCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	std::string commandLine;
+
+	commandLine = info.target + delim + info.params[0];
+
+	// PART CHANNEL REASON
+	client.sendIRCCommandToServer(eCMD_PART,commandLine);
+	return true;
+}
+
+// IRC "QUIT" command
+
+IRCQuitCommand::IRCQuitCommand()
+{
+	name = "QUIT";
+}
+
+bool IRCQuitCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// can we ever even GET a quit message?
+	return true;
+}
+
+bool IRCQuitCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	std::string commandLine;
+
+	commandLine = info.params[0];
+
+	// QUIT CHANNEL REASON
+	client.sendIRCCommandToServer(eCMD_QUIT,commandLine);
+	return true;
+
 }
 
 // IRC "MODE" command
@@ -184,8 +238,7 @@ bool IRCModeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 bool IRCModeCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
   // MODE TARGET modes
-  std::string infostring = info.getAsString();
-  client.sendIRCCommandToServer(eCMD_MODE, infostring);
+  client.sendIRCCommandToServer(eCMD_MODE, info.target);
   return true;
 }
 

@@ -97,6 +97,26 @@ public:
 	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
 
+// IRC "PART" command
+// paramaters {channel reason}
+class IRCPartCommand : public IRCClientCommandHandler
+{
+public:
+	IRCPartCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+// IRC "QUIT" command
+// paramaters {channel reason}
+class IRCQuitCommand : public IRCClientCommandHandler
+{
+public:
+	IRCQuitCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
 // IRC "MODE" command
 // paramaters {target,modes}
 class IRCModeCommand : public IRCClientCommandHandler

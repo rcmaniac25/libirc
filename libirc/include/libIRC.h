@@ -53,7 +53,7 @@ public:
   virtual ~BaseIRCCommandInfo();
 
 	void parse ( std::string line );
-	std::string getAsString ( int pos = 0 );
+	std::string getAsString ( int start = 0, int end = -1 );
 
   commndInfoTypes	type;
   std::string command;
@@ -138,7 +138,7 @@ public:
   // general connection methods
   virtual bool init ( void );
   virtual bool connect ( std::string server, int port );
-  virtual bool disconnect ( void );
+	virtual bool disconnect ( std::string reason );
 
   // update methods
   virtual bool process ( void );
@@ -146,11 +146,11 @@ public:
 	// basic IRC operations
 	virtual bool login ( std::string &nick, std::string &username, std::string &fullname);
 	virtual bool join ( std::string channel );
-	virtual bool part ( std::string channel );
+	virtual bool part ( std::string channel, std::string reason );
 	virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
 
 	// IRC info operations
-	// virtual string_utils::string_list listUsers ( std::string channel );
+	virtual string_list listUsers ( std::string channel );
 	virtual string_list listChanels ( void );
 
 	//event handler methods.... for higher level API
@@ -204,6 +204,7 @@ public:
 	std::string getMOTD ( void ){return MOTD;}
 
 	void joinMessage ( BaseIRCCommandInfo	&info );
+	void partMessage ( BaseIRCCommandInfo	&info );
 
 	void setNick ( std::string text ) {nickname=text;}
 	std::string getNick ( void ) {return nickname;}
@@ -277,6 +278,7 @@ protected:
 
 	// user management
 	trIRCUser& getUserRecord ( std::string name );
+	bool removeChannelUser (std::string channel, std::string name );
 
 	// loging
 	IRCClientLogHandler			*logHandler;

@@ -108,20 +108,9 @@ void BaseIRCCommandInfo::parse ( std::string line )
 		target = "NULL";
 }
 
-std::string BaseIRCCommandInfo::getAsString ( int pos )
+std::string BaseIRCCommandInfo::getAsString ( int start, int end )
 {
-	std::vector<std::string>::iterator itr = params.begin() + pos;
-
-	std::string  temp;
-
-	while ( itr != params.end())
-	{
-		temp += *itr;
-		itr++;
-		if (itr != params.end())
-			temp += " ";
-	}
-	return temp;
+	return getStringFromList(params," ",start,end);
 }
 
 // IRC class stuff
@@ -144,7 +133,12 @@ IRCClient::IRCClient()
 // irc client
 IRCClient::~IRCClient()
 {
-	tcpConnection.kill();
+	disconnect("shuting down");
+
+	if (tcpClient)
+		tcpConnection.deleteClientConnection(tcpClient);
+
+//	tcpConnection.kill();
 }
 
 // general connection methods
@@ -159,7 +153,7 @@ bool IRCClient::init ( void )
 	tcpClient = NULL;
 
 	// make sure the system we have is inited
-	tcpConnection.init();
+	//tcpConnection.init();
 
 	// just get us a new empty connection
 	tcpClient = tcpConnection.newClientConnection("",0);
@@ -187,8 +181,31 @@ bool IRCClient::connect ( std::string server, int port )
 	return err == eTCPNoError;
 }
 
-bool IRCClient::disconnect ( void )
+bool IRCClient::disconnect ( std::string reason )
 {
+	if (ircConenctonState >= eLogedIn)
+	{
+		if (!reason.size())
+			reason = "shuting down";
+
+		IRCCommandINfo	info;
+		info.params.push_back(reason);
+
+		if (!sendIRCCommand(eCMD_QUIT,info))
+		{
+			log("Discoonect Failed: QUIT command not sent",0);
+			return false;
+		}
+
+		channels.clear();
+		userList.clear();
+
+		teTCPError err = tcpClient->disconnect();
+
+		ircConenctonState = eNotConnected;
+
+		return err == eTCPNoError;
+	}
 	return false;
 }
 
@@ -251,38 +268,53 @@ bool IRCClient::join ( std::string channel )
 		return false;
 
 	IRCCommandINfo	info;
-	info.params.push_back(channel);
-
+	info.target = channel;
 	if (!sendIRCCommand(eCMD_JOIN,info))
 	{
-		log("Goin Failed: JOIN command not sent",0);
+		log("Join Failed: JOIN command not sent",0);
 		return false;
 	}
 
 	if (!sendIRCCommand(eCMD_MODE,info))
 	{
-		log("Goin Failed: MODE command not sent",0);
+		log("Join Failed: MODE command not sent",0);
 		return false;
 	}
 
 	return true;
 }
 
-bool IRCClient::part ( std::string channel )
+bool IRCClient::part ( std::string channel, std::string reason )
 {
 	// we need to have at LEAST sent the username and stuff
 	if (getConnectionState() < eSentNickAndUSer)
 		return false;
 
 	IRCCommandINfo	info;
-	info.params.push_back(channel);
+	info.target = channel;
+	info.params.push_back(reason);
 
 	if (!sendIRCCommand(eCMD_PART,info))
 	{
-		log("Goin Failed: JOIN command not sent",0);
+		log("part Failed: PART command not sent",0);
 		return false;
 	}
+	// make sure we have a record of it
+	if (channels.find(channel) == channels.end())
+		return false;
+
 // notify that we parted the channel
+	removeChannelUser(channel,getNick());
+
+	trPartEventInfo	eventInfo;
+
+	eventInfo.eventType = eIRCChannelPartEvent;
+	eventInfo.reason = reason;
+	eventInfo.user = getNick();
+
+	callEventHandler(eventInfo.eventType,eventInfo);
+
+	channels.erase(channels.find(channel));
 	return true;
 }
 
@@ -680,6 +712,8 @@ void IRCClient::registerDefaultCommandhandlers ( void )
 	addDefaultCommandhandlers(new IRCPongCommand );
 	addDefaultCommandhandlers(new IRCNoticeCommand );
 	addDefaultCommandhandlers(new IRCJoinCommand );
+	addDefaultCommandhandlers(new IRCPartCommand );
+	addDefaultCommandhandlers(new IRCQuitCommand );
 	addDefaultCommandhandlers(new IRCModeCommand );
 	addDefaultCommandhandlers(new IRCPrivMsgCommand );
 }
@@ -805,6 +839,7 @@ trIRCUser& IRCClient::getUserRecord ( std::string name )
 	{
 		trIRCUser	user;
 		user.nick = name;
+		return userList[name] = user;
 	}
 	return userList[name];
 }
@@ -871,6 +906,32 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
 	callEventHandler(joinInfo.eventType,joinInfo);
 }
 
+void IRCClient::partMessage ( BaseIRCCommandInfo	&info )
+{
+	string_list		goodies = string_util::tokenize(info.source,std::string("!"));
+
+	std::string who = goodies[0];
+
+	trPartEventInfo	partInfo;
+	if (who == getNick())	// we joined a channel
+	{	
+		IRCChannel	channel;
+		channel.setName(info.target);
+		channels[channel.getName()] = channel;
+
+		partInfo.eventType = eIRCChannelPartEvent;
+	}
+	else	// someone else joined a channel we are in
+	{
+		channels[info.target].part(&(getUserRecord(who)));
+		partInfo.eventType = eIRCUserPartEvent;
+	}	
+
+	partInfo.channel = info.target;
+	partInfo.user = who;
+	callEventHandler(partInfo.eventType,partInfo);
+}
+
 void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic, std::string source )
 {
 	channels[channel].setTopic(topic);
@@ -891,6 +952,15 @@ void IRCClient::addChannelUsers ( std::string channel, string_list newUsers )
 		channels[channel].join(&(getUserRecord(*itr)));
 		itr++;
 	}
+}
+
+bool IRCClient::removeChannelUser ( std::string channel, std::string name )
+{
+	if (name == getNick())
+		return false;
+
+	channels[channel].part(&(getUserRecord(name)));
+	return true;
 }
 
 void IRCClient::endChannelUsersList ( std::string channel )
@@ -937,6 +1007,27 @@ void IRCClient::nickNameError ( int error, std::string message )
 }
 
 // info methods
+
+string_list IRCClient::listUsers ( std::string channel )
+{
+	string_list userNames;
+
+	if (channels.find(channel) != channels.end())
+	{
+		return channels.find(channel)->second.listUsers();
+	}
+	else
+	{
+		tvIRCUserMap::iterator	itr = userList.begin();
+		while (itr != userList.end())
+		{
+			userNames.push_back(itr->second.nick);
+			itr++;
+		}
+	}
+	return userNames;
+}
+
 string_list IRCClient::listChanels ( void )
 {
 	string_list	chanList;
