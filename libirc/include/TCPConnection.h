@@ -125,6 +125,7 @@ protected:
 	void callDataPendingListeners ( int count );
 };
 
+// server connection classes
 class TCPServerConnection;
 
 class TCPServerConnectedPeer

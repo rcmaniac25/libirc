@@ -13,6 +13,26 @@
 // implementation of main libIRC classes
 
 #include "libIRC.h"
+#ifndef _WIN32
+	#include <unistd.h>
+#else
+	#include <windows.h>
+#endif
+
+
+// sleep util
+
+
+void IRCOSSleep ( float fTime )
+{
+#ifdef _WIN32
+	Sleep((DWORD)(1000.0f * fTime));
+#else
+	usleep((unsigned int )(100000 * fTime));
+#endif
+}
+
+// IRC class stuff
 
 IRCClient::IRCClient()
 {

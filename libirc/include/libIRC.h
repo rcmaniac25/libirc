@@ -17,10 +17,16 @@
 
 // IRC includes
 #include "ircCommands.h"
+#include "TCPConnection.h"
 
 // global includes
 #include <string>
 #include <vector>
+
+// simple OS indpendent sleep function
+// used by so many things, so we have one here
+void IRCOSSleep ( float fTime );
+
 
 // need this later
 class IRCClient;

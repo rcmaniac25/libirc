@@ -435,8 +435,6 @@ void TCPServerConnection::callDataPendingListeners ( int count )
 }
 
 
-
-
 // master connections class, Make this a singleton? there should only ever be one
 
 typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
