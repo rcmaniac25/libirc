@@ -55,7 +55,7 @@ all-local:
 	  @ECHO@ @ECHO_N@ "Elapsed time since configuration: " ;\
 	  sh $(top_srcdir)/misc/elapsed.sh @CONFIG_TIME@ ;\
 	  @ECHO@ "---" ;\
-	  @ECHO@ "Run 'make test' to test the libIRC framework" ;\
+	  @ECHO@ "Run 'make examples' to build the libIRC framework examples" ;\
 	  @ECHO@ "Run 'make install' to begin installation into $(prefix)" ;\
 	elif test "x$(MAKECMDGOALS)" = "xinstall-am" ; then \
 	  @ECHO@ @ECHO_N@ "Elapsed installation time: " ;\
@@ -63,7 +63,7 @@ all-local:
 	  @ECHO@ @ECHO_N@ "Elapsed time since configuration: " ;\
 	  sh $(top_srcdir)/misc/elapsed.sh @CONFIG_TIME@ ;\
 	  @ECHO@ "---" ;\
-	  @ECHO@ "Run 'make test' to test the libIRC framework" ;\
+	  @ECHO@ "Run 'make examples' to build the libIRC framework examples" ;\
 	  @ECHO@ ;\
 	  line1="  libIRC @LIBIRC_VERSION@ is now installed into $(prefix)" ;\
 	  line2="  Be sure to add $(prefix)/bin to your PATH" ;\
