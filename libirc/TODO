@@ -9,7 +9,6 @@ planning efforts:  http://sourceforge.net/pm/?group_id=14331
 
 TODO items should be formated to column 70 (M-q in emacs), no tabs
 
-* convert client receve code to look for ASCII 13,10 combos, not NULL
 * have message class figure out command class, and flag numerics
 * hook up test app for lib
 * provide an initalisation structure that allows for silent defauts
