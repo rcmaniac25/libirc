@@ -19,7 +19,7 @@ libIRC_la_SOURCES = \
 	trace.cpp \
 	util.cpp
 
-libIRC_la_CPPFLAGS = -DCALLBACK_COLLECTION_IS_AVLTREE
+libIRC_la_CPPFLAGS = -DCALLBACK_COLLECTION_IS_AVLTREE -I$(srcdir)/src/sdl_net
 
 libIRC_la_LIBADD = sdl_net/libSDLnet.la
 
