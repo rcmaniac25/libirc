@@ -28,7 +28,6 @@
 // used by so many things, so we have one here
 void IRCOSSleep ( float fTime );
 
-
 // need this later
 class IRCClient;
 
@@ -100,6 +99,13 @@ protected:
 	std::string name;
 };
 
+class IRCClientLogHandaler
+{
+public:
+	virtual ~IRCClientLogHandaler(){return;}
+	virtual void log ( IRCClient &client, int level, std::string line ) = 0;
+};
+
 class IRCClient : public TCPClientDataPendingListener
 {
 public:
@@ -130,11 +136,17 @@ public:
 	virtual bool sendIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
 	virtual bool sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
 
+	void	setLogHandaler ( IRCClientLogHandaler * loger );
+
+	// --------------------------------------------------------------------------------------
+	// generaly not called by the client app
+
 	// called by the TCP/IP connection when we get data
 	virtual void pending ( TCPClientConnection *connection, int count );
 
 	// debug API
 	virtual void setLogfile ( std::string file );
+	virtual std::string  getLogfile ( void );
 	virtual void setDebugLevel ( int level );
 	virtual int getDebugLevel ( void );
 
@@ -149,7 +161,6 @@ public:
 	// utilitys
 	void log ( std::string &text, int level = 0 );
 	void log ( const char *text, int level = 0 );
-
 
 protected:
 	friend class IRCClientCommandHandaler;
@@ -194,6 +205,8 @@ protected:
 	void addDefaultCommandhandalers ( IRCClientCommandHandaler* handaler );
 	void clearDefaultCommandhandalers ( void );
 	void registerDefaultCommandhandalers ( void );
+
+	IRCClientLogHandaler			*logHandaler;
 };
 
 #endif //_LIBIRC_H_

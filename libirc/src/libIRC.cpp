@@ -21,9 +21,32 @@
 	#include <windows.h>
 #endif
 
+
+class DefaultIRCLogHandaler : public IRCClientLogHandaler
+{
+public:
+	virtual ~DefaultIRCLogHandaler(){return;}
+	virtual void log ( IRCClient &client, int level, std::string line )
+	{
+		printf("log# %d:%s\n",level,line.c_str());
+
+		if (client.getLogfile().size())
+		{
+			FILE *fp = fopen(client.getLogfile().c_str(),"at");
+
+			if (fp)
+			{
+				fprintf(fp,"log# %d:%s\n",level,line.c_str());
+				fclose(fp);
+			}
+		}
+	}
+};
+
+DefaultIRCLogHandaler	defaultLoger;
+
+
 // sleep util
-
-
 void IRCOSSleep ( float fTime )
 {
 #ifdef _WIN32
@@ -47,6 +70,7 @@ IRCClient::IRCClient()
 	debugLogLevel = 0;
 	ircServerPort = 6667;
 	ircConenctonState = eNotConnected;
+	logHandaler = &defaultLoger;
 }
 
 IRCClient::~IRCClient()
@@ -222,6 +246,14 @@ bool IRCClient::sendTextToServer ( std::string &text )
 	return true;
 }
 
+void	IRCClient::setLogHandaler ( IRCClientLogHandaler * loger )
+{
+	if (!loger)
+		logHandaler = &defaultLoger;
+	else
+		logHandaler = loger;
+}
+
 void IRCClient::log ( const char *text, int level )
 {
 	log(std::string(text),level);
@@ -229,26 +261,18 @@ void IRCClient::log ( const char *text, int level )
 
 void IRCClient::log ( std::string &text, int level )
 {
-	if (level <= debugLogLevel)
-	{
-		printf("log# %d:%s\n",level,text.c_str());
-
-		if (logfile.size())
-		{
-			FILE *fp = fopen(logfile.c_str(),"at");
-
-			if (fp)
-			{
-				fprintf(fp,"log# %d:%s\n",level,text.c_str());
-				fclose(fp);
-			}
-		}
-	}
+	if (level <= debugLogLevel && logHandaler)
+		logHandaler->log(*this,level,text);
 }
 
 void IRCClient::setLogfile ( std::string file )
 {
 	logfile = file;
+}
+
+std::string  IRCClient::getLogfile ( void )
+{
+	return logfile;
 }
 
 void IRCClient::setDebugLevel ( int level )
