@@ -49,5 +49,27 @@ public:
 	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
 
+// IRC "PING" command
+// paramaters {}
+class IRCPingCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCPingCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+// IRC "PONG" command
+// paramaters {}
+class IRCPongCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCPongCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+
+
 
 #endif //_IRC_BASIC_COMMANDS_

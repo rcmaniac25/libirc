@@ -26,7 +26,9 @@ IRCALLCommand::IRCALLCommand()
 bool IRCALLCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
 	// just log it out
-	client.log(string_util::format("ALL::command %s: from %s containing %s",command.c_str(),info.source.c_str(),info.getAsString().c_str()),4);
+	client.log(string_util::format("ALL::command %s from %s for %s containing %s",info.command.c_str(),info.source.c_str(),info.target.c_str(),info.getAsString().c_str()),4);
+	client.log(string_util::format("ALL::raw %s",info.raw.c_str()),6);
+	client.log(std::string(" "),6);
 	return true;
 }
 
@@ -88,4 +90,50 @@ bool IRCUserCommand::send ( IRCClient &client, std::string &command, BaseIRCComm
 }
 
 
+// IRC "PING" command
+IRCPingCommand::IRCPingCommand()
+{
+	name = "PING";
+}
+
+bool IRCPingCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	IRCCommandINfo	ircInfo;
+	ircInfo.command = eCMD_PONG;
+	client.sendIRCCommand(eCMD_PONG,ircInfo);
+	return true;
+}
+
+bool IRCPingCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	IRCCommandINfo	&ircInfo = (IRCCommandINfo&)info;
+
+	std::string commandLine;
+	// PING
+	client.sendIRCCommandToServer(eCMD_PING,commandLine);
+	return true;
+}
+
+// IRC "PONG" command
+
+IRCPongCommand::IRCPongCommand()
+{
+	name = "PONG";
+}
+
+bool IRCPongCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// we do nothing on a pong
+	return true;
+}
+
+bool IRCPongCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	IRCCommandINfo	&ircInfo = (IRCCommandINfo&)info;
+
+	std::string commandLine;
+	// PING
+	client.sendIRCCommandToServer(eCMD_PONG,commandLine);
+	return true;
+}
 
