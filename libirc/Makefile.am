@@ -10,7 +10,7 @@ SUBDIRS = \
 	include \
 	misc \
 	src \
-	$(EXAMPLES) \
+	$(EXAMPLES)
 
 DIST_SUBDIRS = \
 	examples \
