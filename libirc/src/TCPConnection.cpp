@@ -314,8 +314,47 @@ unsigned int TCPClientConnection::getReadChunkSize ( void )
 	return info ? info->readChunkSize : 0;
 }
 
+//---------------------------------------------------------------------------------------------------//
+// TCP/IP listener class for server connected peers
 
+class TCPServerConnectedPeer::TCPServerConnectedPeerInfo
+{	
+public:
+	TCPServerConnectedPeerInfo();
+	TCPsocket	socket;
+};
 
+TCPServerConnectedPeer::TCPServerConnectedPeerInfo::TCPServerConnectedPeerInfo()
+{
+	socket = NULL;
+}
+
+TCPServerConnectedPeer::TCPServerConnectedPeer()
+{
+	info = new TCPServerConnectedPeerInfo;
+}
+
+TCPServerConnectedPeer::~TCPServerConnectedPeer()
+{
+	if (info)
+		delete(info);
+}
+
+// data pending
+bool TCPServerConnectedPeer::packets ( void )
+{
+	return packetList.size() > 0;
+}
+
+tvPacketList& TCPServerConnectedPeer::getPackets ( void )
+{
+	return packetList;
+}
+
+const std::string TCPServerConnectedPeer::getAddress ( void )
+{
+	return "something";
+}
 
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP listener class for servers
@@ -325,7 +364,6 @@ struct TCPServerConnection::TCPServerConnectionInfo
 {	
 	teTCPError	lastError;
 };
-
 
 TCPServerConnection::TCPServerConnection()
 {
@@ -351,6 +389,52 @@ TCPServerConnection::~TCPServerConnection()
 	if (info)
 		delete(info);
 }
+
+teTCPError TCPServerConnection::getLastError ( void )
+{
+	return info->lastError;
+}
+
+teTCPError TCPServerConnection::setError ( teTCPError error )
+{
+	if (info)
+		info->lastError = error;
+	return error;
+}
+
+// data pending listeners
+void TCPServerConnection::addListener ( TCPServerDataPendingListener* listener )
+{
+	if (!listener)
+		return;
+
+	dataPendingList.push_back(listener);
+}
+
+void TCPServerConnection::removeListener ( TCPServerDataPendingListener* listener )
+{
+	if (!listener)
+		return;
+
+	tvServerDataPendingListenerList::iterator	itr = dataPendingList.begin();
+	while( itr != dataPendingList.end() )
+	{
+		if (*itr == listener)
+			itr = dataPendingList.erase(itr);
+		else
+			itr++;
+	}
+}
+
+void TCPServerConnection::callDataPendingListeners ( int count )
+{
+	if ( count >1 )
+		return;
+
+		// TODO this is wrong, each client has a pending list loop thru them
+}
+
+
 
 
 // master connections class, Make this a singleton? there should only ever be one

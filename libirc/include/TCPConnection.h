@@ -18,9 +18,6 @@
 #include <vector>
 #include <string>
 
-
-
-
 class TCPConnection;
 
 typedef enum
@@ -128,6 +125,37 @@ protected:
 	void callDataPendingListeners ( int count );
 };
 
+class TCPServerConnection;
+
+class TCPServerConnectedPeer
+{
+public:
+	TCPServerConnectedPeer();
+	~TCPServerConnectedPeer();
+
+	// data pending
+	bool packets ( void );
+	tvPacketList& getPackets ( void );
+
+	const std::string getAddress ( void );
+protected:
+
+	class TCPServerConnectedPeerInfo;
+	TCPServerConnectedPeerInfo	*info;
+
+	tvPacketList			packetList;
+};
+
+class TCPServerDataPendingListener
+{
+public:
+	virtual ~TCPServerDataPendingListener(){return;};
+	virtual bool accept ( TCPServerConnection *connection, TCPServerConnectedPeer *peer ) = 0;
+	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, int count ) = 0;
+};
+
+typedef std::vector<TCPServerDataPendingListener*> tvServerDataPendingListenerList;
+
 // TCP/IP server connection listening for some connections on some port
 class TCPServerConnection
 {
@@ -136,6 +164,15 @@ public:
 	TCPServerConnection( unsigned short port, unsigned int connections, TCPConnection *parentConnection );
 	~TCPServerConnection();
 
+	// error handaling
+	teTCPError getLastError ( void );
+	teTCPError setError ( teTCPError error );
+
+	// data pending listeners
+	// let the people register a callback class to be called when data is receved
+	void addListener ( TCPServerDataPendingListener* listener );
+	void removeListener ( TCPServerDataPendingListener* listener );
+
 protected:
 	// who's your daddy
 	friend	class TCPConnection;
@@ -143,6 +180,11 @@ protected:
 
 	struct TCPServerConnectionInfo;
 	TCPServerConnectionInfo	*info;
+
+	// listeners
+	tvServerDataPendingListenerList	dataPendingList;
+	void callDataPendingListeners ( int count );
+
 };
 
 // master TCP/IP connection manager
