@@ -1,0 +1,61 @@
+======================================================================== 
+libIRC
+========================================================================
+
+libIRC is a cross-platform framework for connecting to and interacting
+with Internet Relay Chat (IRC) networks. libIRC is useful as the
+foundation for embedding IRC capabilities into various applications
+such as chat clients, games, and IRC bots.
+
+
+PROJECT OVERVIEW
+
+The libIRC library includes both a C++ and C API.  The C++ API
+essentially consists of client and server objects that may be used for
+talking to IRC servers and clients respectively.  The C API is
+basically a wrapper over those C++ objects that provides a traditional
+init/call interface.  Either API is arranged so that user-applications
+may define and/or override behaviors by definining hook functions that
+get invoked when specified commands/events are encountered.
+
+
+INSTALLATION
+
+If you are on Windows, there are .NET project files in the vc7.1
+directory.  For everyone else, the usual GNU Build System is used.
+
+./configure
+make
+make install
+
+Developers working out of CVS have an additional initial:
+
+sh autogen.sh
+
+Run autogen.sh before ./configure to initialize and generate the build
+structure.  This step requires the latest versions of the entire GNU
+Build System application suite (m4, aclocal, automake, autoconf,
+libtool).
+
+TESTING AND EXAMPLES
+
+Example clients and servers are provided in the "tests" directory.
+See those for quick and mostly short examples on how to quickly get
+started with the API.
+
+
+DISTRIBUTION DETAILS
+
+The libIRC library is provided under the terms of the LGPL.  See the
+COPYING file for more information.
+
+
+COMMUNICATION AND GETTING HELP
+
+There are forums, mailing lists, bug tracking, patches, feature
+requests, task tracking, news, and support available on the project
+website at http://sourceforge.net/projects/libirc/.
+
+For more immediate and interactive communication, please visit the
+developers on the Freenode IRC network (irc.freenode.net, port 6667)
+in #brlcad.  See http://irchelp.org/ if you're new to IRC.
