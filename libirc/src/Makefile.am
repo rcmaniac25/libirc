@@ -8,11 +8,12 @@ DIST_SUBDIRS = \
 
 lib_LTLIBRARIES = libIRC.la
 
-libIRC_la_SOURCES = \
+libIRC_la_SOURCES = 	\
 	TCPConnection.cpp \
+	TextUtils.cxx	\
 	ircCommands.cpp	\
 	IRCChannels.cpp	\
-	libIRC.cpp \
+	libIRC.cpp 		\
 	ircBasicCommands.cpp
 
 libIRC_la_CPPFLAGS = -I$(top_srcdir)/src/sdl_net
