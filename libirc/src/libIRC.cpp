@@ -133,7 +133,7 @@ IRCClient::IRCClient()
 	registerDefaultCommandhandalers();
 	init();
 
-	ircMessageTerminator = " \r\n";
+	ircMessageTerminator = "\r\n";
 	ircCommandDelimator	 = " ";
 	debugLogLevel = 0;
 	ircServerPort = 6667;
@@ -268,20 +268,42 @@ bool IRCClient::join ( std::string channel )
 	return true;
 }
 
-// sending commands
-bool IRCClient::send ( std::string command, std::string target, std::string data )
+bool IRCClient::part ( std::string channel )
 {
-	return false;
+	// we need to have at LEAST sent the username and stuff
+	if (getConnectionState() < eSentNickAndUSer)
+		return false;
+
+	IRCCommandINfo	info;
+	info.params.push_back(channel);
+
+	if (!sendIRCCommand(eCMD_PART,info))
+	{
+		log("Goin Failed: JOIN command not sent",0);
+		return false;
+	}
+// notify that we parted the channel
+	return true;
 }
 
-bool IRCClient::send ( std::string &command, BaseIRCCommandInfo &info )
+bool IRCClient::sendMessage ( std::string target, std::string message, bool isAction )
 {
-	return false;
-}
+	IRCCommandINfo	commandInfo;
+	commandInfo.target = target;
 
-bool IRCClient::sendRaw ( std::string data )
-{
-	return false;
+	std::string messageToSend;
+
+	if(isAction)
+		messageToSend += (char)0x01 + std::string("ACTION ");
+
+	messageToSend += message;
+
+	if(isAction)
+		messageToSend +=(char)0x01;
+
+	commandInfo.params.push_back(messageToSend);
+	sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+	return true;
 }
 
 void IRCClient::pending ( TCPClientConnection *connection, int count )

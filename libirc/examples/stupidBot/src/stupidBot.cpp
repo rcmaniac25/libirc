@@ -32,6 +32,8 @@ typedef struct
 trStupidBotInfo	theBotInfo;
 
 IRCClient	client;
+bool part = false;
+
 
 void login ( void )
 {
@@ -54,8 +56,8 @@ void joinedChannel ( trJoinEventInfo *info )
 	IRCCommandINfo	commandInfo;
 
 	commandInfo.target = info->channel;
-	commandInfo.params.push_back (std::string("Hey everybody!"));
-//	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+	commandInfo.params.push_back (std::string("Go Go SupidBot"));
+	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
 
 void channelMessage ( trMessageEventInfo *info )
@@ -66,16 +68,21 @@ void channelMessage ( trMessageEventInfo *info )
 	commandInfo.target = info->target;
 
 	std::string firstWord = info->params[0];
-	if (*(firstWord.end()-1) == ':')
+	if ( (*(firstWord.end()-1) == ':') || (*(firstWord.end()-1) == ',') )
 		firstWord.erase(firstWord.end()-1);
 
 	if ( firstWord == myNick )
 	{
 		// its for me
-		if ( info->params[1] == "Hello")
+		if ( info->params[1] == "quit")
 		{
-			commandInfo.params.push_back( std::string("Hey ") + info->from + std::string(" how are you?"));
-			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+			if (info->from == "Patlabor221")
+				part = true;
+		}
+		else if ( info->params[1] == "Hello")
+		{
+			std::string message = std::string("Hey ") + info->from + std::string(" how are you?");
+			client.sendMessage(info->target,message);
 		}
 		else if ( info->params[1] == "status")
 		{
@@ -91,7 +98,9 @@ void channelMessage ( trMessageEventInfo *info )
 		{
 			string_list	chans = client.listChanels();
 			string_list::iterator itr = chans.begin();
-			std::string theLine = info->from + std::string(" I am presently in") + string_util::format(" %d channels, including; ",chans.size());
+			std::string plural = chans.size()>1 ? "s" : "";
+
+			std::string theLine = info->from + std::string(" I am presently in") + string_util::format(" %d channel%s, including; ",chans.size(),plural.c_str());
 			while ( itr != chans.end() )
 			{
 				theLine += *itr;
@@ -102,6 +111,10 @@ void channelMessage ( trMessageEventInfo *info )
 			commandInfo.params.push_back(theLine);
 			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 		}
+		else if ( info->params[1] == "dance")
+		{
+				client.sendMessage(info->target,"waves it like it just don't care",true);
+		}
 		else
 		{
 			commandInfo.params.push_back( info->from + std::string(" WTF are you on about?"));
@@ -110,7 +123,6 @@ void channelMessage ( trMessageEventInfo *info )
 		}
 	}
 }
-
 
 class myEventCaller : public IRCBasicEventCallback
 {
@@ -181,8 +193,9 @@ void initInfo ( void )
 	theBotInfo.host = "stupidBot";
 	theBotInfo.realName = "a libIRC bot";
 
+	theBotInfo.channels.push_back(std::string("#bzflag"));
 	theBotInfo.channels.push_back(std::string("#opencombat"));
-	//theBotInfo.channels.push_back(std::string("#bzflag"));
+	theBotInfo.channels.push_back(std::string("#brlcad"));
 }
 
 void main ( void )
@@ -200,8 +213,13 @@ void main ( void )
 
 	client.connect(theBotInfo.server,theBotInfo.port);
 
-	while (client.process())
+	while (client.process() && !part)
 	{
 		IRCOSSleep(1);
+	}
+
+	if (part)
+	{
+		client.disconnect();
 	}
 };

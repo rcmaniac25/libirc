@@ -146,8 +146,8 @@ public:
 	// basic IRC operations
 	virtual bool login ( std::string &nick, std::string &username, std::string &fullname);
 	virtual bool join ( std::string channel );
-	// virtual bool part ( std::string channel );
-	// virtual bool	sendMessage ( std::string target, std::string message, bool isAction = false );
+	virtual bool part ( std::string channel );
+	virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
 
 	// IRC info operations
 	// virtual string_utils::string_list listUsers ( std::string channel );
@@ -172,11 +172,6 @@ public:
 	virtual bool receveCommand ( std::string &commandName, BaseIRCCommandInfo &info );
 	virtual bool receveIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
 	virtual bool receveCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
-
-	// sending commands
-	virtual bool send ( std::string command, std::string target, std::string data );
-	virtual bool send ( std::string &command, BaseIRCCommandInfo &info );
-	virtual bool sendRaw ( std::string data );
 
 	// --------------------------------------------------------------------------------------
 	// generaly not called by the client app
