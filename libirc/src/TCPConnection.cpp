@@ -151,15 +151,15 @@ TCPConnection::~TCPConnection()
 		delete(info);
 }
 
-bool TCPConnection::init ( void )
+teTCPError TCPConnection::init ( void )
 {
 	kill();
 #ifdef _WIN32
 	if(WSAStartup( MAKEWORD( 2, 2 ), &info->m_WSAData ) ==0)
 		info->initedSocketInterface = true;
-	return info->initedSocketInterface;
+	return info->initedSocketInterface ? eTCPNoError : eTCPInitFailed;
 #endif
-	return true;
+	return eTCPNoError;
 }
 
 void TCPConnection::kill ( void )
@@ -172,6 +172,12 @@ void TCPConnection::kill ( void )
 		info->initedSocketInterface = false;
 	}
 }
+
+teTCPError TCPConnection::update ( void )
+{
+	return eTCPNoError;
+}
+
 
 TCPClientConnection* TCPConnection::newClientConnection ( std::string server, unsigned short port )
 {

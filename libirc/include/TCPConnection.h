@@ -19,6 +19,17 @@
 
 class TCPConnection;
 
+typedef enum
+{
+	eTCPNoError = 0,
+	eTCPNotInit,
+	eTCPTimeout,
+	eTCPBadAddress,
+	eTCPBadPort,
+	eTCBSocketNFG,
+	eTCPInitFailed,
+	eTCPUnknownError
+}teTCPError;
 
 // Packet data class
 // this class is realy just to hold data, and make sure it get deallocated.
@@ -46,6 +57,7 @@ public:
 	TCPClientConnection();
 	TCPClientConnection( std::string server, unsigned short port );
 	~TCPClientConnection();
+
 
 protected:
 	// who's your daddy
@@ -86,14 +98,14 @@ public:
 	// initalises the socket system, on windows inits WSA
 	// called automaticly by the constructor, but exposted
 	// in case the client needs to reinit the socket system
-	bool init ( void );
+	teTCPError init ( void );
 
 	// kills the socket system, closes all connections,
 	// and on windows cleans up the WSA system
 	void kill ( void );
 
 	// has all connections check for new data
-	bool update ( void );
+	teTCPError update ( void );
 
 	// returns a new client conenction to the specified host and port
 	TCPClientConnection* newClientConnection ( std::string server, unsigned short port );
