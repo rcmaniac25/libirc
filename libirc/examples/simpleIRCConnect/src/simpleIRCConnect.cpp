@@ -23,12 +23,19 @@ void main ( void )
 	IRCClient	client;
 
 	client.setDebugLevel(5);
+
+	// clear the log
+	fclose(fopen("irc.log","wt"));
+
+	// set the log
 	client.setLogfile("irc.log");
 
 	client.connect("irc.freenode.net",6667);
 	client.login(std::string("libIRCTest2"),std::string("libIRCTest2"),std::string("libIRCTest2"));
 
-	client.sendRaw(std::string("JOIN #bzflag,#brlcad"));
+	client.sendTextToServer(std::string("JOIN #brlcad"));
+	client.sendTextToServer(std::string("MODE #brlcad"));
+
 	while (client.process())
 	{
 		IRCOSSleep(1);
