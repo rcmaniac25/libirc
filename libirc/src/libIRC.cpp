@@ -14,6 +14,7 @@
 
 #include "libIRC.h"
 #include "ircBasicCommands.h"
+#include "TextUtils.h"
 
 #ifndef _WIN32
 	#include <unistd.h>
@@ -41,6 +42,7 @@ public:
 		}
 	}
 };
+
 DefaultIRCLogHandaler	defaultLoger;
 
 // sleep util
@@ -84,13 +86,46 @@ BaseIRCCommandInfo::~BaseIRCCommandInfo()
 
 void BaseIRCCommandInfo::parse ( std::string line )
 {
+	params = string_util::tokenize(line,std::string(" "));
+	raw = line;
+	prefixed = line.c_str()[0] ==':';
+	if (prefixed)
+	{
+		params[0].erase(0,0);
+	}
+	source = params[0];
+
+	// pull off the source
+	params.erase(0,0);
+
+	// make sure we have a command
+	if (params.size() > 0)
+	{
+		command = params[0];
+		// pull off the command
+		params.erase(0,0);
+	}
+	else
+		command = "NULL";
 }
 
 std::string BaseIRCCommandInfo::getAsString ( int pos )
 {
-	return std::string("");
+	std::vector<std::string>::iterator itr = params.begin() + pos;
+
+	std::string  temp;
+
+	while ( itr != params.end())
+	{
+		temp += *itr;
+		itr++;
+		if (itr != params.end())
+			temp += " ";
+	}
+	return temp;
 }
 
+// irc client
 IRCClient::~IRCClient()
 {
 	tcpConnection.kill();
@@ -257,6 +292,17 @@ void IRCClient::processIRCLine ( std::string line )
 	// we have a single line of text, do something with it.
 	// see if it's a command, and or call any handalers that we have
 	// also check for error returns
+
+	// right now we don't know if it's an IRC or CTCP command so just go with the generic one
+	// let the command parse it out into paramaters and find the command
+	BaseIRCCommandInfo	commandInfo;
+	commandInfo.parse(line);
+
+	// call the "ALL" handaler special if there is one
+	receveCommand(std::string("ALL"),commandInfo);
+
+	// notify any handalers for this specific command
+	receveCommand(commandInfo.command,commandInfo);
 }
 
 
@@ -358,19 +404,25 @@ bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info
 {
 	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(commandName);
 
+	bool callDefault = true;
+
 	if (commandListItr != userCommandHandalers.end() || !commandListItr->second.size())	// do we have a custom command handaler
 	{
+		// someone has to want us to call the defalt now
+		callDefault = false;
 		// is this right?
 		// should we do them all? or just the first one that "HANDLES" it?
 		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
 		while (itr != commandListItr->second.end())
 		{
-			(*itr)->send(*this,commandName,info);
+			if ( (*itr)->send(*this,commandName,info))
+				callDefault = true;
 			itr++;
 		}
 		return true;
 	}
-	else	// check for the default
+
+	if (callDefault)	// check for the default
 	{
 		tmCommandHandalerMap::iterator itr = defaultCommandHandalers.find(commandName);
 		if (itr != defaultCommandHandalers.end())
@@ -396,6 +448,54 @@ bool IRCClient::sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info 
 	info.ctcpCommand = command;
 	info.command = ctcpCommandParser.getCommandName(command);
 	return sendCommand(info.command,info);
+}
+
+bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &info )
+{
+	tmUserCommandHandalersMap::iterator		commandListItr = userCommandHandalers.find(commandName);
+
+	bool callDefault = true;
+
+	if (commandListItr != userCommandHandalers.end() || !commandListItr->second.size())	// do we have a custom command handaler
+	{
+		// someone has to want us to call the defalt now
+		callDefault = false;
+		// is this right?
+		// should we do them all? or just the first one that "HANDLES" it?
+		std::vector<IRCClientCommandHandaler*>::iterator	itr = commandListItr->second.begin();
+		while (itr != commandListItr->second.end())
+		{
+			if ( (*itr)->receve(*this,commandName,info))
+				callDefault = true;
+			itr++;
+		}
+		return true;
+	}
+
+	if (callDefault)	// check for the default
+	{
+		tmCommandHandalerMap::iterator itr = defaultCommandHandalers.find(commandName);
+		if (itr != defaultCommandHandalers.end())
+		{
+			itr->second->receve(*this,commandName,info);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool IRCClient::receveIRCCommand ( teIRCCommands	command, IRCCommandINfo &info )
+{
+	info.type = eIRCCommand;
+	info.ircCommand = command;
+	return receveCommand(info.command,info);
+}
+
+bool IRCClient::receveCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info )
+{
+	info.type = eCTCPCommand;
+	info.ctcpCommand = command;
+	return receveCommand(info.command,info);
 }
 
 bool IRCClient::registerCommandHandaler ( IRCClientCommandHandaler *handaler )
@@ -439,7 +539,6 @@ bool IRCClient::removeCommandHandaler ( IRCClientCommandHandaler *handaler )
 				itr++;
 		}
 	}
-
 	return true;
 }
 

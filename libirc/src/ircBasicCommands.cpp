@@ -13,8 +13,29 @@
 // basic IRC commands
 
 #include "ircBasicCommands.h"
+#include "TextUtils.h"
 
 std::string delim = " ";
+
+// Generic handaler for ALL
+IRCALLCommand::IRCALLCommand()
+{
+	name = "ALL";
+}
+
+bool IRCALLCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// just log it out
+	client->log(string_util::format("ALL::command %s: from %s containing %s",command.c_str(),info.source.c_str(),info.getAsString().c_str()),4);
+	return true;
+}
+
+bool IRCALLCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	// just log it out
+	client->log(string_util::format("ALL::command %s: to server containing %s",command.c_str(),info.getAsString().c_str()),4);
+	return true;
+}
 
 // IRC "NICK" command
 
@@ -25,7 +46,7 @@ IRCNickCommand::IRCNickCommand()
 
 bool IRCNickCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
-	return false;
+	return true;
 }
 
 bool IRCNickCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
@@ -50,7 +71,7 @@ IRCUserCommand::IRCUserCommand()
 
 bool IRCUserCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
 {
-	return false;
+	return true;
 }
 
 bool IRCUserCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )

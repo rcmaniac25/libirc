@@ -10,6 +10,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
+// made independent of bzflag commnon.h Jeff Myers 9-27-04
 /*
  * common definitions
  */
@@ -17,13 +18,17 @@
 #ifndef __TEXTUTILS_H__
 #define	__TEXTUTILS_H__
 
-#include "common.h"
-
 #include <algorithm>
 #include <sstream>
 #include <string>
 #include <stdarg.h>
 #include <vector>
+
+#ifdef _WIN32	// win don'st have all the same str uitls
+	#define strcasecmp _stricmp
+	#define strncasecmp _strnicmp
+	#define vsnprintf _vsnprintf
+#endif
 
 /** The string utility class provides basic functionality to parse and
  * format strings

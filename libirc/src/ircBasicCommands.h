@@ -17,6 +17,17 @@
 
 #include "libIRC.h"
 
+// The debug command
+// handles ALL posible messages, dosn't actualy DO anythign with them tho
+class IRCALLCommand : public IRCClientCommandHandaler
+{
+public:
+	IRCALLCommand();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+
 // IRC "NICK" command
 // paramaters {NICKNAME}
 class IRCNickCommand : public IRCClientCommandHandaler

@@ -55,8 +55,11 @@ public:
 
   commndInfoTypes	type;
   std::string command;
+
   std::string raw;
 	std::vector<std::string> params;
+	bool prefixed;
+	std::string source;
 };
 
 // a normal Internet Relay Chat command
@@ -95,11 +98,14 @@ public:
   // called when the system wishes to know the name of this command
   virtual std::string getCommandName ( void ){return name;}
 
+	// the send and receve methods return true if the default handler is to be called
+	// it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
+
   // called when the client receves a command of this type
-  virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
+  virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return true;}
 
   // called when the user wishes to send a command of this type
-  virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return false;}
+  virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info ){return true;}
 protected:
 	std::string name;
 };
@@ -140,6 +146,11 @@ public:
 	virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
 	virtual bool sendIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
 	virtual bool sendCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
+
+	virtual bool receveCommand ( std::string &commandName, BaseIRCCommandInfo &info );
+	virtual bool receveIRCCommand ( teIRCCommands	command, IRCCommandINfo &info );
+	virtual bool receveCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &info );
+
 
 	void	setLogHandaler ( IRCClientLogHandaler * loger );
 
