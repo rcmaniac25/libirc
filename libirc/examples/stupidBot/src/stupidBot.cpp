@@ -244,9 +244,9 @@ void saveConfig ( void )
 
 	std::string lineEnd;
 #ifdef _WIN32
-	lineEnd = "/r/n";
+	lineEnd = "\r\n";
 #else
-	lineEnd = "/n";
+	lineEnd = "\n";
 #endif
 	
 	// nicknames
@@ -411,89 +411,21 @@ void channelMessage ( trMessageEventInfo *info )
 	if ( firstWord == myNick )
 	{
 		std::string command = string_util::tolower(info->params[1]);
-
 		// its for me
-		if ( command == "channels")
+		// see if there is a command handaler for it
+		if (command == "factoid" || !callBotCommand(command,info->source,info->from,info))
 		{
-			string_list	chans = client.listChanels();
-			string_list::iterator itr = chans.begin();
-			std::string plural = chans.size()>1 ? "s" : "";
-
-			std::string theLine = info->from + std::string(" I am presently in") + string_util::format(" %d channel%s, including; ",chans.size(),plural.c_str());
-			while ( itr != chans.end() )
+			// see if it's a factoid
+			if (!callBotCommand("factoid",info->source,info->from,info))
 			{
-				theLine += *itr;
-				itr++;
-				if ( itr != chans.end() )
-					theLine += ", ";
-			}
-			commandInfo.params.push_back(theLine);
-			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
-		}
-		if ( command == "raw")
-		{
-			std::string text = info->getAsString(2);
-			client.sendTextToServer(text);
-		}
-		else if ( command == "part")
-		{
-			if (master)
-				client.part(info->target, "I must go");
-		}
-		else if ( command == "join")
-		{
-			if (master)
-				client.join(info->getAsString(2));
-		}
-		else if ( command == "users")
-		{
-			string_list userList = client.listUsers(info->target);
-			string_list::iterator itr = userList.begin();
+				// it's not, we dono what it is, but it was addressed to us
+				std::string	dono = getRandomString(theBotInfo.unknownResponces);
 
-			std::string theLine = info->from + std::string(" this channel contains ");
-			while( itr != userList.end())
-			{
-				theLine += *itr;
-				itr++;
-				if ( itr != userList.end() )
-					theLine += ", ";
-			}
-			commandInfo.params.push_back(theLine);
-			client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
-		}
-		else if ( command == "allusers")
-		{
-			string_list userList = client.listUsers(std::string(""));
-			string_list::iterator itr = userList.begin();
+				dono = string_util::replace_all(dono,"%u",info->from);
+				dono = string_util::replace_all(dono,"%c",info->target);
+				dono = string_util::replace_all(dono,"%b",client.getNick());
 
-			std::string theLine = info->from + std::string(" I know of ");
-				while( itr != userList.end())
-				{
-					theLine += *itr;
-					itr++;
-					if ( itr != userList.end() )
-						theLine += ", ";
-				}
-				commandInfo.params.push_back(theLine);
-				client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
-		}
-		else
-		{
-			// see if there is a command handaler for it
-			if (command == "factoid" || !callBotCommand(command,info->source,info->from,info))
-			{
-				// see if it's a factoid
-				if (!callBotCommand("factoid",info->source,info->from,info))
-				{
-					// it's not, we dono what it is, but it was addressed to us
-					std::string	dono = getRandomString(theBotInfo.unknownResponces);
-
-					dono = string_util::replace_all(dono,"%u",info->from);
-					dono = string_util::replace_all(dono,"%c",info->target);
-					dono = string_util::replace_all(dono,"%b",client.getNick());
-
-					client.sendMessage(info->target,dono);
-				}
+				client.sendMessage(info->target,dono);
 			}
 		}
 	}
@@ -561,24 +493,6 @@ void initInfo ( std::string config )
 	readConfig(config);
 
 	registerBotCommands();
-	/*
-	theBotInfo.server = "irc.freenode.net";
-	theBotInfo.port = 6667;
-
-	theBotInfo.nicks.push_back(std::string("stupid_Bot"));
-	theBotInfo.nicks.push_back(std::string("stupiderBot"));
-	theBotInfo.nicks.push_back(std::string("stupidestBot"));
-
-	theBotInfo.host = "stupidBot";
-	theBotInfo.realName = "a libIRC bot";
-
-	theBotInfo.channels.push_back(std::string("#opencombat"));
-	theBotInfo.channels.push_back(std::string("#brlcad"));
-
-	theBotInfo.joinMessages["#opencombat"] = "May the Force Be With You";
-	theBotInfo.joinMessages["#brlcad"] = "Whoa!";
-	theBotInfo.joinMessages["#bzflag"] = "I'm not even suposed to be here today";
-	theBotInfo.joinMessages["#libirc"] = "Greetings Program!";*/
 }
 
 int main ( int argc, char *argv[] )
@@ -708,7 +622,7 @@ bool factoidCommand::command ( std::string command, std::string source, std::str
 class channelCommand : public botCommandHandaler
 {
 public:
-	channelCommand() {name = "hello";}
+	channelCommand() {name = "channel";}
 	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
 };
 
@@ -718,10 +632,178 @@ bool channelCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
+class flushCommand : public botCommandHandaler
+{
+public:
+	flushCommand() {name = "flush";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool flushCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	saveConfig();
+
+	std::string message = "Ok, " + from;
+	client.sendMessage(info->target,message);
+
+	return true;
+}
+
+class rawCommand : public botCommandHandaler
+{
+public:
+	rawCommand() {name = "raw";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool rawCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	client.sendTextToServer(info->getAsString(2));
+	return true;
+}
+
+class channelsCommand : public botCommandHandaler
+{
+public:
+	channelsCommand() {name = "channels";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool channelsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	string_list	chans = client.listChanels();
+	string_list::iterator itr = chans.begin();
+	std::string plural = chans.size()>1 ? "s" : "";
+
+	std::string theLine = info->from + std::string(" I am presently in") + string_util::format(" %d channel%s, including; ",chans.size(),plural.c_str());
+	while ( itr != chans.end() )
+	{
+		theLine += *itr;
+		itr++;
+		if ( itr != chans.end() )
+			theLine += ", ";
+	}
+	client.sendMessage(info->target,theLine);
+	return true;
+}
+
+class partCommand : public botCommandHandaler
+{
+public:
+	partCommand() {name = "part";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool partCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	std::string message = "Ok, " + from;
+	client.sendMessage(info->target,message);
+
+	client.part(info->target, getRandomString(theBotInfo.partMessages));
+	return true;
+}
+
+class joinCommand : public botCommandHandaler
+{
+public:
+	joinCommand() {name = "join";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool joinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(info->target,"You're not the boss of me");
+		return true;
+	}
+
+	std::string message = "Ok, " + from;
+	client.sendMessage(info->target,message);
+	client.join(info->getAsString(2));
+	return true;
+}
+
+class usersCommand : public botCommandHandaler
+{
+public:
+	usersCommand() {name = "users";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool usersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	string_list userList = client.listUsers(info->target);
+	string_list::iterator itr = userList.begin();
+
+	std::string theLine = info->from + std::string(" this channel contains ");
+	while( itr != userList.end())
+	{
+		theLine += *itr;
+		itr++;
+		if ( itr != userList.end() )
+			theLine += ", ";
+	}
+	client.sendMessage(info->target,theLine);
+
+	return true;
+}
+
+class allUsersCommand : public botCommandHandaler
+{
+public:
+	allUsersCommand() {name = "allusers";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info );
+};
+
+bool allUsersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info )
+{
+	string_list userList = client.listUsers(std::string(""));
+	string_list::iterator itr = userList.begin();
+
+	std::string theLine = info->from + std::string(" I know of ");
+	while( itr != userList.end())
+	{
+		theLine += *itr;
+		itr++;
+		if ( itr != userList.end() )
+			theLine += ", ";
+	}
+	client.sendMessage(info->target,theLine);
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
 	installBotCommand(new helloCommand);
 	installBotCommand(new factoidCommand);
 	installBotCommand(new channelCommand);
+	installBotCommand(new flushCommand);
+	installBotCommand(new rawCommand);
+	installBotCommand(new channelsCommand);
+	installBotCommand(new partCommand);
+	installBotCommand(new joinCommand);
+	installBotCommand(new usersCommand);
+	installBotCommand(new allUsersCommand);
 }
+
+
