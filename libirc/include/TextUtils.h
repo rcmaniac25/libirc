@@ -392,7 +392,7 @@ namespace string_util {
 		return temp;
 	}
 
-	inline string_list slice ( std::string text, int maxSize )
+	inline string_list slice ( std::string text, int maxSize, bool splitNewlines = false )
 	{
 		string_list	list;
 
@@ -403,12 +403,30 @@ namespace string_util {
 
 		while ( itr != text.end() )
 		{
-			temp += *itr;	
+			bool split = false;
+
+			if (splitNewlines && *itr == '\n')
+				split = true;
+			else
+				temp += *itr;	
+
 			i++;
-			//	if ( i > maxSize )
 			itr++;
+
+			if ( i > maxSize )
+				split = true;
+
+			if (split)
+			{
+				if (temp.size())
+					list.push_back(temp);
+				i = 0;
+				temp = "";
+			}
 		}
-		//while
+
+		if (temp.size())
+			list.push_back(temp);
 
 		return list;
 	}
