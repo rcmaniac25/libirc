@@ -3,6 +3,7 @@
 SUBDIRS = \
 	simpleIRCConnect \
 	simpleTCPConnect \
-	stupidBot
+	stupidBot		 \
+	stupidServer
 
 MAINTAINERCLEANFILES = Makefile.in
