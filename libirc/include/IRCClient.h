@@ -91,6 +91,10 @@ public:
 	virtual bool part ( std::string channel, std::string reason );
 	virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
 
+	// CTCP operations
+	virtual bool sendCTCPRequest ( std::string target, teCTCPCommands command, std::string &data);
+	virtual bool sendCTCPReply ( std::string target, teCTCPCommands command, std::string &data);
+
 	// name operations
 	virtual bool changeNick ( std::string &nick );
 
@@ -163,7 +167,6 @@ public:
 	// tutilitys generaly used only by command handlers
 	// data sending stuff
 	virtual bool sendIRCCommandToServer ( teIRCCommands	command, std::string &data);
-	virtual bool sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data);
 
 	// the most RAWEST data transfer
 	virtual bool sendTextToServer ( std::string &text );

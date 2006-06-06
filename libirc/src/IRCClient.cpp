@@ -228,12 +228,6 @@ bool IRCClient::sendIRCCommandToServer ( teIRCCommands	command, std::string &dat
   return sendTextToServer(text);
 }
 
-bool IRCClient::sendCTCPCommandToServer ( teCTCPCommands	command, std::string &data)
-{
-  std::string text = ctcpCommandParser.getCommandName(command) + ircCommandDelimator + data;
-  return sendTextToServer(text);
-}
-
 // utility methods
 bool IRCClient::sendTextToServer ( std::string &text )
 {

@@ -125,6 +125,8 @@ extern IRCCommandParser	ircCommandParser;
 #define CMD_CTCP_TIME		"TIME"
 #define CMD_CTCP_ERRMSG		"ERRMSG"
 
+#define CTCP_DELIMITER		(char)0x01
+
 typedef enum
 {
 	eCMD_CTCP_NULL = 0,

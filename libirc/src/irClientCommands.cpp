@@ -172,6 +172,28 @@ bool IRCClient::sendMessage ( std::string target, std::string message, bool isAc
 	return true;
 }
 
+bool IRCClient::sendCTCPRequest ( std::string target, teCTCPCommands command, std::string &data)
+{
+      std::string message = CMD_PRIVMSG;
+      message += " " + target + " :";
+      message += CTCP_DELIMITER + ctcpCommandParser.getCommandName(command);
+      if (data != "")
+	    message += " " + data;
+      message += CTCP_DELIMITER;
+      return sendTextToServer(message);
+}
+
+bool IRCClient::sendCTCPReply ( std::string target, teCTCPCommands command, std::string &data)
+{
+      std::string message = CMD_NOTICE;
+      message += " " + target + " :";
+      message += CTCP_DELIMITER + ctcpCommandParser.getCommandName(command);
+      if (data != "")
+	    message += " " + data;
+      message += CTCP_DELIMITER;
+      return sendTextToServer(message);
+}
+
 bool IRCClient::kick ( std::string user, std::string channel, std::string reason )
 {
 	// we need to have at LEAST sent the username and stuff

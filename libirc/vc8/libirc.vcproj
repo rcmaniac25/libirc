@@ -62,7 +62,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/libirc.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

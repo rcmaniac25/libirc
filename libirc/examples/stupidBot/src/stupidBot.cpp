@@ -478,9 +478,17 @@ void privateMessage ( trMessageEventInfo *info )
 
 	if (command == "factoid" || !callBotCommand(command,info->source,info->from,info,true))
 	{
-		// ignore CTCP messages
-		if (command[0] = '\0x01')
+		// ignore CTCP messages other than version
+		char ctcpmarker = 0x01;
+		if (command[0] == ctcpmarker)
+		{
+			if (string_util::compare_nocase(command.substr(1, 7), "VERSION") == 0)
+			{
+				std::string reply = "StupidBot: " + getLibVersion();
+				client.sendCTCPReply(info->from, eCMD_CTCP_VERSION, reply);
+			}
 			return;
+		}
 
 		// see if it's a factoid
 		if (!callBotCommand("factoid",info->source,info->from,info,true))
@@ -500,7 +508,7 @@ void privateMessage ( trMessageEventInfo *info )
 void userKicked (trKickBanEventInfo *info)
 {
 	std::string	message = "whoa, ";
-	message += info->user + " got kiced by " + info->kicker + " for " + info->reason + " that has to suck!";
+	message += info->user + " got kicked by " + info->kicker + " for " + info->reason + " that has to suck!";
 	client.sendMessage(info->channel,message);
 }
 
