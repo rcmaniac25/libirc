@@ -36,7 +36,7 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 		fullname = "Lazy libIRC programer";
 
 	if (!host.size())
-		fullname = "localhost";
+		host = "localhost";
 
 	requestedNick = nick;
 
