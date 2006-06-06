@@ -65,7 +65,7 @@
 				AdditionalDependencies="libIRC.lib Ws2_32.lib"
 				OutputFile="$(OutDir)/simpleIRCConnect.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../vc7.1/debug/"
+				AdditionalLibraryDirectories="../../../vc8/debug/"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/simpleIRCConnect.pdb"
 				SubSystem="1"
