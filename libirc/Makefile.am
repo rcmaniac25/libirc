@@ -17,7 +17,8 @@ DIST_SUBDIRS = \
 	include \
 	misc \
 	src \
-	vc7.1
+	vc7.1 \
+	vc8
 
 EXTRA_DIST = \
 	AUTHORS \
