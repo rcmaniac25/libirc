@@ -16,7 +16,7 @@
 #include <stdlib.h>
 
 #include "libIRC.h"
-#include "TextUtils.h"
+#include "IRCTextUtils.h"
 
 #include <string>
 #include <map>
@@ -1034,7 +1034,7 @@ public:
 
 bool libVersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	client.sendMessage(respondTo,client.getLibVersion());
+	client.sendMessage(respondTo, getLibVersion());
 	return true;
 }
 
