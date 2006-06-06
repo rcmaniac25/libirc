@@ -478,6 +478,10 @@ void privateMessage ( trMessageEventInfo *info )
 
 	if (command == "factoid" || !callBotCommand(command,info->source,info->from,info,true))
 	{
+		// ignore CTCP messages
+		if (command[0] = '\0x01')
+			return;
+
 		// see if it's a factoid
 		if (!callBotCommand("factoid",info->source,info->from,info,true))
 		{
