@@ -145,13 +145,14 @@ public:
 	const std::string getAddress ( void );
 
 	void connect ( void* _socket );
-	void readData ( void );
+	bool readData ( void );
 protected:
 
 	class TCPServerConnectedPeerInfo;
 	TCPServerConnectedPeerInfo	*info;
 
 	tvPacketList			packetList;
+	std::string				host;
 };
 
 class TCPServerDataPendingListener

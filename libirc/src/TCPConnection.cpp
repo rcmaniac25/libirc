@@ -365,15 +365,60 @@ const tvPacketList& TCPServerConnectedPeer::getPackets ( void )
 	return packetList;
 }
 
+void TCPServerConnectedPeer::flushPackets ( void )
+{
+	packetList.clear();
+}
+
+
 const std::string TCPServerConnectedPeer::getAddress ( void )
 {
-	return "something";
+	if (info->socket ||!host.size())
+		host = SDLNet_ResolveIP(&info->address);
+
+	return host;
 }
 
 void TCPServerConnectedPeer::connect ( void* _socket )
 {
 	info->socket = (TCPsocket)_socket;
 	info->address = *SDLNet_TCP_GetPeerAddress(info->socket);
+}
+
+bool TCPServerConnectedPeer::readData ( void )
+{
+	if (!info->socket)
+		return false;
+
+	unsigned char buffer[513];
+	unsigned char *realData = NULL;
+	unsigned int realDataSize = 0;
+
+	memset(buffer,0,513);
+	int read = SDLNet_TCP_Recv(info->socket,buffer,512);
+
+	while ( read > 0 )
+	{
+		unsigned char *temp = realData;
+		realData = (unsigned char*)malloc(realDataSize+read);
+		if (temp)
+			memcpy(realData,temp,realDataSize);
+
+		memcpy(&realData[realDataSize],buffer,read);
+		realDataSize += read;
+		if ( temp )
+			free (temp);
+		
+		read = SDLNet_TCP_Recv(info->socket,buffer,512);
+	}
+
+	TCPPacket	packet(realData,realDataSize);
+	packetList.push_back(packet);
+
+	if (realData)
+		free(realData);
+
+	return realDataSize > 0;
 }
 
 //---------------------------------------------------------------------------------------------------//
@@ -537,31 +582,11 @@ bool TCPServerConnection::update ( void )
 		{
 			itr->second.readData();
 
-			unsigned char buffer[513];
-			unsigned char *realData = NULL;
-			unsigned int realDataSize = 0;
-
-			memset(buffer,0,513);
-			int read = SDLNet_TCP_Recv(itr->first,buffer,512);
-
-			while ( read > 0 )
+			if ( itr->second.getPackets().size())
 			{
-				unsigned char *temp = realData;
-				realData = (unsigned char*)malloc(realDataSize+read);
-				if (temp)
-					memcpy(realData,temp,realDataSize);
-				
-				memcpy(&realData[realDataSize],buffer,read);
-				realDataSize += read;
-				if ( temp )
-					free (temp);
+				for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+					dataPendingList[i]->pending(this,&itr->second,(unsigned int )itr->second.getPackets().size());
 			}
-			//if ( itr->second.getPackets().size())
-			//{
-			//	for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
-			//		dataPendingList[i]->pending(this,&itr->second,itr->second.getPackets().size());
-			//}
-
 		}
 		itr++;
 	}
