@@ -336,16 +336,20 @@ public:
 	TCPServerConnectedPeerInfo();
 	TCPsocket	socket;
 	IPaddress	address;
+	teTCPError	lastError;
 };
 
 TCPServerConnectedPeer::TCPServerConnectedPeerInfo::TCPServerConnectedPeerInfo()
 {
 	socket = NULL;
+	lastError = eTCPNoError;
 }
 
 TCPServerConnectedPeer::TCPServerConnectedPeer()
 {
 	info = new TCPServerConnectedPeerInfo;
+	UID = ++lastUID;
+	param = NULL;
 }
 
 TCPServerConnectedPeer::~TCPServerConnectedPeer()
@@ -370,6 +374,17 @@ void TCPServerConnectedPeer::flushPackets ( void )
 	packetList.clear();
 }
 
+teTCPError TCPServerConnectedPeer::getLastError ( void )
+{
+	return info->lastError;
+}
+
+teTCPError TCPServerConnectedPeer::setError ( teTCPError error )
+{
+	if (info)
+		info->lastError = error;
+	return error;
+}
 
 const std::string TCPServerConnectedPeer::getAddress ( void )
 {
@@ -385,6 +400,35 @@ void TCPServerConnectedPeer::connect ( void* _socket )
 	info->address = *SDLNet_TCP_GetPeerAddress(info->socket);
 }
 
+teTCPError TCPServerConnectedPeer::sendData ( void *data, int len )
+{
+	if (!info)
+		return setError(eTCPNotInit);
+
+	if (!info->socket)
+		return setError(eTCPSocketNFG);
+
+	if (!data || len < 1)
+		return setError(eTCPDataNFG);
+
+	int lenSent = SDLNet_TCP_Send(info->socket,data,len);
+
+	if (lenSent < len)
+		return setError(eTCPConnectionFailed);
+
+	return setError(eTCPNoError);
+}
+
+teTCPError TCPServerConnectedPeer::sendData ( const char *data, int len )
+{
+	return sendData((void*)data,len);
+}
+
+teTCPError TCPServerConnectedPeer::sendData ( std::string data )
+{
+	return sendData(data.c_str(),(int)data.size());
+}
+
 bool TCPServerConnectedPeer::readData ( void )
 {
 	if (!info->socket)
@@ -396,6 +440,9 @@ bool TCPServerConnectedPeer::readData ( void )
 
 	memset(buffer,0,513);
 	int read = SDLNet_TCP_Recv(info->socket,buffer,512);
+
+	if (read < 0)
+		return false;
 
 	while ( read > 0 )
 	{
@@ -412,13 +459,15 @@ bool TCPServerConnectedPeer::readData ( void )
 		read = SDLNet_TCP_Recv(info->socket,buffer,512);
 	}
 
-	TCPPacket	packet(realData,realDataSize);
-	packetList.push_back(packet);
+	if ( realData )
+	{
+		TCPPacket	packet(realData,realDataSize);
+		packetList.push_back(packet);
 
-	if (realData)
 		free(realData);
+	}
 
-	return realDataSize > 0;
+	return true;
 }
 
 //---------------------------------------------------------------------------------------------------//
@@ -459,7 +508,8 @@ TCPServerConnection::TCPServerConnection( unsigned short port, unsigned int conn
 
 TCPServerConnection::~TCPServerConnection()
 {
-	// do some TCP/IPish things here
+	disconnect();
+
 	if (info)
 		delete(info);
 }
@@ -502,19 +552,26 @@ teTCPError TCPServerConnection::disconnect( void )
 	if (!listening())
 		return setError(eTCPSocketNFG);
 
-	SDLNet_TCP_Close(info->socket);
-	SDLNet_DelSocket(info->socketSet,(SDLNet_GenericSocket)info->socket);
-	info->socket = NULL;
-
 	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
 
 	while ( itr != info->peers.end() )
+	{
+		for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+			dataPendingList[i]->disconnect(this,&itr->second,true);
+
+		SDLNet_TCP_Close(itr->first);
 		SDLNet_DelSocket(info->socketSet,(SDLNet_GenericSocket)itr->first);
+	}
+
+	info->peers.clear();
+
+	SDLNet_TCP_Close(info->socket);
+	SDLNet_DelSocket(info->socketSet,(SDLNet_GenericSocket)info->socket);
 
 	SDLNet_FreeSocketSet(info->socketSet);
 
 	info->socketSet = NULL;
-	info->peers.clear();
+	info->socket = NULL;
 
 	return setError(eTCPNoError);
 }
@@ -543,9 +600,81 @@ unsigned int TCPServerConnection::getMaxConnections ( void )
 	return info->maxUsers;
 }
 
-void TCPServerConnection::readData ( void )
+std::vector<TCPServerConnectedPeer*> TCPServerConnection::getPeers ( void )
 {
-	
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
+	std::vector<TCPServerConnectedPeer*> peers;
+
+	while ( itr != info->peers.end() )
+	{
+		peers.push_back(&(itr->second));
+		itr++;
+	}
+
+	return peers;
+}
+
+TCPServerConnectedPeer* TCPServerConnection::getPeerFromUID ( unsigned int UID )
+{
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
+
+	while ( itr != info->peers.end() )
+	{
+		if (itr->second.getUID() == UID)
+			return &itr->second;
+		itr++;
+	}
+
+	return NULL;
+}
+
+bool TCPServerConnection::disconectPeer ( unsigned int UID )
+{
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
+
+	while ( itr != info->peers.end() )
+	{
+		if (itr->second.getUID() == UID )
+		{
+			// they got discoed.
+			for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+				dataPendingList[i]->disconnect(this,&itr->second,true);
+
+			SDLNet_TCP_DelSocket(info->socketSet, itr->first);
+			SDLNet_TCP_Close(itr->first);
+
+			itr = info->peers.erase(itr);
+			return true;
+		}
+		itr++;
+	}
+	return false;
+}
+
+bool TCPServerConnection::disconectPeer ( TCPServerConnectedPeer* peer )
+{
+	if (!peer)
+		return false;
+
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
+
+	while ( itr != info->peers.end() )
+	{
+		if (&itr->second == peer )
+		{
+			// they got discoed.
+			for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+				dataPendingList[i]->disconnect(this,peer,true);
+
+			SDLNet_TCP_DelSocket(info->socketSet, itr->first);
+			SDLNet_TCP_Close(itr->first);
+
+			itr = info->peers.erase(itr);
+			return true;
+		}
+		itr++;
+	}
+	return false;
 }
 
 bool TCPServerConnection::update ( void )
@@ -580,20 +709,32 @@ bool TCPServerConnection::update ( void )
 	{
 		if (SDLNet_SocketReady(itr->first))
 		{
-			itr->second.readData();
-
-			if ( itr->second.getPackets().size())
+			if (itr->second.readData())
 			{
+				if ( itr->second.getPackets().size())
+				{
+					for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+						dataPendingList[i]->pending(this,&itr->second,(unsigned int )itr->second.getPackets().size());
+				}
+				itr++;
+			}
+			else
+			{
+				// they got discoed.
 				for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
-					dataPendingList[i]->pending(this,&itr->second,(unsigned int )itr->second.getPackets().size());
+					dataPendingList[i]->disconnect(this,&itr->second);
+
+				SDLNet_TCP_DelSocket(info->socketSet, itr->first);
+				SDLNet_TCP_Close(itr->first);
+				itr = info->peers.erase(itr);
 			}
 		}
-		itr++;
+		else
+			itr++;
 	}
 
 	return true;
 }
-
 
 teTCPError TCPServerConnection::getLastError ( void )
 {
@@ -776,6 +917,7 @@ void TCPConnection::deleteServerConnection ( TCPServerConnection* connection )
 		else
 			itr++;
 	}
+	connection->disconnect();
 	delete(connection);
 }
 

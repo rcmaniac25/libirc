@@ -20,6 +20,8 @@
 
 #include "Singleton.h"
 
+unsigned int lastUID = 0;
+
 class TCPConnection;
 
 typedef enum
@@ -142,17 +144,35 @@ public:
 	const tvPacketList& getPackets ( void );
 	void flushPackets ( void );
 
-	const std::string getAddress ( void );
+	// error handling
+	teTCPError getLastError ( void );
+	teTCPError setError ( teTCPError error );
 
+	// called by the server class
 	void connect ( void* _socket );
 	bool readData ( void );
+
+	// data send
+	teTCPError sendData ( void *data, int len );
+	teTCPError sendData ( const char *data, int len );
+	teTCPError sendData ( std::string data );
+
+	// client info
+	unsigned int getUID ( void ){ return UID; }
+	void* getParam ( void ) {return param;}
+	void setParam ( void * p ){ param = p;}
+	const std::string getAddress ( void );
+
 protected:
+	unsigned int UID;
 
 	class TCPServerConnectedPeerInfo;
 	TCPServerConnectedPeerInfo	*info;
 
 	tvPacketList			packetList;
 	std::string				host;
+
+	void					*param;
 };
 
 class TCPServerDataPendingListener
@@ -161,6 +181,7 @@ public:
 	virtual ~TCPServerDataPendingListener(){return;};
 	virtual bool connect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer ) = 0;
 	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, unsigned int count ) = 0;
+	virtual void disconnect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, bool forced = false ){};
 };
 
 typedef std::vector<TCPServerDataPendingListener*> tvServerDataPendingListenerList;
@@ -197,8 +218,11 @@ public:
 	void addListener ( TCPServerDataPendingListener* listener );
 	void removeListener ( TCPServerDataPendingListener* listener );
 
-	// data read
-	void readData ( void );
+	std::vector<TCPServerConnectedPeer*> getPeers ( void );
+	TCPServerConnectedPeer* getPeerFromUID ( unsigned int UID );
+
+	bool disconectPeer ( unsigned int UID );
+	bool disconectPeer ( TCPServerConnectedPeer* peer );
 
 	// update the shizzle
 	bool update ( void );
