@@ -335,6 +335,7 @@ class TCPServerConnectedPeer::TCPServerConnectedPeerInfo
 public:
 	TCPServerConnectedPeerInfo();
 	TCPsocket	socket;
+	IPaddress	address;
 };
 
 TCPServerConnectedPeer::TCPServerConnectedPeerInfo::TCPServerConnectedPeerInfo()
@@ -359,7 +360,7 @@ bool TCPServerConnectedPeer::packets ( void )
 	return packetList.size() > 0;
 }
 
-tvPacketList& TCPServerConnectedPeer::getPackets ( void )
+const tvPacketList& TCPServerConnectedPeer::getPackets ( void )
 {
 	return packetList;
 }
@@ -369,17 +370,26 @@ const std::string TCPServerConnectedPeer::getAddress ( void )
 	return "something";
 }
 
+void TCPServerConnectedPeer::connect ( void* _socket )
+{
+	info->socket = (TCPsocket)_socket;
+	info->address = *SDLNet_TCP_GetPeerAddress(info->socket);
+}
+
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP listener class for servers
 
 // the info data for the class
 struct TCPServerConnection::TCPServerConnectionInfo
 {	
-	teTCPError	lastError;
-	int			maxUsers;
-	IPaddress	serverIP;
-	TCPsocket	socket;
-	int readChunkSize;
+	teTCPError									lastError;
+	int											maxUsers;
+	IPaddress									serverIP;
+	TCPsocket									socket;
+	int											readChunkSize;
+
+	SDLNet_SocketSet							socketSet;
+	std::map<TCPsocket,TCPServerConnectedPeer>	peers;
 };
 
 TCPServerConnection::TCPServerConnection()
@@ -427,8 +437,14 @@ teTCPError TCPServerConnection::listen ( unsigned short port, unsigned int conne
 	if ( info->socket == NULL )
 		return setError(eTCPConnectionFailed);
 
-	if (parent)
-		parent->addServerSocket(this);
+	info->socketSet = SDLNet_AllocSocketSet(getMaxConnections()+1);
+	if (!info->socketSet)
+		return setError(eTCPSocketNFG);
+
+	IPaddress serverIP;
+	SDLNet_ResolveHost(&serverIP, NULL, getPort());
+	info->socket = SDLNet_TCP_Open(&serverIP);
+	SDLNet_TCP_AddSocket(info->socketSet,info->socket);
 
 	return setError(eTCPNoError);
 }
@@ -442,10 +458,18 @@ teTCPError TCPServerConnection::disconnect( void )
 		return setError(eTCPSocketNFG);
 
 	SDLNet_TCP_Close(info->socket);
+	SDLNet_DelSocket(info->socketSet,(SDLNet_GenericSocket)info->socket);
 	info->socket = NULL;
 
-	if (parent)
-		parent->removeServerSocket(this);
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
+
+	while ( itr != info->peers.end() )
+		SDLNet_DelSocket(info->socketSet,(SDLNet_GenericSocket)itr->first);
+
+	SDLNet_FreeSocketSet(info->socketSet);
+
+	info->socketSet = NULL;
+	info->peers.clear();
 
 	return setError(eTCPNoError);
 }
@@ -457,6 +481,94 @@ bool TCPServerConnection::listening ( void )
 
 	return info->socket != NULL;
 }
+
+unsigned short TCPServerConnection::getPort ( void )
+{
+	if (!info)
+		return 0;
+	
+	return info->serverIP.port;
+}
+
+unsigned int TCPServerConnection::getMaxConnections ( void )
+{
+	if (!info)
+		return 0;
+
+	return info->maxUsers;
+}
+
+void TCPServerConnection::readData ( void )
+{
+	
+}
+
+bool TCPServerConnection::update ( void )
+{
+	if (SDLNet_CheckSockets(info->socketSet, ~0) < 1)
+		return true;
+
+	// see if our boys have any new connections
+	if ( SDLNet_SocketReady(info->socket) )
+	{
+		TCPsocket		newsock;
+
+		newsock = SDLNet_TCP_Accept(info->socket);
+		while ( newsock != NULL )
+		{
+			TCPServerConnectedPeer	peer;
+			peer.connect(newsock);
+			info->peers[newsock] = peer;
+
+			SDLNet_TCP_AddSocket(info->socketSet, newsock);
+
+			for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+				dataPendingList[i]->connect(this,&(info->peers[newsock]));
+
+			newsock = SDLNet_TCP_Accept(info->socket);
+		}
+	}
+
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = info->peers.begin();
+
+	while ( itr != info->peers.end() )
+	{
+		if (SDLNet_SocketReady(itr->first))
+		{
+			itr->second.readData();
+
+			unsigned char buffer[513];
+			unsigned char *realData = NULL;
+			unsigned int realDataSize = 0;
+
+			memset(buffer,0,513);
+			int read = SDLNet_TCP_Recv(itr->first,buffer,512);
+
+			while ( read > 0 )
+			{
+				unsigned char *temp = realData;
+				realData = (unsigned char*)malloc(realDataSize+read);
+				if (temp)
+					memcpy(realData,temp,realDataSize);
+				
+				memcpy(&realData[realDataSize],buffer,read);
+				realDataSize += read;
+				if ( temp )
+					free (temp);
+			}
+			//if ( itr->second.getPackets().size())
+			//{
+			//	for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
+			//		dataPendingList[i]->pending(this,&itr->second,itr->second.getPackets().size());
+			//}
+
+		}
+		itr++;
+	}
+
+	return true;
+}
+
 
 teTCPError TCPServerConnection::getLastError ( void )
 {
@@ -510,19 +622,19 @@ void TCPServerConnection::callDataPendingListeners ( int count )
 // initialize the singleton
 template <>
 TCPConnection* Singleton<TCPConnection>::_instance = (TCPConnection*)0;
-
-
 typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
-typedef std::map<TCPsocket, TCPServerConnection* > tmServerSocketMap;
+
 
 class TCPConnection::TCPConnectionInfo
 {	
 public:
 	TCPConnectionInfo();
+
+	// clients
+	// is this right for more then one client?
 	tmClientSocketMap	clientSockets;
 	SDLNet_SocketSet	clientSocketSet;
-	tmServerSocketMap	serverSockets;
-	SDLNet_SocketSet	serverSocketSet;
+
 	bool initedSocketInterface;
 	int	 timeout;
 };
@@ -530,7 +642,6 @@ public:
 TCPConnection::TCPConnectionInfo::TCPConnectionInfo()
 {
 	clientSocketSet = NULL;
-	serverSocketSet = NULL;
 	initedSocketInterface = false;
 	timeout = 0;
 }
@@ -588,22 +699,8 @@ teTCPError TCPConnection::update ( void )
 		}
 	}
 
-	if (info->serverSocketSet)
-	{
-		int items = SDLNet_CheckSockets(info->clientSocketSet,info->timeout);
-		if (items == -1)
-			return eTCPSelectFailed;
-		if (items > 0)
-		{
-			tmClientSocketMap::iterator itr = info->clientSockets.begin();
-			while (itr != info->clientSockets.end())
-			{
-				if (SDLNet_SocketReady(itr->first))
-					itr->second->readData();
-				itr++;
-			}
-		}
-	}
+	for ( unsigned int i = 0; i < serverConnections.size(); i++ )
+		serverConnections[i]->update();
 
 	return selectError ? eTCPSelectFailed : eTCPNoError;
 }
@@ -684,28 +781,6 @@ bool TCPConnection::addClientSocket ( TCPClientConnection* client )
 	return true;
 }
 
-bool TCPConnection::addServerSocket ( TCPServerConnection* server )
-{
-	if (info->serverSocketSet)
-		SDLNet_FreeSocketSet(info->serverSocketSet);
-
-	info->serverSockets[server->info->socket] = server;
-
-	info->clientSocketSet = SDLNet_AllocSocketSet((int)info->serverSockets.size());
-
-	if (!info->clientSocketSet)
-		return false;
-
-	tmClientSocketMap::iterator itr = info->clientSockets.begin();
-	while (itr != info->clientSockets.end())
-	{
-		SDLNet_TCP_AddSocket(info->clientSocketSet,itr->first);
-		itr++;
-	}
-
-	return true;
-}
-
 bool TCPConnection::removeClientSocket ( TCPClientConnection* client )
 {
 	tmClientSocketMap::iterator itr = info->clientSockets.find(client->info->socket);
@@ -714,11 +789,6 @@ bool TCPConnection::removeClientSocket ( TCPClientConnection* client )
 
 	SDLNet_TCP_DelSocket(info->clientSocketSet,client->info->socket);
 	info->clientSockets.erase(itr);
-	return true;
-}
-
-bool TCPConnection::removeServerSocket ( TCPServerConnection* server )
-{
 	return true;
 }
 

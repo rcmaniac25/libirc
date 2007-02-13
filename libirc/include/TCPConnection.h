@@ -139,9 +139,13 @@ public:
 
 	// data pending
 	bool packets ( void );
-	tvPacketList& getPackets ( void );
+	const tvPacketList& getPackets ( void );
+	void flushPackets ( void );
 
 	const std::string getAddress ( void );
+
+	void connect ( void* _socket );
+	void readData ( void );
 protected:
 
 	class TCPServerConnectedPeerInfo;
@@ -154,11 +158,16 @@ class TCPServerDataPendingListener
 {
 public:
 	virtual ~TCPServerDataPendingListener(){return;};
-	virtual bool accept ( TCPServerConnection *connection, TCPServerConnectedPeer *peer ) = 0;
-	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, int count ) = 0;
+	virtual bool connect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer ) = 0;
+	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, unsigned int count ) = 0;
 };
 
 typedef std::vector<TCPServerDataPendingListener*> tvServerDataPendingListenerList;
+
+typedef struct 
+{
+
+}trServerConectedPeer;
 
 // TCP/IP server connection listening for some connections on some port
 class TCPServerConnection
@@ -174,6 +183,10 @@ public:
 	// status
 	bool listening ( void );
 
+	// info
+	unsigned short getPort ( void );
+	unsigned int getMaxConnections ( void );
+
 	// error handaling
 	teTCPError getLastError ( void );
 	teTCPError setError ( teTCPError error );
@@ -182,6 +195,12 @@ public:
 	// let the people register a callback class to be called when data is receved
 	void addListener ( TCPServerDataPendingListener* listener );
 	void removeListener ( TCPServerDataPendingListener* listener );
+
+	// data read
+	void readData ( void );
+
+	// update the shizzle
+	bool update ( void );
 
 protected:
 	// who's your daddy
@@ -247,10 +266,8 @@ protected:
 	tvServerConnectionList		serverConnections;
 
 	bool addClientSocket ( TCPClientConnection* client );
-	bool addServerSocket ( TCPServerConnection* server );
 
 	bool removeClientSocket ( TCPClientConnection* client );
-	bool removeServerSocket ( TCPServerConnection* server );
 
 	class TCPConnectionInfo;
 	TCPConnectionInfo	*info;
