@@ -386,12 +386,21 @@ teTCPError TCPServerConnectedPeer::setError ( teTCPError error )
 	return error;
 }
 
-const std::string TCPServerConnectedPeer::getAddress ( void )
+const std::string TCPServerConnectedPeer::getHostMask ( void )
 {
 	if (info->socket ||!host.size())
 		host = SDLNet_ResolveIP(&info->address);
 
 	return host;
+}
+
+bool TCPServerConnectedPeer::getIP ( unsigned char ip[4] )
+{
+	if (!info->socket)
+		return false;
+
+	memcpy(ip,&info->address.host,4);
+	return true;
 }
 
 void TCPServerConnectedPeer::connect ( void* _socket )

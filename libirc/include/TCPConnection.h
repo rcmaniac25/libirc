@@ -161,7 +161,8 @@ public:
 	unsigned int getUID ( void ){ return UID; }
 	void* getParam ( void ) {return param;}
 	void setParam ( void * p ){ param = p;}
-	const std::string getAddress ( void );
+	const std::string getHostMask ( void );
+	bool getIP ( unsigned char ip[4] );
 
 protected:
 	unsigned int UID;
