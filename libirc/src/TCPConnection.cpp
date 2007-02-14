@@ -364,7 +364,7 @@ bool TCPServerConnectedPeer::packets ( void )
 	return packetList.size() > 0;
 }
 
-const tvPacketList& TCPServerConnectedPeer::getPackets ( void )
+tvPacketList& TCPServerConnectedPeer::getPackets ( void )
 {
 	return packetList;
 }
@@ -729,10 +729,10 @@ bool TCPServerConnection::update ( void )
 		{
 			if (itr->second.readData())
 			{
-				if ( itr->second.getPackets().size())
+				if ( itr->second.getPacketCount())
 				{
 					for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
-						dataPendingList[i]->pending(this,&itr->second,(unsigned int )itr->second.getPackets().size());
+						dataPendingList[i]->pending(this,&itr->second,itr->second.getPacketCount());
 				}
 				itr++;
 			}

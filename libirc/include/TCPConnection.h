@@ -141,7 +141,8 @@ public:
 
 	// data pending
 	bool packets ( void );
-	const tvPacketList& getPackets ( void );
+	tvPacketList& getPackets ( void );
+	unsigned int getPacketCount ( void ) {return (unsigned int)packetList.size();}
 	void flushPackets ( void );
 
 	// error handling

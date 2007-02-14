@@ -40,6 +40,22 @@ public:
 	virtual void log ( IRCServer &server, int level, std::string line ) = 0;
 };
 
+class IRCServerConnectedClient
+{
+public:
+	IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer );
+	~IRCServerConnectedClient();
+
+	unsigned int getClientID ( void ) { return clientID;}
+	bool sendText ( const std::string &text );
+	std::string lastData;
+
+protected:
+	unsigned int clientID;
+	TCPServerConnectedPeer	*peer;
+	IRCServer *server;
+};
+
 class IRCServer : public TCPServerDataPendingListener, IRCBasicEventCallback
 {
 public:
@@ -56,7 +72,6 @@ public:
 	virtual int getDebugLevel ( void );
 
 	// general connection methods
-	virtual bool init ( void );
 	virtual bool listen ( int maxConnections, int port );
 	virtual bool disconnect ( std::string reason );
 
@@ -70,13 +85,22 @@ public:
 	virtual void log ( std::string text, int level = 0 );
 	virtual void log ( const char *text, int level = 0 );
 
-	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
+	virtual bool connect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer );
+	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, unsigned int count );
+	virtual void disconnect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, bool forced = false );
 
-	virtual bool accept ( TCPServerConnection *connection, TCPServerConnectedPeer *peer );
-	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, int count );
+	// virtual methods for basic IRC functions
+	virtual bool allowConnection ( const char* hostmask, unsigned char ip[4] );
+	virtual void clientConnect ( IRCServerConnectedClient *client );
+	virtual void clientDisconnect ( IRCServerConnectedClient *client );
+	virtual void clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client );
 
 protected:
-	friend class IRCClientCommandHandler;
+	friend class IRCServerConnectedClient;
+
+	bool sendTextToPeer ( const std::string &text, TCPServerConnectedPeer *peer );
+
+	void processIRCLine ( std::string line, IRCServerConnectedClient *client );
 
 	// networking
 	TCPServerConnection		*tcpServer;	
@@ -88,8 +112,17 @@ protected:
 	std::string						logfile;
 	int								debugLogLevel;
 
+	// helpers
+	std::string ircMessageTerminator;
+	std::string ircCommandDelimator;
+
 	// flood protection
 	float							minCycleTime;
+
+	// users
+	std::vector<IRCServerConnectedClient>	clients;
+
+	std::vector<IRCServerConnectedClient>::iterator getClientItr ( IRCServerConnectedClient *client );
 };
 
 #endif //_IRC_SERVER_H_
