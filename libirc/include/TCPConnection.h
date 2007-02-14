@@ -237,8 +237,6 @@ protected:
 
 	// listeners
 	tvServerDataPendingListenerList	dataPendingList;
-	void callDataPendingListeners ( int count );
-
 };
 
 // master TCP/IP connection manager

@@ -694,10 +694,19 @@ bool TCPServerConnection::update ( void )
 			peer.connect(newsock);
 			info->peers[newsock] = peer;
 
-			SDLNet_TCP_AddSocket(info->socketSet, newsock);
-
+			bool accept = true;
 			for ( unsigned int i = 0; i < dataPendingList.size(); i++ )
-				dataPendingList[i]->connect(this,&(info->peers[newsock]));
+			{
+				if ( !dataPendingList[i]->connect(this,&(info->peers[newsock])) )
+					accept = false;
+			}
+			if (accept)
+				SDLNet_TCP_AddSocket(info->socketSet, newsock);
+			else
+			{
+				info->peers.erase(info->peers.find(newsock));
+				SDLNet_TCP_Close(newsock);
+			}
 
 			newsock = SDLNet_TCP_Accept(info->socket);
 		}
@@ -771,15 +780,6 @@ void TCPServerConnection::removeListener ( TCPServerDataPendingListener* listene
 			itr++;
 	}
 }
-
-void TCPServerConnection::callDataPendingListeners ( int count )
-{
-	if ( count >1 )
-		return;
-
-		// TODO this is wrong, each client has a pending list loop thru them
-}
-
 
 // master connections class
 
