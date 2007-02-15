@@ -17,6 +17,8 @@
 
 #define DEFAULT_READ_CHUNK 512
 
+unsigned int lastUID = 0;
+
 #include <map>
 //---------------------------------------------------------------------------------------------------//
 // TCP/IP packet class

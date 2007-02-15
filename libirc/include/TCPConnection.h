@@ -20,8 +20,6 @@
 
 #include "Singleton.h"
 
-unsigned int lastUID = 0;
-
 class TCPConnection;
 
 typedef enum
