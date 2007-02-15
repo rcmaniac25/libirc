@@ -21,12 +21,55 @@
 #include <string>
 #include <map>
 
+bool quit = false;
+
+class MyIRCServer : public IRCServer
+{
+public:
+	virtual void clientConnect ( IRCServerConnectedClient *client );
+	virtual void clientDisconnect ( IRCServerConnectedClient *client );
+	virtual void clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client );
+
+	virtual bool process ( void );
+};
+
 int main ( int argc, char *argv[] )
 {
 	std::string Config = "sample.cfg";
 
 	if (argc>1)
 		Config = argv[1];
+
+	MyIRCServer	server;
+
+	server.listen();
+	while (!server.process() &&!quit)
+		IRCOSSleep(0.01f);
+
+	if (quit)
+		server.disconnect(std::string("Shutdown"));
+
 	return 0;
 }
+
+void MyIRCServer::clientConnect ( IRCServerConnectedClient *client )
+{
+
+}
+
+void MyIRCServer::clientDisconnect ( IRCServerConnectedClient *client )
+{
+
+}
+
+void MyIRCServer::clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client )
+{
+
+}
+
+bool MyIRCServer::process ( void )
+{
+	return IRCServer::process();
+}
+
 
