@@ -17,8 +17,11 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "Singleton.h"
+
+#include "SDL_net.h"
 
 class TCPConnection;
 
@@ -108,6 +111,8 @@ public:
 	void addListener ( TCPClientDataPendingListener* listener );
 	void removeListener ( TCPClientDataPendingListener* listener );
 
+	TCPsocket	socket;
+
 protected:
 	// who's your daddy
 	friend	class TCPConnection;
@@ -120,8 +125,9 @@ protected:
 	TCPConnection			*parent;
 	tvPacketList			packetList;
 
-	class TCPClientConnectionInfo;
-	TCPClientConnectionInfo	*info;
+	teTCPError	lastError;
+	IPaddress	serverIP;
+	int readChunkSize;
 
 	// listeners
 	tvClientDataPendingListenerList	dataPendingList;
@@ -142,6 +148,8 @@ public:
 	tvPacketList& getPackets ( void );
 	unsigned int getPacketCount ( void ) {return (unsigned int)packetList.size();}
 	void flushPackets ( void );
+
+	//TCPServerConnectedPeer& operator = ( const TCPServerConnectedPeer &p );
 
 	// error handling
 	teTCPError getLastError ( void );
@@ -166,8 +174,9 @@ public:
 protected:
 	unsigned int UID;
 
-	class TCPServerConnectedPeerInfo;
-	TCPServerConnectedPeerInfo	*info;
+	TCPsocket				socket;
+	IPaddress				address;
+	teTCPError				lastError;
 
 	tvPacketList			packetList;
 	std::string				host;
@@ -232,8 +241,14 @@ protected:
 	friend	class TCPConnection;
 	TCPConnection			*parent;
 
-	struct TCPServerConnectionInfo;
-	TCPServerConnectionInfo	*info;
+	teTCPError									lastError;
+	int											maxUsers;
+	IPaddress									serverIP;
+	TCPsocket									socket;
+	int											readChunkSize;
+
+	SDLNet_SocketSet							socketSet;
+	std::map<TCPsocket,TCPServerConnectedPeer>	peers;
 
 	// listeners
 	tvServerDataPendingListenerList	dataPendingList;
@@ -292,8 +307,12 @@ protected:
 
 	bool removeClientSocket ( TCPClientConnection* client );
 
-	class TCPConnectionInfo;
-	TCPConnectionInfo	*info;
+	typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
+	tmClientSocketMap	clientSockets;
+	SDLNet_SocketSet	clientSocketSet;
+
+	bool initedSocketInterface;
+	int	 timeout;
 };
 
 #endif //_TCP_CONNECTION_H_
