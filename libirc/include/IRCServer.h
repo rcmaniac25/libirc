@@ -56,7 +56,7 @@ protected:
 	IRCServer *server;
 };
 
-class IRCServer : public TCPServerDataPendingListener, IRCBasicEventCallback
+class IRCServer : public TCPServerDataPendingListener
 {
 public:
 	IRCServer();
@@ -72,7 +72,7 @@ public:
 	virtual int getDebugLevel ( void );
 
 	// general connection methods
-	virtual bool listen ( int maxConnections, int port );
+	virtual bool listen ( int maxConnections = 32, int port = -1 );
 	virtual bool disconnect ( std::string reason );
 
 	void setFloodProtectTime ( float time ){minCycleTime = time;}
