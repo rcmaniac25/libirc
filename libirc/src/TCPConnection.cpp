@@ -786,7 +786,6 @@ void TCPConnection::setUpdateTimeout ( int timeout )
 		timeout = timeout;
 }
 
-
 TCPClientConnection* TCPConnection::newClientConnection ( std::string server, unsigned short port )
 {
 	TCPClientConnection*	connection = new  TCPClientConnection(server,port,this);
