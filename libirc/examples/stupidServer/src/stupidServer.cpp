@@ -42,8 +42,10 @@ int main ( int argc, char *argv[] )
 
 	MyIRCServer	server;
 
+	printf("server startup\n");
+
 	server.listen();
-	while (!server.process() &&!quit)
+	while (server.process() &&!quit)
 		IRCOSSleep(0.01f);
 
 	if (quit)
@@ -54,17 +56,26 @@ int main ( int argc, char *argv[] )
 
 void MyIRCServer::clientConnect ( IRCServerConnectedClient *client )
 {
+	unsigned char ip[4] = {0};
+	client->getIP(ip);
 
+	printf("Client %d connected from %d.%d.%d.%d %s\n",client->getClientID(),ip[0],ip[1],ip[2],ip[3],client->getHostMask().c_str());
 }
 
 void MyIRCServer::clientDisconnect ( IRCServerConnectedClient *client )
 {
+	unsigned char ip[4] = {0};
+	client->getIP(ip);
 
+	printf("Client %d disconnected from %d.%d.%d.%d %s\n",client->getClientID(),ip[0],ip[1],ip[2],ip[3],client->getHostMask().c_str());
 }
 
 void MyIRCServer::clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client )
 {
+	unsigned char ip[4] = {0};
+	client->getIP(ip);
 
+	printf("Client %d message: %s\n",client->getClientID(),command.c_str());
 }
 
 bool MyIRCServer::process ( void )

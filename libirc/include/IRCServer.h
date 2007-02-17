@@ -50,6 +50,9 @@ public:
 	bool sendText ( const std::string &text );
 	std::string lastData;
 
+	std::string getHostMask ( void );
+	bool getIP ( unsigned char ip[4] );
+
 protected:
 	unsigned int clientID;
 	TCPServerConnectedPeer	*peer;

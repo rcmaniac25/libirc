@@ -69,7 +69,21 @@ bool IRCServerConnectedClient::sendText ( const std::string &text )
 	return server->sendTextToPeer(text,peer);
 }
 
+std::string IRCServerConnectedClient::getHostMask ( void )
+{
+	if (!peer)
+		return std::string();
 
+	return peer->getHostMask();
+}
+
+bool IRCServerConnectedClient::getIP ( unsigned char ip[4] )
+{
+	if (!peer)
+		return false;
+
+	return peer->getIP(ip);
+}
 
 IRCServer::IRCServer()
 :tcpConnection(TCPConnection::instance())
