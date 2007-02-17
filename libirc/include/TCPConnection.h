@@ -20,7 +20,6 @@
 #include <map>
 
 #include "Singleton.h"
-
 #include "net.h"
 
 class TCPConnection;

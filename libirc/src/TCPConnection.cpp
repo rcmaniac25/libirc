@@ -317,16 +317,16 @@ TCPServerConnectedPeer::~TCPServerConnectedPeer()
 
 /*TCPServerConnectedPeer& TCPServerConnectedPeer::operator = ( const TCPServerConnectedPeer &p )
 {
-	UID = p.UID;
-	info->socket = p.info->socket;
-	info->address.host = p.info->address.host;
-	info->address.port = p.info->address.port;
-	info->lastError = p.info->lastError;
-	packetList = p.packetList;
-	host = p.host;
-	param = p.param;
+UID = p.UID;
+info->socket = p.info->socket;
+info->address.host = p.info->address.host;
+info->address.port = p.info->address.port;
+info->lastError = p.info->lastError;
+packetList = p.packetList;
+host = p.host;
+param = p.param;
 
-	return *this;
+return *this;
 } */
 
 // data pending
@@ -430,7 +430,7 @@ bool TCPServerConnectedPeer::readData ( void )
 		realDataSize += read;
 		if ( temp )
 			free (temp);
-		
+
 		read = SDLNet_TCP_Recv(socket,buffer,512);
 	}
 
@@ -724,6 +724,12 @@ void TCPServerConnection::removeListener ( TCPServerDataPendingListener* listene
 
 // master connections class
 
+/*const int NO_VARIANT = (-1); */
+
+// initialize the singleton
+template <>
+TCPConnection* Singleton<TCPConnection>::_instance = (TCPConnection*)0;
+typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
 
 TCPConnection::TCPConnection()
 {
