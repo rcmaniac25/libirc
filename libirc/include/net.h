@@ -104,51 +104,32 @@ the fake 64-bit datatype that SDL provides when it compiles user code.
 #define NET_SwapBE64(X)	(X)
 #endif
 
-#ifdef macintosh
-#ifndef USE_GUSI_SOCKETS
-#define MACOS_OPENTRANSPORT
-//#error Open Transport driver is broken
-#endif
-#endif /* macintosh */
-
 /* Include system network headers */
-#ifdef MACOS_OPENTRANSPORT
-#include <OpenTransport.h>
-#include <OpenTptInternet.h>
-#else
 #if defined(__WIN32__) || defined(WIN32)
-#define __USE_W32_SOCKETS
-#include <windows.h>
+	#define __USE_W32_SOCKETS
+	#include <windows.h>
 #else /* UNIX */
-#include <sys/time.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#ifndef __BEOS__
-#include <arpa/inet.h>
-#endif
-#ifdef linux /* FIXME: what other platforms have this? */
-#include <netinet/tcp.h>
-#endif
-#include <netdb.h>
-#include <sys/socket.h>
+	#include <sys/time.h>
+	#include <unistd.h>
+	#include <fcntl.h>
+	#include <netinet/in.h>
+	#ifndef __BEOS__
+		#include <arpa/inet.h>
+	#endif
+	#ifdef linux /* FIXME: what other platforms have this? */
+		#include <netinet/tcp.h>
+	#endif
+	#include <netdb.h>
+	#include <sys/socket.h>
 #endif /* WIN32 */
-#endif /* Open Transport */
 
 /* System-dependent definitions */
-#ifdef MACOS_OPENTRANSPORT
-//#define closesocket	OTCloseProvider
-#define closesocket OTSndOrderlyDisconnect
-#define SOCKET		EndpointRef
-#define INVALID_SOCKET	kOTInvalidEndpointRef
-#else
 #ifndef __USE_W32_SOCKETS
-#define closesocket	close
-#define SOCKET	int
-#define INVALID_SOCKET	-1
-#define SOCKET_ERROR	-1
+	#define closesocket	close
+	#define SOCKET	int
+	#define INVALID_SOCKET	-1
+	#define SOCKET_ERROR	-1
 #endif /* __USE_W32_SOCKETS */
-#endif /* Open Transport */
 
 #ifndef INADDR_ANY
 #define INADDR_ANY		0x00000000
@@ -326,10 +307,6 @@ unsigned int net_Read32(void *area);
 	(((unsigned char *)areap)[1] <<  8) |  ((unsigned char *)areap)[0] <<  0)
 #endif
 #endif /* !SDL_DATA_ALIGNED */
-
-#ifdef MACOS_OPENTRANSPORT
-#endif
-
 
 #endif// _NETWORKING_H_
 
