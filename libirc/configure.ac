@@ -620,7 +620,6 @@ AC_CONFIG_FILES([
 	include/Makefile
 	misc/Makefile
 	src/Makefile
-	src/sdl_net/Makefile
 ])
 
 AC_OUTPUT

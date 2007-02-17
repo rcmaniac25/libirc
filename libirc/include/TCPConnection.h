@@ -22,6 +22,7 @@
 #include "Singleton.h"
 #include "net.h"
 
+// ------------------------TCP classes--------------------
 class TCPConnection;
 
 typedef enum
@@ -246,7 +247,7 @@ protected:
 	TCPsocket									socket;
 	int											readChunkSize;
 
-	SDLNet_SocketSet							socketSet;
+	net_SocketSet							socketSet;
 	std::map<TCPsocket,TCPServerConnectedPeer>	peers;
 
 	// listeners
@@ -308,7 +309,7 @@ protected:
 
 	typedef std::map<TCPsocket, TCPClientConnection* > tmClientSocketMap;
 	tmClientSocketMap	clientSockets;
-	SDLNet_SocketSet	clientSocketSet;
+	net_SocketSet	clientSocketSet;
 
 	bool initedSocketInterface;
 	int	 timeout;

@@ -123,24 +123,11 @@
 				Name="networking"
 				Filter="">
 				<File
+					RelativePath="..\src\net.cpp">
+				</File>
+				<File
 					RelativePath="..\src\TCPConnection.cpp">
 				</File>
-				<Filter
-					Name="SDL_NET"
-					Filter="">
-					<File
-						RelativePath="..\src\sdl_net\SDLnet.cpp">
-					</File>
-					<File
-						RelativePath="..\src\sdl_net\SDLnetselect.cpp">
-					</File>
-					<File
-						RelativePath="..\src\sdl_net\SDLnetTCP.cpp">
-					</File>
-					<File
-						RelativePath="..\src\sdl_net\SDLnetUDP.cpp">
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="IRC Client"
@@ -200,13 +187,6 @@
 				<File
 					RelativePath="..\include\TCPConnection.h">
 				</File>
-				<Filter
-					Name="SDL_NET"
-					Filter="">
-					<File
-						RelativePath="..\src\sdl_net\SDLnetsys.h">
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="utils"
