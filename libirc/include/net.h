@@ -148,20 +148,11 @@ typedef struct {
 } IPaddress;
 
 /* Resolve a host name and port to an IP address in network form.
-   If the function succeeds, it will return 0.
-   If the host couldn't be resolved, the host portion of the returned
-   address will be INADDR_NONE, and the function will return -1.
-   If 'host' is NULL, the resolved host will be set to INADDR_ANY.
- */
-#ifndef INADDR_ANY
-#define INADDR_ANY		0x00000000
-#endif
-#ifndef INADDR_NONE
-#define INADDR_NONE		0xFFFFFFFF
-#endif
-#ifndef INADDR_BROADCAST
-#define INADDR_BROADCAST	0xFFFFFFFF
-#endif
+If the function succeeds, it will return 0.
+If the host couldn't be resolved, the host portion of the returned
+address will be INADDR_NONE, and the function will return -1.
+If 'host' is NULL, the resolved host will be set to INADDR_ANY.
+*/
 
 int SDLNet_ResolveHost(IPaddress *address, const char *host, Uint16 port);
 

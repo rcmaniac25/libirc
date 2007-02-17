@@ -23,7 +23,7 @@
 /* $Id$ */
 
 #include "SDLnetsys.h"
-#include "SDL_net.h"
+#include "net.h"
 #ifdef MACOS_OPENTRANSPORT
 #include <Events.h>
 #endif

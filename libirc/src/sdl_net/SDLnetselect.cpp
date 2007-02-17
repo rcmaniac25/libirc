@@ -23,7 +23,7 @@
 /* $Id$ */
 
 #include "SDLnetsys.h"
-#include "SDL_net.h"
+#include "net.h"
 
 /* The select() API for network sockets */
 

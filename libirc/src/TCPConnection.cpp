@@ -13,6 +13,7 @@
 // TCP/IP connection classes
 
 #include "TCPConnection.h"
+#include "sdl_net/SDLnetsys.h"
 
 #define DEFAULT_READ_CHUNK 512
 

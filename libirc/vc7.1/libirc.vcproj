@@ -195,14 +195,14 @@
 				Name="networking"
 				Filter="">
 				<File
+					RelativePath="..\include\net.h">
+				</File>
+				<File
 					RelativePath="..\include\TCPConnection.h">
 				</File>
 				<Filter
 					Name="SDL_NET"
 					Filter="">
-					<File
-						RelativePath="..\src\sdl_net\SDL_net.h">
-					</File>
 					<File
 						RelativePath="..\src\sdl_net\SDLnetsys.h">
 					</File>

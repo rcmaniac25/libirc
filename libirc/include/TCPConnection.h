@@ -21,7 +21,7 @@
 
 #include "Singleton.h"
 
-#include "SDL_net.h"
+#include "net.h"
 
 class TCPConnection;
 
