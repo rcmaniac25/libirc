@@ -52,7 +52,7 @@ DefaultServerIRCLogHandler	defaultLoger;
 
 IRCServerConnectedClient::IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer )
 {
-	peer = peer;
+	peer = _peer;
 	clientID = peer->getUID();
 	server = _server;
 }
