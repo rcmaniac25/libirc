@@ -1,7 +1,7 @@
 # $Id$
 
 DIST_SUBDIRS = \
-	old_code \
+	old_code
 
 lib_LTLIBRARIES = libIRC.la
 
