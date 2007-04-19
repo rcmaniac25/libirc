@@ -37,6 +37,8 @@ std::map<std::string,std::map<std::string,std::string> > lastChatMessages;
 string_list								spamMatches;
 string_list								spamHosts;
 
+std::map<std::string,int>				shitList;
+
 typedef struct 
 {
 	string_list commandStrings;
@@ -57,6 +59,7 @@ typedef struct
 	std::string config;
 	std::string databaseFile;
 	bool		beNice;
+	int		dickTol;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -202,6 +205,7 @@ void readConfig ( std::string file )
 #endif
 
 	theBotInfo.beNice = false;
+	theBotInfo.dickTol = 3;
 
 	string_list lines = string_util::tokenize(config,lineEnd);
 
@@ -554,7 +558,11 @@ void checkForSpam ( std::string &target, std::string &from, std::string &message
 	
 	if (spam)
 	{
-		if (!theBotInfo.beNice)
+		if(shitList.find(from) == shitList.end())
+			shitList[from] = 0;
+
+		shitList[from]++;
+		if (!theBotInfo.beNice || shitList[from] >= theBotInfo.dickTol )
 			client.ban(client.getUserManager().getUserHost(from),target);
 		client.kick(from,target,std::string("spam"));
 	}
@@ -1646,6 +1654,7 @@ bool beNiceCommand::command ( std::string command, std::string source, std::stri
 		return true;
 	}
 
+	shitList.clear();
 	theBotInfo.beNice = true;
 	client.sendMessage(respondTo,std::string("Playing it safe ") + from);
 	return true;
