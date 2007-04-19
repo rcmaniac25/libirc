@@ -59,7 +59,8 @@ typedef struct
 	std::string config;
 	std::string databaseFile;
 	bool		beNice;
-	int		dickTol;
+	int			dickTol;
+	std::string password;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -324,6 +325,8 @@ void readConfig ( std::string file )
 			}
 			else if (command == "database")
 				theBotInfo.databaseFile = params[0];
+			else if (command == "password")
+				theBotInfo.password = params[0];
 		}
 		itr++;
 	}
@@ -462,8 +465,20 @@ void login ( void )
 	client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
 }
 
+void handleNickServ ( void )
+{
+	if (!theBotInfo.password.size())
+		return;
+
+	std::string message = "register " + client.getNick() + " " + theBotInfo.password;
+	client.sendMessage(std::string("nickserv"),message);
+	message = "identify " + theBotInfo.password;
+	client.sendMessage(std::string("nickserv"),message);
+}
+
 void joinChannels ( void )
 {
+	handleNickServ();
 	string_list::iterator itr = theBotInfo.channels.begin();
 
 	while ( itr != theBotInfo.channels.end() )
