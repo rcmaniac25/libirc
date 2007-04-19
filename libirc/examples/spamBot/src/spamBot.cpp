@@ -56,6 +56,7 @@ typedef struct
 	string_map	joinMessages;
 	std::string config;
 	std::string databaseFile;
+	bool		beNice;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -149,9 +150,10 @@ void readDatabase ( void )
 
 void writeDatabase ( void )
 {
-	std::string file = theBotInfo.config;
-	// read the file data
-	FILE *fp = fopen(file.c_str(),"wt");
+	if (!theBotInfo.databaseFile.size())
+		return;
+
+	FILE *fp = fopen(theBotInfo.databaseFile.c_str(),"wt");
 	if (!fp)
 		return;
 
@@ -198,6 +200,8 @@ void readConfig ( std::string file )
 #else
 	lineEnd = "\n";
 #endif
+
+	theBotInfo.beNice = false;
 
 	string_list lines = string_util::tokenize(config,lineEnd);
 
@@ -314,7 +318,7 @@ void readConfig ( std::string file )
 				factoid.message = params[1];
 				theBotInfo.factoids[string_util::tolower(factoid.name)] = factoid;
 			}
-			else if (command == "databse")
+			else if (command == "database")
 				theBotInfo.databaseFile = params[0];
 		}
 		itr++;
@@ -545,13 +549,27 @@ void checkForSpam ( std::string &target, std::string &from, std::string &message
 		spam = true;
 	else if (checkForSpamFilter(target,from,message))
 		spam = true;
-	else if (checkForSpamHost(target,from))
+	else if (checkForSpamHost(target,client.getUserManager().getUserHost(from)))
 		spam = true;
 	
 	if (spam)
 	{
-		client.ban(client.getUserManager().getUserHost(from),target);
+		if (!theBotInfo.beNice)
+			client.ban(client.getUserManager().getUserHost(from),target);
 		client.kick(from,target,std::string("spam"));
+	}
+}
+
+
+void userJoin( trJoinEventInfo *info )
+{
+	if (!info->channel.size() && !info->user.size())
+		return;
+
+	if (checkForSpamHost(info->channel, client.getUserManager().getUserHost(info->user)))
+	{
+		//client.ban(client.getUserManager().getUserHost(info->user),info->channel);
+		client.kick(info->user,info->channel,std::string("spamHost"));
 	}
 }
 
@@ -694,8 +712,8 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			joinChannels();
 			break;
 
-		//case eIRCUserJoinEvent:
-			//userJoin((trUserJoinPartEvent)
+		case eIRCUserJoinEvent:
+			userJoin((trJoinEventInfo*)&info);
 
 		case eIRCChannelJoinEvent:
 			joinedChannel((trJoinEventInfo*)&info);
@@ -1569,6 +1587,90 @@ bool addSpamCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
+class addSpamHostCommand : public botCommandHandaler
+{
+public:
+	addSpamHostCommand() {name = "addspamhost";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool addSpamHostCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(respondTo,"You're not the boss of me");
+		return true;
+	}
+	std::string text;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<1)
+			client.sendMessage(respondTo,"Usage: addspamhost SOME TEXT");
+		else
+		{
+			text = info->getAsString(2);
+		}
+	}
+	else
+	{
+		if ( info->params.size()<2)
+			client.sendMessage(respondTo,"Usage: addspamhost SOME TEXT");
+		else{
+			text = info->getAsString(2);
+		}
+	}
+
+	if (text.size())
+	{
+		spamHosts.push_back(text);
+		client.sendMessage(respondTo,std::string("OK ") + from);
+
+		writeDatabase();
+	}
+	return true;
+}
+
+class beNiceCommand : public botCommandHandaler
+{
+public:
+	beNiceCommand() {name = "benice";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool beNiceCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(respondTo,"You're not the boss of me");
+		return true;
+	}
+
+	theBotInfo.beNice = true;
+	client.sendMessage(respondTo,std::string("Playing it safe ") + from);
+	return true;
+}
+
+class hardballCommand : public botCommandHandaler
+{
+public:
+	hardballCommand() {name = "hardball";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool hardballCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(respondTo,"You're not the boss of me");
+		return true;
+	}
+
+	theBotInfo.beNice = false;
+	client.sendMessage(respondTo,std::string("Playing for keeps ") + from);
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -1593,6 +1695,10 @@ void registerBotCommands ( void )
 	installBotCommand(new factoidListCommand);
 	installBotCommand(new kickCommand);
 	installBotCommand(new addSpamCommand);
+	installBotCommand(new addSpamHostCommand);
+	installBotCommand(new beNiceCommand);
+	installBotCommand(new hardballCommand);
+
 }
 
 
