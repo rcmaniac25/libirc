@@ -1,0 +1,10 @@
+add master set whitelist nicks
+add per check options
+see if we can check for voice
+add levels of dupe message checks
+add time message checking
+add last message in the channel checks.
+add hostmask storage to ID checks.
+add per user password storage.
+add a proper database.
+add a users database.
