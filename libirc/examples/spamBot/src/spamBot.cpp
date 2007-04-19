@@ -39,6 +39,30 @@ string_list								spamHosts;
 
 std::map<std::string,int>				shitList;
 
+
+class BotNumericsHandler : public IRCClientCommandHandler
+{
+public:
+	BotNumericsHandler();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+BotNumericsHandler	botNumericsHandler;
+
+typedef enum
+{
+	eUnverified,
+	eVerifcationPending,
+	eVerfied
+}teVerificationState;
+
+typedef struct 
+{
+	std::string				master;
+	teVerificationState		verification;
+	std::string				hostmask;
+}trMaster;
+
 typedef struct 
 {
 	string_list commandStrings;
@@ -51,6 +75,7 @@ typedef struct
 	std::string realName;
 	string_list channels;
 	string_list	masters;
+	std::vector<trMaster>	masterList;
 	string_list unknownResponces;
 	string_list	partMessages;
 	string_list	quitMessages;
@@ -260,6 +285,10 @@ void readConfig ( std::string file )
 			}
 			else if (command == "master")
 			{
+				trMaster	master;
+				master.verification = eUnverified;
+				master.master = string_util::tolower(dataStr);
+				theBotInfo.masterList.push_back(master);
 				theBotInfo.masters.push_back(string_util::tolower(dataStr));
 			}
 			else if (command == "joinmessage")
@@ -583,7 +612,6 @@ void checkForSpam ( std::string &target, std::string &from, std::string &message
 	}
 }
 
-
 void userJoin( trJoinEventInfo *info )
 {
 	if (!info->channel.size() && !info->user.size())
@@ -591,7 +619,13 @@ void userJoin( trJoinEventInfo *info )
 
 	if (checkForSpamHost(info->channel, client.getUserManager().getUserHost(info->user)))
 	{
-		//client.ban(client.getUserManager().getUserHost(info->user),info->channel);
+		if(shitList.find(info->user) == shitList.end())
+			shitList[info->user] = 0;
+
+		shitList[info->user]++;
+		if (!theBotInfo.beNice || shitList[info->user] >= theBotInfo.dickTol )
+			client.ban(client.getUserManager().getUserHost(info->user),info->channel);
+
 		client.kick(info->user,info->channel,std::string("spamHost"));
 	}
 }
@@ -601,14 +635,87 @@ bool isMaster ( std::string name )
 	string_list::iterator itr = theBotInfo.masters.begin();
 
 	name = string_util::tolower(name);
-
-	while ( itr != theBotInfo.masters.end() )
-	{	
-		if ( name == *itr)
+	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	{
+		if ( name == theBotInfo.masterList[i].master)
 			return true;
-
-		itr++;
 	}
+	
+	return false;
+}
+
+bool isMasterVerified ( std::string name, std::string hostmask )
+{
+	name = string_util::tolower(name);
+
+	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	{
+		if (name == theBotInfo.masterList[i].master)
+		{
+			if(theBotInfo.masterList[i].verification != eVerfied)
+				return false;
+
+			if(theBotInfo.masterList[i].hostmask != hostmask)
+				return false;
+
+			return true;
+		}
+	}
+	return false;
+}
+
+void verifyMaster ( std::string name, std::string hostmask )
+{
+	name = string_util::tolower(name);
+
+	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	{
+		if (name == theBotInfo.masterList[i].master)
+		{
+			theBotInfo.masterList[i].hostmask = hostmask;
+			theBotInfo.masterList[i].verification = eVerfied;
+		}
+	}
+}
+
+void unverifyMaster ( std::string name )
+{
+	name = string_util::tolower(name);
+
+	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	{
+		if (name == theBotInfo.masterList[i].master)
+		{
+			theBotInfo.masterList[i].hostmask = "";
+			theBotInfo.masterList[i].verification = eUnverified;
+		}
+	}
+}
+
+bool checkMaster ( std::string name, std::string hostmask, std::string reply )
+{
+	name = string_util::tolower(name);
+
+	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	{
+		if (name == theBotInfo.masterList[i].master)
+		{
+			if(theBotInfo.masterList[i].verification != eVerfied)
+			{
+				client.sendMessage(reply,"unverified");
+				return false;
+			}
+
+			if(theBotInfo.masterList[i].hostmask != hostmask)
+			{
+				client.sendMessage(reply,"hostmask does not match verification");
+				return false;
+			}
+
+			return true;
+		}
+	}
+	client.sendMessage(reply,"You're not the boss of me");
 	return false;
 }
 
@@ -667,7 +774,9 @@ void channelMessage ( trMessageEventInfo *info )
 	}
 	else
 	{
-		checkForSpam(info->target,info->from,info->message);
+		// we don't check for spam from masters who are IDed
+		if (!isMasterVerified(info->from,client.getUserManager().getUserHost(info->from)))
+			checkForSpam(info->target,info->from,info->message);
 	}
 }
 
@@ -783,6 +892,8 @@ void registerEventHandlers ( void )
 	client.registerEventHandler(eIRCNickNameError,&eventHandler);
 	client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCUserKickedEvent,&eventHandler);
+
+	client.registerCommandHandler(&botNumericsHandler);
 }
 
 void initInfo ( std::string config )
@@ -836,11 +947,8 @@ public:
 
 bool quitCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	part = true;
 	return true;
@@ -945,11 +1053,8 @@ public:
 
 bool flushCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	saveConfig();
 
@@ -968,11 +1073,8 @@ public:
 
 bool rawCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	int	paramOffset = privMsg ? 0 : 1;
 
@@ -1015,12 +1117,8 @@ public:
 
 bool partCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
-
 
 	std::string partTarget;
 
@@ -1061,11 +1159,8 @@ public:
 
 bool joinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	std::string joinTarget;
 
@@ -1171,11 +1266,8 @@ public:
 
 bool addjoinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	std::string channel;
 
@@ -1212,11 +1304,8 @@ public:
 
 bool addmasterCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	std::string newMaster;
 	
@@ -1240,6 +1329,10 @@ bool addmasterCommand::command ( std::string command, std::string source, std::s
 		std::string message = "Ok, " + from + ", user, " + newMaster + " added to masters list";
 		client.sendMessage(respondTo,message);
 
+		trMaster master;
+		master.verification = eUnverified;
+		master.master = newMaster;
+		theBotInfo.masterList.push_back(master);
 		theBotInfo.masters.push_back(string_util::tolower(newMaster));
 	}
 	return true;
@@ -1299,11 +1392,8 @@ public:
 
 bool chanPermsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	std::string channel;
 	
@@ -1525,11 +1615,8 @@ public:
 
 bool kickCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	std::string bastard;
 	std::string channel;
@@ -1575,11 +1662,9 @@ public:
 
 bool addSpamCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
+
 	std::string text;
 
 	if (privMsg)
@@ -1619,11 +1704,9 @@ public:
 
 bool addSpamHostCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
+
 	std::string text;
 
 	if (privMsg)
@@ -1663,11 +1746,8 @@ public:
 
 bool beNiceCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	if (!isMaster(from))
-	{
-		client.sendMessage(respondTo,"You're not the boss of me");
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
 		return true;
-	}
 
 	shitList.clear();
 	theBotInfo.beNice = true;
@@ -1684,14 +1764,44 @@ public:
 
 bool hardballCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+		return true;
+
+	theBotInfo.beNice = false;
+	client.sendMessage(respondTo,std::string("Playing for keeps ") + from);
+	return true;
+}
+
+class masterVerifyCommand : public botCommandHandaler
+{
+public:
+	masterVerifyCommand() {name = "mverify";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool masterVerifyCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
 	if (!isMaster(from))
 	{
 		client.sendMessage(respondTo,"You're not the boss of me");
 		return true;
 	}
 
-	theBotInfo.beNice = false;
-	client.sendMessage(respondTo,std::string("Playing for keeps ") + from);
+	std::string text;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<1)
+			client.sendMessage(respondTo,"Usage: mverify the_passowrd");
+		else
+		{
+			if (info->getAsString(2) == theBotInfo.password)
+			{
+				verifyMaster(from,client.getUserManager().getUserHost(from));
+				client.sendMessage(respondTo,"verified");
+			}
+		}
+	}
 	return true;
 }
 
@@ -1722,7 +1832,24 @@ void registerBotCommands ( void )
 	installBotCommand(new addSpamHostCommand);
 	installBotCommand(new beNiceCommand);
 	installBotCommand(new hardballCommand);
-
+	installBotCommand(new masterVerifyCommand);
 }
 
+BotNumericsHandler::BotNumericsHandler()
+{
+	name = "NUMERIC";
+}
+
+bool BotNumericsHandler::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
+{
+	int numeric = atoi(info.command.c_str());
+
+	switch(numeric)
+	{
+	case 311:
+	case 320:
+		break;
+	}
+	return true;
+}
 

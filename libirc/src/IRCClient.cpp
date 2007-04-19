@@ -415,22 +415,22 @@ bool IRCClient::receveCTMPCommand ( teCTCPCommands	command, CTCPCommandINfo &inf
 
 bool IRCClient::registerCommandHandler ( IRCClientCommandHandler *handler )
 {
-	if (!handler)
-		return false;
+  if (!handler)
+    return false;
 
-	std::string command = handler->getCommandName();
+  std::string command = handler->getCommandName();
 
-	tmUserCommandHandlersMap::iterator		commandListItr = userCommandHandlers.find(command);
-	if (commandListItr == userCommandHandlers.end())
-	{
-		std::vector<IRCClientCommandHandler*> handlerList;
-		handlerList.push_back(handler);
-		userCommandHandlers[command] = handlerList;
-	}
-	else
-		commandListItr->second.push_back(handler);
+  tmUserCommandHandlersMap::iterator  commandListItr = userCommandHandlers.find(command);
+  if (commandListItr == userCommandHandlers.end())
+  {
+    std::vector<IRCClientCommandHandler*> handlerList;
+    handlerList.push_back(handler);
+    userCommandHandlers[command] = handlerList;
+  }
+  else
+    commandListItr->second.push_back(handler);
 
-	return true;
+  return true;
 }
 
 bool IRCClient::removeCommandHandler ( IRCClientCommandHandler *handler )
