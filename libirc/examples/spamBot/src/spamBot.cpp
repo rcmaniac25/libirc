@@ -35,6 +35,7 @@ typedef std::map<std::string,std::string> string_map;
 std::map<std::string,std::map<std::string,std::string> > lastChatMessages;
 
 string_list								spamMatches;
+string_list								spamHosts;
 
 typedef struct 
 {
@@ -103,6 +104,7 @@ std::string getRandomString ( string_list &source )
 void readDatabase ( void )
 {
 	spamMatches.clear();
+	spamHosts.clear();
 
 	if ( !theBotInfo.databaseFile.size() )
 		return;
@@ -131,7 +133,18 @@ void readDatabase ( void )
 	lineEnd = "\n";
 #endif
 
-	spamMatches = string_util::tokenize(dataFile,lineEnd);
+	string_list	lines = string_util::tokenize(dataFile,lineEnd);
+	for ( unsigned int i = 0; i < lines.size(); i++ )
+	{	
+		string_list nubs = string_util::tokenize(lines[i],std::string("^"));
+		if ( nubs.size() == 2 )
+		{
+			if (string_util::tolower(nubs[0])=="filter")
+				spamMatches.push_back(nubs[1]);
+			else if (string_util::tolower(nubs[0])=="host")
+				spamHosts.push_back(nubs[1]);
+		}
+	}
 }
 
 void writeDatabase ( void )
@@ -150,7 +163,10 @@ void writeDatabase ( void )
 #endif
 
 	for ( unsigned int i = 0; i < spamMatches.size(); i++)
-		fprintf(fp,"%s%s",spamMatches[i].c_str(),lineEnd.c_str());
+		fprintf(fp,"filter^%s%s",spamMatches[i].c_str(),lineEnd.c_str());
+
+	for ( unsigned int i = 0; i < spamHosts.size(); i++)
+		fprintf(fp,"host^%s%s",spamHosts[i].c_str(),lineEnd.c_str());
 
 	fclose(fp);
 }
@@ -503,6 +519,23 @@ bool checkForSpamFilter ( std::string &target, std::string &from, std::string &m
 	return false;
 }
 
+bool checkForSpamHost ( std::string &target, std::string &host )
+{
+	if (!host.size())
+		return false;
+
+	std::string testHost = string_util::tolower(host);
+
+	for (unsigned int i = 0; i < spamHosts.size(); i++)
+	{
+		std::string text = string_util::tolower(spamHosts[i]);
+
+		if (strstr(testHost.c_str(),text.c_str()))
+			return true;
+	}
+
+	return false;
+}
 
 void checkForSpam ( std::string &target, std::string &from, std::string &message )
 {
@@ -511,6 +544,8 @@ void checkForSpam ( std::string &target, std::string &from, std::string &message
 	if (checkForRepeatedMessages(target,from,message))
 		spam = true;
 	else if (checkForSpamFilter(target,from,message))
+		spam = true;
+	else if (checkForSpamHost(target,from))
 		spam = true;
 	
 	if (spam)
@@ -658,6 +693,9 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 		case eIRCEndMOTDEvent:
 			joinChannels();
 			break;
+
+		//case eIRCUserJoinEvent:
+			//userJoin((trUserJoinPartEvent)
 
 		case eIRCChannelJoinEvent:
 			joinedChannel((trJoinEventInfo*)&info);
@@ -1490,7 +1528,7 @@ bool kickCommand::command ( std::string command, std::string source, std::string
 class addSpamCommand : public botCommandHandaler
 {
 public:
-	kickCommand() {name = "addspam";}
+	addSpamCommand() {name = "addspam";}
 	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
