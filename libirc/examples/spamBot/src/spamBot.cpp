@@ -1331,7 +1331,7 @@ bool addmasterCommand::command ( std::string command, std::string source, std::s
 
 		trMaster master;
 		master.verification = eUnverified;
-		master.master = newMaster;
+		master.master = string_util::tolower(newMaster);
 		theBotInfo.masterList.push_back(master);
 		theBotInfo.masters.push_back(string_util::tolower(newMaster));
 	}
@@ -1673,7 +1673,7 @@ bool addSpamCommand::command ( std::string command, std::string source, std::str
 			client.sendMessage(respondTo,"Usage: addspam SOME TEXT");
 		else
 		{
-			text = info->getAsString(2);
+			text = info->getAsString(1);
 		}
 	}
 	else
@@ -1715,7 +1715,7 @@ bool addSpamHostCommand::command ( std::string command, std::string source, std:
 			client.sendMessage(respondTo,"Usage: addspamhost SOME TEXT");
 		else
 		{
-			text = info->getAsString(2);
+			text = info->getAsString(1);
 		}
 	}
 	else
@@ -1795,7 +1795,7 @@ bool masterVerifyCommand::command ( std::string command, std::string source, std
 			client.sendMessage(respondTo,"Usage: mverify the_passowrd");
 		else
 		{
-			if (info->getAsString(2) == theBotInfo.password)
+			if (info->getAsString(1) == theBotInfo.password)
 			{
 				verifyMaster(from,client.getUserManager().getUserHost(from));
 				client.sendMessage(respondTo,"verified");
