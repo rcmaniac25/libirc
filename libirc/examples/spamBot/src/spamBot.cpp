@@ -1695,6 +1695,8 @@ bool helpCommand::command ( std::string command, std::string source, std::string
 		}
 		
 		client.sendMessage(respondTo,message);
+
+		return true;
 	}
 
 	helpTopic = string_util::tolower(helpTopic);
