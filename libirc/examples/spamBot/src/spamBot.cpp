@@ -34,9 +34,7 @@ typedef std::map<std::string,std::string> string_map;
 
 std::map<std::string,std::map<std::string,std::string> > lastChatMessages;
 
-typedef struct 
-{
-}trSpamAction;
+string_list								spamMatches;
 
 typedef struct 
 {
@@ -100,6 +98,61 @@ bool callBotCommand ( std::string command, std::string source, std::string from,
 std::string getRandomString ( string_list &source )
 {
 	return source[(int)(rand()%(source.size()))];
+}
+
+void readDatabase ( void )
+{
+	spamMatches.clear();
+
+	if ( !theBotInfo.databaseFile.size() )
+		return;
+
+	FILE *fp = fopen(theBotInfo.databaseFile.c_str(),"rt");
+	if (!fp)
+		return;
+
+	std::string dataFile;
+
+	fseek(fp,0,SEEK_END);
+	int len = ftell(fp);
+	fseek(fp,0,SEEK_SET);
+
+	char *data = (char*)malloc(len+1);
+	fread(data,len,1,fp);
+	fclose(fp);
+	data[len] = 0;
+	dataFile = data;
+	free(data);
+
+	std::string lineEnd;
+#ifdef _WIN32
+	lineEnd = "\r\n";
+#else
+	lineEnd = "\n";
+#endif
+
+	spamMatches = string_util::tokenize(dataFile,lineEnd);
+}
+
+void writeDatabase ( void )
+{
+	std::string file = theBotInfo.config;
+	// read the file data
+	FILE *fp = fopen(file.c_str(),"wt");
+	if (!fp)
+		return;
+
+	std::string lineEnd;
+#ifdef _WIN32
+	lineEnd = "\n";
+#else
+	lineEnd = "\n";
+#endif
+
+	for ( unsigned int i = 0; i < spamMatches.size(); i++)
+		fprintf(fp,"%s%s",spamMatches[i].c_str(),lineEnd.c_str());
+
+	fclose(fp);
 }
 
 void readConfig ( std::string file )
@@ -251,10 +304,14 @@ void readConfig ( std::string file )
 		itr++;
 	}
 	fclose(fp);
+
+	readDatabase();
 }
 
 void saveConfig ( void )
 {
+	writeDatabase();
+
 	std::string file = theBotInfo.config;
 	// read the file data
 	FILE *fp = fopen(file.c_str(),"wt");
@@ -428,11 +485,32 @@ bool checkForRepeatedMessages ( std::string &target, std::string &from, std::str
 	return spam;
 }
 
+bool checkForSpamFilter ( std::string &target, std::string &from, std::string &message )
+{
+	if (!message.size())
+		return false;
+
+	std::string testMessage = string_util::tolower(message);
+
+	for (unsigned int i = 0; i < spamMatches.size(); i++)
+	{
+		std::string text = string_util::tolower(spamMatches[i]);
+		
+		if (strstr(testMessage.c_str(),text.c_str()))
+			return true;
+	}
+
+	return false;
+}
+
+
 void checkForSpam ( std::string &target, std::string &from, std::string &message )
 {
 	bool spam = false;
 
 	if (checkForRepeatedMessages(target,from,message))
+		spam = true;
+	else if (checkForSpamFilter(target,from,message))
 		spam = true;
 	
 	if (spam)
@@ -1409,6 +1487,50 @@ bool kickCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
+class addSpamCommand : public botCommandHandaler
+{
+public:
+	kickCommand() {name = "addspam";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool addSpamCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(respondTo,"You're not the boss of me");
+		return true;
+	}
+	std::string text;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<1)
+			client.sendMessage(respondTo,"Usage: addspam SOME TEXT");
+		else
+		{
+			text = info->getAsString(2);
+		}
+	}
+	else
+	{
+		if ( info->params.size()<2)
+			client.sendMessage(respondTo,"Usage: addspam SOME TEXT");
+		else{
+			text = info->getAsString(2);
+		}
+	}
+
+	if (text.size())
+	{
+		spamMatches.push_back(text);
+		client.sendMessage(respondTo,std::string("OK ") + from);
+
+		writeDatabase();
+	}
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -1432,6 +1554,7 @@ void registerBotCommands ( void )
 	installBotCommand(new helpCommand);
 	installBotCommand(new factoidListCommand);
 	installBotCommand(new kickCommand);
+	installBotCommand(new addSpamCommand);
 }
 
 
