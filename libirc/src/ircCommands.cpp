@@ -65,6 +65,10 @@ IRCCommandParser::~IRCCommandParser()
 
 std::string IRCCommandParser::getCommandName ( teIRCCommands id )
 {
+	std::string name;
+	if ((int)commandNameList.size() <= id)
+		return name;
+
 	return commandNameList[id];
 }
 
