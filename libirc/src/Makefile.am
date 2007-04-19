@@ -1,8 +1,5 @@
 # $Id$
 
-DIST_SUBDIRS = \
-	old_code
-
 lib_LTLIBRARIES = libIRC.la
 
 libIRC_la_SOURCES = 	\
