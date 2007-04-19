@@ -2003,9 +2003,96 @@ bool setOptCommand::command ( std::string command, std::string source, std::stri
 		theBotInfo.dickTol = atoi(value.c_str());
 	else
 	{
-		client.sendMessage(respondTo,std::string("Unknown option ") + value);
+		client.sendMessage(respondTo,std::string("Unknown option ") + option);
 		return true;
 	}
+
+	if ( theBotInfo.dickTol < 1 )
+		theBotInfo.dickTol = 1;
+
+	client.sendMessage(respondTo,std::string("OK ") + from);
+
+	return true;
+}
+
+class whiteListCommand : public botCommandHandaler
+{
+public:
+	whiteListCommand() {name = "whitelist";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("Usage: whitelist SOME_OPTION SOME_VALUE"));
+		client.sendMessage(respondTo,std::string("Valid Options: nick, host, nick-, host-"));
+		client.sendMessage(respondTo,std::string("Valid Values: a nick or a host"));
+		return true;	
+	};
+};
+
+bool whiteListCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+		return true;
+
+	std::string option;
+	std::string value;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<3)
+			client.sendMessage(respondTo,"Usage: whitelist SOME_OPTION SOME_VALUE");
+		else
+		{
+			option = info->params[1];
+			value = info->params[2];
+		}
+	}
+	else
+	{
+		if ( info->params.size()<4)
+			client.sendMessage(respondTo,"Usage: whitelist SOME_OPTION SOME_VALUE");
+		else{
+			option = info->params[2];
+			value = info->params[3];
+		}
+	}
+
+	value = string_util::tolower(value);
+	option = string_util::tolower(option);
+
+	if ( option == "nick)" )
+		nickWhiteList.push_back(option);
+	else if ( option == "host" )
+		hostWhiteList.push_back(option);
+	else if ( option == "nick-" )
+	{
+		string_list::iterator itr = nickWhiteList.begin();
+		while (itr != nickWhiteList.end())
+		{
+			if (*itr == option)
+				itr == nickWhiteList.erase(itr);
+			else
+				itr++;
+		}
+	}
+	else if ( option == "host-" )
+	{
+		string_list::iterator itr = hostWhiteList.begin();
+		while (itr != hostWhiteList.end())
+		{
+			if (*itr == option)
+				itr == hostWhiteList.erase(itr);
+			else
+				itr++;
+		}
+	}
+	else
+	{
+		client.sendMessage(respondTo,std::string("Unknown option ") + option);
+		return true;
+	}
+
+	writeDatabase();
 
 	if ( theBotInfo.dickTol < 1 )
 		theBotInfo.dickTol = 1;
@@ -2045,6 +2132,7 @@ void registerBotCommands ( void )
 	installBotCommand(new hardballCommand);
 	installBotCommand(new masterVerifyCommand);
 	installBotCommand(new setOptCommand);
+	installBotCommand(new whiteListCommand);
 }
 
 BotNumericsHandler::BotNumericsHandler()
