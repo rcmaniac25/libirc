@@ -36,6 +36,8 @@ std::map<std::string,std::map<std::string,std::string> > lastChatMessages;
 
 string_list								spamMatches;
 string_list								spamHosts;
+string_list								nickWhiteList;
+string_list								hostWhiteList;
 
 std::map<std::string,int>				shitList;
 
@@ -74,7 +76,6 @@ typedef struct
 	std::string host;
 	std::string realName;
 	string_list channels;
-	string_list	masters;
 	std::vector<trMaster>	masterList;
 	string_list unknownResponces;
 	string_list	partMessages;
@@ -86,6 +87,10 @@ typedef struct
 	bool		beNice;
 	int			dickTol;
 	std::string password;
+
+	bool		doRepeatCheck;
+	bool		doMessageFilter;
+	bool		doHostFilter;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -99,6 +104,11 @@ public:
 	botCommandHandaler(){return;}
 	virtual ~botCommandHandaler(){return;}
 	virtual bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false ) = 0;
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("No help available"));
+		return true;	
+	};
 	std::string name;
 };
 
@@ -135,6 +145,8 @@ void readDatabase ( void )
 {
 	spamMatches.clear();
 	spamHosts.clear();
+	hostWhiteList.clear();
+	nickWhiteList.clear();
 
 	if ( !theBotInfo.databaseFile.size() )
 		return;
@@ -169,10 +181,15 @@ void readDatabase ( void )
 		string_list nubs = string_util::tokenize(lines[i],std::string("^"));
 		if ( nubs.size() == 2 )
 		{
-			if (string_util::tolower(nubs[0])=="filter")
+			std::string key = string_util::tolower(nubs[0]);
+			if (key=="filter")
 				spamMatches.push_back(nubs[1]);
-			else if (string_util::tolower(nubs[0])=="host")
+			else if (key=="host")
 				spamHosts.push_back(nubs[1]);
+			else if (key == "whitenick")
+				nickWhiteList.push_back(nubs[1]);
+			else if (key == "whitehost")
+				hostWhiteList.push_back(nubs[1]);
 		}
 	}
 }
@@ -198,6 +215,12 @@ void writeDatabase ( void )
 
 	for ( unsigned int i = 0; i < spamHosts.size(); i++)
 		fprintf(fp,"host^%s%s",spamHosts[i].c_str(),lineEnd.c_str());
+	
+	for ( unsigned int i = 0; i < nickWhiteList.size(); i++)
+		fprintf(fp,"whitenick^%s%s",nickWhiteList[i].c_str(),lineEnd.c_str());
+	
+	for ( unsigned int i = 0; i < hostWhiteList.size(); i++)
+		fprintf(fp,"whitehost^%s%s",hostWhiteList[i].c_str(),lineEnd.c_str());
 
 	fclose(fp);
 }
@@ -232,6 +255,10 @@ void readConfig ( std::string file )
 
 	theBotInfo.beNice = false;
 	theBotInfo.dickTol = 3;
+
+	theBotInfo.doRepeatCheck = true;
+	theBotInfo.doMessageFilter = true;
+	theBotInfo.doHostFilter = true;
 
 	string_list lines = string_util::tokenize(config,lineEnd);
 
@@ -287,9 +314,14 @@ void readConfig ( std::string file )
 			{
 				trMaster	master;
 				master.verification = eUnverified;
-				master.master = string_util::tolower(dataStr);
+				if (params.size() > 1)
+				{
+					master.master = params[0];
+					master.hostmask = params[1];
+				}
+				else
+					master.master = string_util::tolower(dataStr);
 				theBotInfo.masterList.push_back(master);
-				theBotInfo.masters.push_back(string_util::tolower(dataStr));
 			}
 			else if (command == "joinmessage")
 			{
@@ -419,12 +451,13 @@ void saveConfig ( void )
 	fprintf(fp,"%s",lineEnd.c_str());
 
 	// masters
-	stringItr = theBotInfo.masters.begin();
 
-	while ( stringItr != theBotInfo.masters.end() )
+	for ( unsigned int i = 0; i <  theBotInfo.masterList.size(); i++ )
 	{
-		fprintf(fp,"master:%s%s",stringItr->c_str(),lineEnd.c_str());
-		stringItr++;
+		if (theBotInfo.masterList[i].hostmask.size())
+			fprintf(fp,"master:%s %s%s",theBotInfo.masterList[i].master.c_str(),theBotInfo.masterList[i].hostmask.c_str(),lineEnd.c_str());
+		else
+			fprintf(fp,"master:%s%s",theBotInfo.masterList[i].master.c_str(),lineEnd.c_str());
 	}
 	fprintf(fp,"%s",lineEnd.c_str());
 	
@@ -630,10 +663,28 @@ void userJoin( trJoinEventInfo *info )
 	}
 }
 
+bool isWhiteList ( std::string nick, std::string hostmask )
+{
+	nick = string_util::tolower(nick);
+	hostmask = string_util::tolower(hostmask);
+
+	for ( unsigned int i = 0; i < nickWhiteList.size(); i++ )
+	{
+		if ( nick == string_util::tolower(nickWhiteList[i]) )
+			return true;
+	}
+
+	for ( unsigned int i = 0; i < hostWhiteList.size(); i++ )
+	{
+		if ( hostmask == string_util::tolower(hostWhiteList[i]) )
+			return true;
+	}
+
+	return false;
+}
+
 bool isMaster ( std::string name )
 {
-	string_list::iterator itr = theBotInfo.masters.begin();
-
 	name = string_util::tolower(name);
 	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
 	{
@@ -700,16 +751,27 @@ bool checkMaster ( std::string name, std::string hostmask, std::string reply )
 	{
 		if (name == theBotInfo.masterList[i].master)
 		{
-			if(theBotInfo.masterList[i].verification != eVerfied)
+			if (!theBotInfo.masterList[i].hostmask.size())
 			{
-				client.sendMessage(reply,"unverified");
-				return false;
-			}
+				if(theBotInfo.masterList[i].verification != eVerfied)
+				{
+					client.sendMessage(reply,"unverified");
+					return false;
+				}
 
-			if(theBotInfo.masterList[i].hostmask != hostmask)
+				if(theBotInfo.masterList[i].hostmask != hostmask)
+				{
+					client.sendMessage(reply,"hostmask does not match verification");
+					return false;
+				}
+			}
+			else
 			{
-				client.sendMessage(reply,"hostmask does not match verification");
-				return false;
+				if(theBotInfo.masterList[i].hostmask != hostmask)
+				{
+					client.sendMessage(reply,"hostmask does not match verification");
+					return false;
+				}
 			}
 
 			return true;
@@ -775,7 +837,7 @@ void channelMessage ( trMessageEventInfo *info )
 	else
 	{
 		// we don't check for spam from masters who are IDed
-		if (!isMasterVerified(info->from,client.getUserManager().getUserHost(info->from)))
+		if (!isWhiteList(info->from,client.getUserManager().getUserHost(info->from)) && !isMasterVerified(info->from,client.getUserManager().getUserHost(info->from)))
 			checkForSpam(info->target,info->from,info->message);
 	}
 }
@@ -1188,6 +1250,45 @@ bool joinCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
+class permaJoinCommand : public botCommandHandaler
+{
+public:
+	permaJoinCommand() {name = "permajoin";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool permaJoinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+		return true;
+
+	std::string joinTarget;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<2)
+			client.sendMessage(respondTo,"Usage: permajoin SOME_CHANNEL");
+		else
+			joinTarget = info->params[1];
+	}
+	else
+	{
+		if ( info->params.size()<3)
+			client.sendMessage(respondTo,"Usage: permajoin SOME_CHANNEL");
+		else
+			joinTarget = info->params[2];
+	}
+
+	if (joinTarget.size())
+	{
+		std::string message = "Ok, " + from;
+		client.sendMessage(respondTo,message);
+		if (client.join(joinTarget))
+			theBotInfo.channels.push_back(joinTarget);
+	}
+	return true;
+}
+
 class usersCommand : public botCommandHandaler
 {
 public:
@@ -1330,10 +1431,10 @@ bool addmasterCommand::command ( std::string command, std::string source, std::s
 		client.sendMessage(respondTo,message);
 
 		trMaster master;
+		master.hostmask = client.getUserManager().getUserHost(newMaster);
 		master.verification = eUnverified;
 		master.master = string_util::tolower(newMaster);
 		theBotInfo.masterList.push_back(master);
-		theBotInfo.masters.push_back(string_util::tolower(newMaster));
 	}
 	return true;
 }
@@ -1569,16 +1670,39 @@ public:
 
 bool helpCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	tmBotCommandHandalerMap::iterator itr = botCommands.begin();
-	std::string message = "Current commands;";
+	std::string helpTopic;
 
-	while (itr != botCommands.end())
+	if (privMsg)
 	{
-		message += std::string(" ") + itr->first;
-		itr++;
+		if ( info->params.size()>1)
+			helpTopic = info->params[1];
 	}
-	
-	client.sendMessage(respondTo,message);
+	else
+	{
+		if ( info->params.size()>2)
+			helpTopic = info->params[2];
+	}
+
+	if (!helpTopic.size())
+	{
+		tmBotCommandHandalerMap::iterator itr = botCommands.begin();
+		std::string message = "Current commands;";
+
+		while (itr != botCommands.end())
+		{
+			message += std::string(" ") + itr->first;
+			itr++;
+		}
+		
+		client.sendMessage(respondTo,message);
+	}
+
+	helpTopic = string_util::tolower(helpTopic);
+
+	if (botCommands.find(helpTopic)== botCommands.end())
+		client.sendMessage(respondTo,std::string("Command Not Found"));
+	else
+		botCommands[helpTopic]->help(respondTo,privMsg);
 
 	return true;
 }
@@ -1658,6 +1782,12 @@ class addSpamCommand : public botCommandHandaler
 public:
 	addSpamCommand() {name = "addspam";}
 	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("Usage: addspam SOME TEXT"));
+		client.sendMessage(respondTo,std::string("Adds chat text to watch for action"));
+		return true;	
+	};
 };
 
 bool addSpamCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
@@ -1700,6 +1830,12 @@ class addSpamHostCommand : public botCommandHandaler
 public:
 	addSpamHostCommand() {name = "addspamhost";}
 	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("Usage: addspamhost SOME TEXT"));
+		client.sendMessage(respondTo,std::string("Adds a hostmask to watch for action"));
+		return true;	
+	};
 };
 
 bool addSpamHostCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
@@ -1805,6 +1941,80 @@ bool masterVerifyCommand::command ( std::string command, std::string source, std
 	return true;
 }
 
+class setOptCommand : public botCommandHandaler
+{
+public:
+	setOptCommand() {name = "setopt";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("Usage: setopt SOME_OPTION SOME_VALUE"));
+		client.sendMessage(respondTo,std::string("Valid Options: repeatcheck, filtercheck, hostcheck, dicklimit"));
+		client.sendMessage(respondTo,std::string("Valid Values: 0, Off, False, 1, On, True"));
+		return true;	
+	};
+};
+
+bool setOptCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+		return true;
+
+	std::string option;
+	std::string value;
+	bool		valueB = false;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<3)
+			client.sendMessage(respondTo,"Usage: setopt SOME_OPTION SOME_VALUE");
+		else
+		{
+			option = info->params[1];
+			value = info->params[2];
+		}
+	}
+	else
+	{
+		if ( info->params.size()<4)
+			client.sendMessage(respondTo,"Usage: setopt SOME_OPTION SOME_VALUE");
+		else{
+			option = info->params[2];
+			value = info->params[3];
+		}
+	}
+
+	value = string_util::tolower(value);
+
+	if ( value == "0" || value == "off" || value == "disable" || value == "false" || value == "f")
+		valueB = false;
+	if ( value == "1" || value == "on" || value == "enable" || value == "true" || value == "t")
+		valueB = true;
+
+	option = string_util::tolower(option);
+
+	if ( option == "repeatcheck" )
+		theBotInfo.doRepeatCheck = valueB;
+	else if ( option == "filtercheck" )
+		theBotInfo.doMessageFilter = valueB;
+	else if ( option == "hostcheck" )
+		theBotInfo.doHostFilter = valueB;
+	else if ( option == "dicklimit" )
+		theBotInfo.dickTol = atoi(value.c_str());
+	else
+	{
+		client.sendMessage(respondTo,std::string("Unknown option ") + value);
+		return true;
+	}
+
+	if ( theBotInfo.dickTol < 1 )
+		theBotInfo.dickTol = 1;
+
+	client.sendMessage(respondTo,std::string("OK ") + from);
+
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -1816,6 +2026,7 @@ void registerBotCommands ( void )
 	installBotCommand(new channelsCommand);
 	installBotCommand(new partCommand);
 	installBotCommand(new joinCommand);
+	installBotCommand(new permaJoinCommand);
 	installBotCommand(new usersCommand);
 	installBotCommand(new allUsersCommand);
 	installBotCommand(new addjoinCommand);
@@ -1833,6 +2044,7 @@ void registerBotCommands ( void )
 	installBotCommand(new beNiceCommand);
 	installBotCommand(new hardballCommand);
 	installBotCommand(new masterVerifyCommand);
+	installBotCommand(new setOptCommand);
 }
 
 BotNumericsHandler::BotNumericsHandler()
