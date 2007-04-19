@@ -499,7 +499,7 @@ void handleNickServ ( void )
 	if (!theBotInfo.password.size())
 		return;
 
-	std::string message = "register " + client.getNick() + " " + theBotInfo.password;
+	std::string message = "register " + theBotInfo.password;
 	client.sendMessage(std::string("nickserv"),message);
 	message = "identify " + theBotInfo.password;
 	client.sendMessage(std::string("nickserv"),message);
