@@ -55,7 +55,7 @@ typedef enum
 {
 	eUnverified,
 	eVerifcationPending,
-	eVerfied
+	eVerified
 }teVerificationState;
 
 typedef struct 
@@ -278,7 +278,7 @@ void readConfig ( std::string file )
 
 			string_list params = string_util::tokenize(dataStr,std::string(" "),0,true);
 
-			if (command == "identifyer")
+			if (command == "identifier")
 			{
 				theBotInfo.commandStrings.push_back(string_util::tolower(dataStr));
 			}
@@ -347,7 +347,7 @@ void readConfig ( std::string file )
 
 				theBotInfo.partMessages.push_back(dataStr);
 			}
-			else if ((command == "quit") || (command == "die"))
+			else if (command == "quit")
 			{
 				if (dataStr[0] == '\"')
 					dataStr.erase(0,1);
@@ -703,7 +703,7 @@ bool isMasterVerified ( std::string name, std::string hostmask )
 	{
 		if (name == theBotInfo.masterList[i].master)
 		{
-			if(theBotInfo.masterList[i].verification != eVerfied)
+			if(theBotInfo.masterList[i].verification != eVerified)
 				return false;
 
 			if(theBotInfo.masterList[i].hostmask != hostmask)
@@ -724,7 +724,7 @@ void verifyMaster ( std::string name, std::string hostmask )
 		if (name == theBotInfo.masterList[i].master)
 		{
 			theBotInfo.masterList[i].hostmask = hostmask;
-			theBotInfo.masterList[i].verification = eVerfied;
+			theBotInfo.masterList[i].verification = eVerified;
 		}
 	}
 }
@@ -753,7 +753,7 @@ bool checkMaster ( std::string name, std::string hostmask, std::string reply )
 		{
 			if (!theBotInfo.masterList[i].hostmask.size())
 			{
-				if(theBotInfo.masterList[i].verification != eVerfied)
+				if(theBotInfo.masterList[i].verification != eVerified)
 				{
 					client.sendMessage(reply,"unverified");
 					return false;
@@ -876,7 +876,7 @@ void privateMessage ( trMessageEventInfo *info )
 			dono = string_util::replace_all(dono,"%c",info->target);
 			dono = string_util::replace_all(dono,"%b",client.getNick());
 
-			client.sendMessage(info->target,dono);
+			client.sendMessage(info->from, dono);
 		}
 	}
 }
@@ -994,7 +994,7 @@ int main ( int argc, char *argv[] )
 
 	if (part)
 	{
-		client.disconnect("Quiting");
+		client.disconnect("Quitting");
 	}
 
 	return 0;
@@ -1039,19 +1039,19 @@ public:
 
 bool factoidCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
 {
-	std::string factoid = string_util::tolower(info->params[1]);
+	int	paramOffset = privMsg ? 0 : 1;
+
+	std::string factoid = string_util::tolower(info->params[paramOffset]);
 	
 	// it may have a ?, lop it off
 	if (*(factoid.end()-1) == '?')
 		factoid.erase(factoid.end()-1);
 
-	int	paramOffset = privMsg ? 0 : 1;
-
 	factoidMap::iterator itr = theBotInfo.factoids.find(factoid);
 	if (itr == theBotInfo.factoids.end())
 	{
 
-		if ( info->params[1+paramOffset] == "is" )
+		if ( (info->params.size() > 1+paramOffset) && (info->params[1+paramOffset] == "is") )
 		{
 			trFactoid	newFactoid;
 			
@@ -1930,7 +1930,7 @@ bool masterVerifyCommand::command ( std::string command, std::string source, std
 	if (privMsg)
 	{
 		if ( info->params.size()<1)
-			client.sendMessage(respondTo,"Usage: mverify the_passowrd");
+			client.sendMessage(respondTo,"Usage: mverify the_password");
 		else
 		{
 			if (info->getAsString(1) == theBotInfo.password)

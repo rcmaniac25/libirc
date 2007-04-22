@@ -38,8 +38,8 @@ void IRCClient::welcomeMessage ( trMessageEventInfo	&info )
 	requestedNick = info.target;
 
 	// we know we are conencted here
-	if (getConnectionState() < eLogedIn)
-		setConnectionState(eLogedIn);
+	if (getConnectionState() < eLoggedIn)
+		setConnectionState(eLoggedIn);
 
 	callEventHandler(eIRCWelcomeEvent,info);
 }
@@ -218,7 +218,7 @@ void IRCClient::nickNameError ( int error, std::string message )
 	trNickErrorEventInfo	info;
 	info.error = error;
 
-	if (getConnectionState() < eLogedIn)
+	if (getConnectionState() < eLoggedIn)
 		setConnectionState(eTCPConenct);
 
 	info.error = error;

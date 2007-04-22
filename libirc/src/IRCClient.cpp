@@ -62,14 +62,14 @@ IRCClient::IRCClient()
 	ircCommandDelimator	 = " ";
 	debugLogLevel = 0;
 	ircServerPort = _DEFAULT_IRC_PORT;
-	ircConenctonState = eNotConnected;
+	ircConnectionState = eNotConnected;
 	logHandler = &defaultLoger;
 }
 
 // irc client
 IRCClient::~IRCClient()
 {
-	disconnect("shuting down");
+	disconnect("shutting down");
 
 	if (tcpClient)
 		tcpConnection.deleteClientConnection(tcpClient);
@@ -113,14 +113,14 @@ bool IRCClient::connect ( std::string server, int port )
 
 	teTCPError err = tcpClient->connect(server,ircServerPort);
 
-	ircConenctonState = err == eTCPNoError ? eTCPConenct : eNotConnected;
+	ircConnectionState = err == eTCPNoError ? eTCPConenct : eNotConnected;
 
 	return err == eTCPNoError;
 }
 
 bool IRCClient::disconnect ( std::string reason )
 {
-	if (ircConenctonState >= eLogedIn)
+	if (ircConnectionState >= eLoggedIn)
 	{
 		if (!reason.size())
 			reason = "shuting down";
@@ -130,13 +130,13 @@ bool IRCClient::disconnect ( std::string reason )
 
 		if (!sendIRCCommand(eCMD_QUIT,info))
 		{
-			log("Discoonect Failed: QUIT command not sent",0);
+			log("Disconnect Failed: QUIT command not sent",0);
 			return false;
 		}
 
 		teTCPError err = tcpClient->disconnect();
 
-		ircConenctonState = eNotConnected;
+		ircConnectionState = eNotConnected;
 
 		return err == eTCPNoError;
 	}

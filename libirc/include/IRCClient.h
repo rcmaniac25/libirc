@@ -65,7 +65,7 @@ public:
 	IRCClient();
 	virtual ~IRCClient();
 
-	// loging
+	// logging
 	void	setLogHandler ( IRCClientLogHandler * loger );
 
 	virtual void setLogfile ( std::string file );
@@ -221,22 +221,22 @@ protected:
 	std::string		ircMessageTerminator;
 	std::string		ircCommandDelimator;
 
-	// the wonderfull connection state
+	// the wonderful connection state
 	typedef enum
 	{
 		eNotConnected = 0,
 		eTCPConenct,
 		eSentNickAndUSer,
-		eLogedIn,
+		eLoggedIn,
 		eLastState
 	}teIRCConnectionState;
 
-	teIRCConnectionState	ircConenctonState;
+	teIRCConnectionState	ircConnectionState;
 
 	bool									registered;
 
-	virtual teIRCConnectionState getConnectionState ( void ){return ircConenctonState;}
-	virtual void setConnectionState ( teIRCConnectionState state ){ircConenctonState = state;}
+	virtual teIRCConnectionState getConnectionState ( void ){return ircConnectionState;}
+	virtual void setConnectionState ( teIRCConnectionState state ){ircConnectionState = state;}
 
 	// receved data processing
 	void processIRCLine ( std::string line );
