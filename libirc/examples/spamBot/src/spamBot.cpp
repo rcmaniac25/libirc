@@ -347,7 +347,7 @@ void readConfig ( std::string file )
 
 				theBotInfo.partMessages.push_back(dataStr);
 			}
-			else if (command == "quit")
+			else if ((command == "quit") || (command == "die"))
 			{
 				if (dataStr[0] == '\"')
 					dataStr.erase(0,1);
