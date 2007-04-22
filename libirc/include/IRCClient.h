@@ -182,7 +182,7 @@ public:
 	void setNick ( std::string text ) {nickname=text;}
 	std::string getNick ( void ) {return nickname;}
 
-	// used by the raw IRC command handalers to update internal states and trigger events
+	// used by the raw IRC command Handlers to update internal states and trigger events
 	void noticeMessage ( trMessageEventInfo	&info );
 	void welcomeMessage ( trMessageEventInfo	&info );
 	void beginMOTD ( void ){MOTD = "";}

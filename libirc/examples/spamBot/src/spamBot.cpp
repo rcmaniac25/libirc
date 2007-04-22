@@ -98,11 +98,11 @@ trStupidBotInfo	theBotInfo;
 IRCClient	client;
 bool part = false;
 
-class botCommandHandaler
+class botCommandHandler
 {
 public:
-	botCommandHandaler(){return;}
-	virtual ~botCommandHandaler(){return;}
+	botCommandHandler(){return;}
+	virtual ~botCommandHandler(){return;}
 	virtual bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false ) = 0;
 	virtual bool help ( std::string respondTo, bool privMsg = false )
 	{
@@ -112,23 +112,23 @@ public:
 	std::string name;
 };
 
-typedef std::map<std::string, botCommandHandaler*> tmBotCommandHandalerMap;
+typedef std::map<std::string, botCommandHandler*> tmBotCommandHandlerMap;
 
-tmBotCommandHandalerMap		botCommands;
+tmBotCommandHandlerMap		botCommands;
 
 void registerBotCommands ( void );
 
-void installBotCommand ( botCommandHandaler* handaler )
+void installBotCommand ( botCommandHandler* Handler )
 {
-	if (!handaler)
+	if (!Handler)
 		return;
 
-	botCommands[string_util::tolower(handaler->name)] = handaler;
+	botCommands[string_util::tolower(Handler->name)] = Handler;
 }
 
 bool callBotCommand ( std::string command, std::string source, std::string from, trMessageEventInfo *info, bool privMsg = false )
 {
-	tmBotCommandHandalerMap::iterator itr = botCommands.find(command);
+	tmBotCommandHandlerMap::iterator itr = botCommands.find(command);
 	if (itr == botCommands.end())
 		return false;
 
@@ -817,7 +817,7 @@ void channelMessage ( trMessageEventInfo *info )
 	{
 		std::string command = string_util::tolower(info->params[1]);
 		// its for me
-		// see if there is a command handaler for it
+		// see if there is a command Handler for it
 		if (command == "factoid" || !callBotCommand(command,info->source,info->from,info))
 		{
 			// see if it's a factoid
@@ -850,7 +850,7 @@ void privateMessage ( trMessageEventInfo *info )
 	std::string command = string_util::tolower(info->params[0]);
 
 	// its for me, it's allways for me here
-	// see if there is a command handaler for it
+	// see if there is a command Handler for it
 
 	if (command == "factoid" || !callBotCommand(command,info->source,info->from,info,true))
 	{
@@ -1000,7 +1000,7 @@ int main ( int argc, char *argv[] )
 	return 0;
 }
 
-class quitCommand : public botCommandHandaler
+class quitCommand : public botCommandHandler
 {
 public:
 	quitCommand() {name = "quit";}
@@ -1016,7 +1016,7 @@ bool quitCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class helloCommand : public botCommandHandaler
+class helloCommand : public botCommandHandler
 {
 public:
 	helloCommand() {name = "hello";}
@@ -1030,7 +1030,7 @@ bool helloCommand::command ( std::string command, std::string source, std::strin
 	return true;
 }
 
-class factoidCommand : public botCommandHandaler
+class factoidCommand : public botCommandHandler
 {
 public:
 	factoidCommand() {name = "factoid";}
@@ -1090,7 +1090,7 @@ bool factoidCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
-class channelCommand : public botCommandHandaler
+class channelCommand : public botCommandHandler
 {
 public:
 	channelCommand() {name = "channel";}
@@ -1106,7 +1106,7 @@ bool channelCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
-class flushCommand : public botCommandHandaler
+class flushCommand : public botCommandHandler
 {
 public:
 	flushCommand() {name = "flush";}
@@ -1126,7 +1126,7 @@ bool flushCommand::command ( std::string command, std::string source, std::strin
 	return true;
 }
 
-class rawCommand : public botCommandHandaler
+class rawCommand : public botCommandHandler
 {
 public:
 	rawCommand() {name = "raw";}
@@ -1145,7 +1145,7 @@ bool rawCommand::command ( std::string command, std::string source, std::string 
 	return true;
 }
 
-class channelsCommand : public botCommandHandaler
+class channelsCommand : public botCommandHandler
 {
 public:
 	channelsCommand() {name = "channels";}
@@ -1170,7 +1170,7 @@ bool channelsCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
-class partCommand : public botCommandHandaler
+class partCommand : public botCommandHandler
 {
 public:
 	partCommand() {name = "part";}
@@ -1212,7 +1212,7 @@ bool partCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class joinCommand : public botCommandHandaler
+class joinCommand : public botCommandHandler
 {
 public:
 	joinCommand() {name = "join";}
@@ -1250,7 +1250,7 @@ bool joinCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class permaJoinCommand : public botCommandHandaler
+class permaJoinCommand : public botCommandHandler
 {
 public:
 	permaJoinCommand() {name = "permajoin";}
@@ -1289,7 +1289,7 @@ bool permaJoinCommand::command ( std::string command, std::string source, std::s
 	return true;
 }
 
-class usersCommand : public botCommandHandaler
+class usersCommand : public botCommandHandler
 {
 public:
 	usersCommand() {name = "users";}
@@ -1334,7 +1334,7 @@ bool usersCommand::command ( std::string command, std::string source, std::strin
 	return true;
 }
 
-class allUsersCommand : public botCommandHandaler
+class allUsersCommand : public botCommandHandler
 {
 public:
 	allUsersCommand() {name = "allusers";}
@@ -1358,7 +1358,7 @@ bool allUsersCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
-class addjoinCommand : public botCommandHandaler
+class addjoinCommand : public botCommandHandler
 {
 public:
 	addjoinCommand() {name = "addjoin";}
@@ -1396,7 +1396,7 @@ bool addjoinCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
-class addmasterCommand : public botCommandHandaler
+class addmasterCommand : public botCommandHandler
 {
 public:
 	addmasterCommand() {name = "addmaster";}
@@ -1439,7 +1439,7 @@ bool addmasterCommand::command ( std::string command, std::string source, std::s
 	return true;
 }
 
-class libVersCommand : public botCommandHandaler
+class libVersCommand : public botCommandHandler
 {
 public:
 	libVersCommand() {name = "libversion";}
@@ -1452,7 +1452,7 @@ bool libVersCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
-class longTestCommand : public botCommandHandaler
+class longTestCommand : public botCommandHandler
 {
 public:
 	longTestCommand() {name = "longtest";}
@@ -1484,7 +1484,7 @@ bool longTestCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
-class chanPermsCommand : public botCommandHandaler
+class chanPermsCommand : public botCommandHandler
 {
 public:
 	chanPermsCommand() {name = "chanperms";}
@@ -1523,7 +1523,7 @@ bool chanPermsCommand::command ( std::string command, std::string source, std::s
 	return true;
 }
 
-class userInfoCommand : public botCommandHandaler
+class userInfoCommand : public botCommandHandler
 {
 public:
 	userInfoCommand() {name = "userinfo";}
@@ -1597,7 +1597,7 @@ bool userInfoCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
-class chanInfoCommand : public botCommandHandaler
+class chanInfoCommand : public botCommandHandler
 {
 public:
 	chanInfoCommand() {name = "chaninfo";}
@@ -1661,7 +1661,7 @@ bool chanInfoCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
-class helpCommand : public botCommandHandaler
+class helpCommand : public botCommandHandler
 {
 public:
 	helpCommand() {name = "help";}
@@ -1685,7 +1685,7 @@ bool helpCommand::command ( std::string command, std::string source, std::string
 
 	if (!helpTopic.size())
 	{
-		tmBotCommandHandalerMap::iterator itr = botCommands.begin();
+		tmBotCommandHandlerMap::iterator itr = botCommands.begin();
 		std::string message = "Current commands;";
 
 		while (itr != botCommands.end())
@@ -1709,7 +1709,7 @@ bool helpCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class factoidListCommand : public botCommandHandaler
+class factoidListCommand : public botCommandHandler
 {
 public:
 	factoidListCommand() {name = "factoidlist";}
@@ -1732,7 +1732,7 @@ bool factoidListCommand::command ( std::string command, std::string source, std:
 	return true;
 }
 
-class kickCommand : public botCommandHandaler
+class kickCommand : public botCommandHandler
 {
 public:
 	kickCommand() {name = "kick";}
@@ -1779,7 +1779,7 @@ bool kickCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class addSpamCommand : public botCommandHandaler
+class addSpamCommand : public botCommandHandler
 {
 public:
 	addSpamCommand() {name = "addspam";}
@@ -1827,7 +1827,7 @@ bool addSpamCommand::command ( std::string command, std::string source, std::str
 	return true;
 }
 
-class addSpamHostCommand : public botCommandHandaler
+class addSpamHostCommand : public botCommandHandler
 {
 public:
 	addSpamHostCommand() {name = "addspamhost";}
@@ -1875,7 +1875,7 @@ bool addSpamHostCommand::command ( std::string command, std::string source, std:
 	return true;
 }
 
-class beNiceCommand : public botCommandHandaler
+class beNiceCommand : public botCommandHandler
 {
 public:
 	beNiceCommand() {name = "benice";}
@@ -1893,7 +1893,7 @@ bool beNiceCommand::command ( std::string command, std::string source, std::stri
 	return true;
 }
 
-class hardballCommand : public botCommandHandaler
+class hardballCommand : public botCommandHandler
 {
 public:
 	hardballCommand() {name = "hardball";}
@@ -1910,7 +1910,7 @@ bool hardballCommand::command ( std::string command, std::string source, std::st
 	return true;
 }
 
-class masterVerifyCommand : public botCommandHandaler
+class masterVerifyCommand : public botCommandHandler
 {
 public:
 	masterVerifyCommand() {name = "mverify";}
@@ -1943,7 +1943,7 @@ bool masterVerifyCommand::command ( std::string command, std::string source, std
 	return true;
 }
 
-class setOptCommand : public botCommandHandaler
+class setOptCommand : public botCommandHandler
 {
 public:
 	setOptCommand() {name = "setopt";}
@@ -2017,7 +2017,7 @@ bool setOptCommand::command ( std::string command, std::string source, std::stri
 	return true;
 }
 
-class whiteListCommand : public botCommandHandaler
+class whiteListCommand : public botCommandHandler
 {
 public:
 	whiteListCommand() {name = "whitelist";}
