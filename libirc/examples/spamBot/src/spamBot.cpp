@@ -21,32 +21,15 @@
 #include <string>
 #include <map>
 
-typedef struct 
-{
-	std::string name;
-	std::string message;
-	bool				action;
-	bool				response;
-}trFactoid;
+unsigned int				chatToKeep = 40;
 
-typedef std::map<std::string,trFactoid>	factoidMap;
-typedef std::map<std::string,std::string> string_map;
-
-std::map<std::string,std::map<std::string,std::string> > lastChatMessages;
-
-string_list								spamMatches;
-string_list								spamHosts;
-string_list								nickWhiteList;
-string_list								hostWhiteList;
-
-std::map<std::string,int>				shitList;
+string_list					spamMatches;
+string_list					spamHosts;
 
 typedef struct 
 {
 	std::vector<std::string> history;
 }trUserInfo;
-
-BotNumericsHandler	botNumericsHandler;
 
 typedef enum
 {
@@ -73,18 +56,24 @@ typedef struct trChannelInfo
 	bool								checkRepeats;
 	bool								fiterMessages;
 	bool								filterHosts;
-	int									banTolerance;
+	unsigned int						banTolerance;
 	bool								kickBeforeBan;
 
-	int									repeatLimits;
+	unsigned int						repeatLimits;
 	
 	std::map<std::string,trUserInfo>	userInfo;
 	std::string							lastMessage;
+	std::string							lastHostMask;
+
 	std::vector<trMaster>				masters;
 	std::vector<std::string>			whiteHosts;
 	std::vector<std::string>			whiteNicks;
 	string_list							joinMessags;
 	std::vector<trPrivateMessageRecord> connectMessages;
+
+	std::map<std::string, unsigned int>			offsenseList;
+
+	bool								hibernate;
 
 	trChannelInfo()
 	{
@@ -92,8 +81,9 @@ typedef struct trChannelInfo
 		fiterMessages = true;
 		filterHosts = true;
 		banTolerance = 3;
-		kickBeforeBan = false;
-		repeatLimits = 2;
+		kickBeforeBan = true;
+		repeatLimits = 4;
+		hibernate = false;
 	}
 }trChannelInfo;
 
@@ -128,7 +118,6 @@ typedef struct
 	string_list unknownResponces;
 	string_list	partMessages;
 	string_list	quitMessages;
-	factoidMap	factoids;
 	
 	std::string config;
 	std::string databaseFile;
@@ -200,8 +189,6 @@ void readDatabase ( void )
 {
 	spamMatches.clear();
 	spamHosts.clear();
-	hostWhiteList.clear();
-	nickWhiteList.clear();
 
 	if ( !theBotInfo.databaseFile.size() )
 		return;
@@ -406,12 +393,12 @@ void readConfig ( std::string file )
 					else if ( params[1] == "checkRepeats")
 					{
 						getChannelInfo(params[0]).checkRepeats = params[2] != "0";
-						getChannelInfo(params[0]).repeatLimits = atoi(params[0]);
+						getChannelInfo(params[0]).repeatLimits = atoi(params[0].c_str());
 						if ( getChannelInfo(params[0]).repeatLimits < 2 )
 							getChannelInfo(params[0]).repeatLimits = 2;
 					}
 					else if (params[1] == "bantol" )
-						getChannelInfo(params[0]).banTolerance = atoi(params[0]); 
+						getChannelInfo(params[0]).banTolerance = atoi(params[0].c_str()); 
 					else if ( params[1] == "benice")
 						getChannelInfo(params[0]).kickBeforeBan = params[2] != "0"; 
 					else if ( params[1] == "whitehost")
@@ -464,33 +451,6 @@ void readConfig ( std::string file )
 
 				theBotInfo.quitMessages.push_back(dataStr);
 			}	
-			else if (command == "action")
-			{
-				trFactoid	factoid;
-				factoid.action = true;
-				factoid.response = false;
-				factoid.name = params[0];
-				factoid.message = params[1];
-				theBotInfo.factoids[string_util::tolower(factoid.name)] = factoid;
-			}
-			else if (command == "factoid")
-			{
-				trFactoid	factoid;
-				factoid.action = false;
-				factoid.response = false;
-				factoid.name = params[0];
-				factoid.message = params[1];
-				theBotInfo.factoids[string_util::tolower(factoid.name)] = factoid;
-			}
-			else if (command == "response")
-			{
-				trFactoid	factoid;
-				factoid.action = false;
-				factoid.response = true;
-				factoid.name = params[0];
-				factoid.message = params[1];
-				theBotInfo.factoids[string_util::tolower(factoid.name)] = factoid;
-			}
 			else if (command == "database")
 				theBotInfo.databaseFile = params[0];
 			else if (command == "password")
@@ -552,15 +512,28 @@ void saveConfig ( void )
 	// channels
 	stringItr = theBotInfo.startupChannels.begin();
 
-	for ( unsigned int i = 0; i <  theBotInfo.channels.size(); i++ )
+	for ( unsigned int i = 0; i <  theBotInfo.startupChannels.size(); i++ )
 	{
-		fprintf(fp,"channel:%s%s",theBotInfo.channels[i].c_str(),lineEnd.c_str());
+		fprintf(fp,"channel:%s%s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 		
-		trChannelInfo	&info = getChannelInfo(theBotInfo.channels[i]);
-		fprintf(fp,"chanopt:benice %s %s",info.kickBeforeBan ? "1" | "0",lineEnd.c_str());
+		trChannelInfo	&info = getChannelInfo(theBotInfo.startupChannels[i]);
+
+		if(info.kickBeforeBan)
+			fprintf(fp,"chanopt:benice 1 %s",lineEnd.c_str());
+		else
+			fprintf(fp,"chanopt:benice 0 %s",lineEnd.c_str());
+
+		if(info.fiterMessages)
+			fprintf(fp,"chanopt:filterchat 1 %s",lineEnd.c_str());
+		else
+			fprintf(fp,"chanopt:filterchat 0 %s",lineEnd.c_str());
+
+		if(info.filterHosts)
+			fprintf(fp,"chanopt:filterhosts 1 %s",lineEnd.c_str());
+		else
+			fprintf(fp,"chanopt:filterhosts 0 %s",lineEnd.c_str());
+
 		fprintf(fp,"chanopt:bantol %d %s",info.banTolerance,lineEnd.c_str());
-		fprintf(fp,"chanopt:filterchat %s %s",info.fiterMessages ? "1" | "0",lineEnd.c_str());
-		fprintf(fp,"chanopt:filterhosts %s %s",info.filterHosts ? "1" | "0",lineEnd.c_str());
 		fprintf(fp,"chanopt:checkRepeats %d %s",info.repeatLimits,lineEnd.c_str());
 		for ( unsigned int t = 0; t < info.whiteHosts.size(); t++ )
 			fprintf(fp,"chanmaster:whitehost %s%s",info.whiteHosts[t].c_str(),lineEnd.c_str());
@@ -624,25 +597,6 @@ void saveConfig ( void )
 		stringItr++;
 	}
 	fprintf(fp,"%s",lineEnd.c_str());
-		
-	// factoids
-	factoidMap::iterator	factoidItr = theBotInfo.factoids.begin();
-
-	while ( factoidItr != theBotInfo.factoids.end() )
-	{
-		if ( factoidItr->second.action )
-		{
-			fprintf(fp,"action:%s \"%s\"%s",factoidItr->first.c_str(),factoidItr->second.message.c_str(),lineEnd.c_str());
-		}
-		else
-		{
-			if ( factoidItr->second.response )
-				fprintf(fp,"response:%s \"%s\"%s",factoidItr->first.c_str(),factoidItr->second.message.c_str(),lineEnd.c_str());
-			else
-				fprintf(fp,"factoid:%s \"%s\"%s",factoidItr->first.c_str(),factoidItr->second.message.c_str(),lineEnd.c_str());
-		}
-		factoidItr++;
-	}
 	fclose(fp);
 }
 
@@ -665,49 +619,81 @@ void handleNickServ ( void )
 void joinChannels ( void )
 {
 	handleNickServ();
-	string_list::iterator itr = theBotInfo.channels.begin();
-
-	while ( itr != theBotInfo.channels.end() )
-	{
-		client.join(*itr);
-		itr++;
-	}
+	for (unsigned int i = 0; i < theBotInfo.startupChannels.size(); i++)
+		client.join(theBotInfo.startupChannels[i]);
 }
 
 void joinedChannel ( trJoinEventInfo *info )
 {
-	if (lastChatMessages.find(info->channel) != lastChatMessages.end())
-		lastChatMessages[info->channel].clear();
+	trChannelInfo	&chanInfo = getChannelInfo(info->channel);
 
-	std::map<std::string,std::string>::iterator itr = theBotInfo.joinMessages.find(info->channel);
+	// blow out the collection stuff
+	chanInfo.lastMessage = "";
+	chanInfo.lastHostMask = "";
+	chanInfo.userInfo.clear();
+	chanInfo.offsenseList.clear();
+	chanInfo.hibernate = false;
 
-	if (itr == theBotInfo.joinMessages.end())
-		return;
+	// do any on join channel messages
+	for ( unsigned int i = 0; i < chanInfo.connectMessages.size(); i++ )
+		client.sendMessage(chanInfo.connectMessages[i].to,chanInfo.connectMessages[i].message);
 
-	IRCCommandINfo	commandInfo;
-
-	commandInfo.target = info->channel;
-	commandInfo.params.push_back (itr->second);
-	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+	for ( unsigned int i = 0; i < chanInfo.joinMessags.size(); i++ )
+		client.sendMessage(info->channel,chanInfo.joinMessags[i]);
 }
 
-bool checkForRepeatedMessages ( std::string &target, std::string &from, std::string &message )
+bool checkForRepeatedMessages ( std::string &channel, std::string &hostmask, std::string &message )
 {
-	bool spam = false;
-	if (lastChatMessages.find(target) == lastChatMessages.end())
+	trChannelInfo	&chanInfo = getChannelInfo(channel);
+
+	if (!theBotInfo.masterInfo.checkRepeats || !chanInfo.checkRepeats )
+		return false;
+
+	unsigned int autoSpamSizeLimit = 10;
+
+	// TODO, check the time on this
+	if (chanInfo.lastHostMask.size() || chanInfo.lastMessage.size())
 	{
-		std::map<std::string,std::string>	temp;
-		lastChatMessages[target] = temp;
+		if ( chanInfo.lastHostMask == hostmask && chanInfo.lastMessage == message && message.size() > autoSpamSizeLimit )
+			return true; // it's the same thing, fromt he same person and its long it's spam
 	}
-	std::map<std::string,std::string> &chanList = lastChatMessages[target];
 
-	if (chanList.find(from) == chanList.end())
-		spam = false;
-	else
-		spam = message == chanList[from];
+	// it was difrent, save it
+	chanInfo.lastHostMask = hostmask;
+	chanInfo.lastMessage = message;
 
-	chanList[from] = message;
-	return spam;
+	if (chanInfo.userInfo.find(hostmask) == chanInfo.userInfo.end())
+	{
+		trUserInfo temp;
+		chanInfo.userInfo[hostmask] = temp;
+	}
+
+	trUserInfo &userInfo = chanInfo.userInfo[hostmask];
+
+	userInfo.history.push_back(message);
+	if ( userInfo.history.size() > chatToKeep )
+		userInfo.history.erase(userInfo.history.begin());
+
+	// find the smallest number to check;
+	unsigned int itemsToCheck = chatToKeep;
+	if ( itemsToCheck > theBotInfo.masterInfo.repeatLimits )
+		itemsToCheck = theBotInfo.masterInfo.repeatLimits;
+	if ( itemsToCheck > chanInfo.repeatLimits )
+		itemsToCheck = chanInfo.repeatLimits;
+
+	if(userInfo.history.size() < itemsToCheck )
+		return false;
+
+	bool same = true;
+	for ( unsigned int i = 1; i < itemsToCheck && same; i++ )
+	{
+		// if one is dif, then we are done
+		std::string lineToCheck = userInfo.history[userInfo.history.size()-i-1];
+		if ( message != lineToCheck ) 
+			same = false;
+	}
+
+	return same;
 }
 
 bool checkForSpamFilter ( std::string &target, std::string &from, std::string &message )
@@ -746,26 +732,51 @@ bool checkForSpamHost ( std::string &target, std::string &host )
 	return false;
 }
 
-void checkForSpam ( std::string &target, std::string &from, std::string &message )
+bool banOnOffense ( std::string &channel, std::string &user, unsigned int shitFactor )
+{
+	if (!theBotInfo.masterInfo.kickBeforeBan)
+		return true;
+	
+	if ( shitFactor >= theBotInfo.masterInfo.banTolerance )
+		return true;
+
+	trChannelInfo &chanInfo = getChannelInfo(channel);
+
+	if (!chanInfo.kickBeforeBan)
+		return true;
+
+	if ( shitFactor >= chanInfo.banTolerance )
+		return true;
+
+	return false;
+}
+
+void checkForSpam ( std::string &channel, std::string &from, std::string &message )
 {
 	bool spam = false;
+	std::string hostmask = client.getUserManager().getUserHost(from);
+	trChannelInfo &chanInfo = getChannelInfo(channel);
 
-	if (checkForRepeatedMessages(target,from,message))
+	if (chanInfo.hibernate)
+		return;
+
+	if (checkForRepeatedMessages(channel,hostmask,message))
 		spam = true;
-	else if (checkForSpamFilter(target,from,message))
+	else if (checkForSpamFilter(channel,from,message))
 		spam = true;
-	else if (checkForSpamHost(target,client.getUserManager().getUserHost(from)))
+	else if (checkForSpamHost(channel,hostmask))
 		spam = true;
 	
 	if (spam)
 	{
-		if(shitList.find(from) == shitList.end())
-			shitList[from] = 0;
+		if(chanInfo.offsenseList.find(hostmask) == chanInfo.offsenseList.end())
+			chanInfo.offsenseList[hostmask] = 0;
 
-		shitList[from]++;
-		if (!theBotInfo.beNice || shitList[from] >= theBotInfo.dickTol )
-			client.ban(client.getUserManager().getUserHost(from),target);
-		client.kick(from,target,std::string("spam"));
+		chanInfo.offsenseList[hostmask]++;
+
+		if (banOnOffense(channel,from,chanInfo.offsenseList[hostmask]))
+			client.ban(hostmask,channel);
+		client.kick(from,channel,std::string("spaming"));
 	}
 }
 
@@ -773,15 +784,18 @@ void userJoin( trJoinEventInfo *info )
 {
 	if (!info->channel.size() && !info->user.size())
 		return;
+	
+	std::string hostmask = client.getUserManager().getUserHost(info->user);
+	trChannelInfo	&chanInfo = getChannelInfo(info->channel);
 
-	if (checkForSpamHost(info->channel, client.getUserManager().getUserHost(info->user)))
+	if(chanInfo.offsenseList.find(hostmask) == chanInfo.offsenseList.end())
+		chanInfo.offsenseList[hostmask] = 0;
+
+	if (checkForSpamHost(info->channel,hostmask ))
 	{
-		if(shitList.find(info->user) == shitList.end())
-			shitList[info->user] = 0;
-
-		shitList[info->user]++;
-		if (!theBotInfo.beNice || shitList[info->user] >= theBotInfo.dickTol )
-			client.ban(client.getUserManager().getUserHost(info->user),info->channel);
+		chanInfo.offsenseList[hostmask]++;
+		if (banOnOffense(info->channel,info->user,chanInfo.offsenseList[hostmask]))
+			client.ban(hostmask,info->channel);
 
 		client.kick(info->user,info->channel,std::string("spamHost"));
 	}
@@ -792,15 +806,37 @@ bool isWhiteList ( std::string nick, std::string hostmask )
 	nick = string_util::tolower(nick);
 	hostmask = string_util::tolower(hostmask);
 
-	for ( unsigned int i = 0; i < nickWhiteList.size(); i++ )
+	for ( unsigned int i = 0; i < theBotInfo.masterInfo.whiteNicks.size(); i++ )
 	{
-		if ( nick == string_util::tolower(nickWhiteList[i]) )
+		if ( nick == string_util::tolower(theBotInfo.masterInfo.whiteNicks[i]) )
 			return true;
 	}
 
-	for ( unsigned int i = 0; i < hostWhiteList.size(); i++ )
+	for ( unsigned int i = 0; i < theBotInfo.masterInfo.whiteHosts.size(); i++ )
 	{
-		if ( hostmask == string_util::tolower(hostWhiteList[i]) )
+		if ( hostmask == string_util::tolower(theBotInfo.masterInfo.whiteHosts[i]) )
+			return true;
+	}
+
+	return false;
+}
+
+bool isWhiteList ( std::string channel, std::string nick, std::string hostmask )
+{
+	trChannelInfo	&chanInfo = getChannelInfo(channel);
+
+	nick = string_util::tolower(nick);
+	hostmask = string_util::tolower(hostmask);
+
+	for ( unsigned int i = 0; i < chanInfo.whiteNicks.size(); i++ )
+	{
+		if ( nick == string_util::tolower(chanInfo.whiteNicks[i]) )
+			return true;
+	}
+
+	for ( unsigned int i = 0; i < chanInfo.whiteHosts.size(); i++ )
+	{
+		if ( hostmask == string_util::tolower(chanInfo.whiteHosts[i]) )
 			return true;
 	}
 
@@ -810,12 +846,26 @@ bool isWhiteList ( std::string nick, std::string hostmask )
 bool isMaster ( std::string name )
 {
 	name = string_util::tolower(name);
-	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	for (unsigned int i = 0; i < theBotInfo.masterInfo.masters.size(); i++)
 	{
-		if ( name == theBotInfo.masterList[i].master)
+		if ( name == theBotInfo.masterInfo.masters[i].master)
 			return true;
 	}
 	
+	return false;
+}
+
+bool isChannelMaster ( std::string &channel, std::string name, std::string hostmask )
+{
+	name = string_util::tolower(name);
+	trChannelInfo	&chanInfo = getChannelInfo(channel);
+
+	for (unsigned int i = 0; i < chanInfo.masters.size(); i++)
+	{
+		if ( name == chanInfo.masters[i].master && hostmask == chanInfo.masters[i].hostmask )
+			return true;
+	}
+
 	return false;
 }
 
@@ -823,14 +873,14 @@ bool isMasterVerified ( std::string name, std::string hostmask )
 {
 	name = string_util::tolower(name);
 
-	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	for (unsigned int i = 0; i < theBotInfo.masterInfo.masters.size(); i++)
 	{
-		if (name == theBotInfo.masterList[i].master)
+		if (name == theBotInfo.masterInfo.masters[i].master)
 		{
-			if(theBotInfo.masterList[i].verification != eVerified)
+			if(theBotInfo.masterInfo.masters[i].verification != eVerified)
 				return false;
 
-			if(theBotInfo.masterList[i].hostmask != hostmask)
+			if(theBotInfo.masterInfo.masters[i].hostmask != hostmask)
 				return false;
 
 			return true;
@@ -843,12 +893,12 @@ void verifyMaster ( std::string name, std::string hostmask )
 {
 	name = string_util::tolower(name);
 
-	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	for (unsigned int i = 0; i < theBotInfo.masterInfo.masters.size(); i++)
 	{
-		if (name == theBotInfo.masterList[i].master)
+		if (name == theBotInfo.masterInfo.masters[i].master)
 		{
-			theBotInfo.masterList[i].hostmask = hostmask;
-			theBotInfo.masterList[i].verification = eVerified;
+			theBotInfo.masterInfo.masters[i].hostmask = hostmask;
+			theBotInfo.masterInfo.masters[i].verification = eVerified;
 		}
 	}
 }
@@ -857,12 +907,12 @@ void unverifyMaster ( std::string name )
 {
 	name = string_util::tolower(name);
 
-	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	for (unsigned int i = 0; i < theBotInfo.masterInfo.masters.size(); i++)
 	{
-		if (name == theBotInfo.masterList[i].master)
+		if (name == theBotInfo.masterInfo.masters[i].master)
 		{
-			theBotInfo.masterList[i].hostmask = "";
-			theBotInfo.masterList[i].verification = eUnverified;
+			theBotInfo.masterInfo.masters[i].hostmask = "";
+			theBotInfo.masterInfo.masters[i].verification = eUnverified;
 		}
 	}
 }
@@ -871,19 +921,19 @@ bool checkMaster ( std::string name, std::string hostmask, std::string reply )
 {
 	name = string_util::tolower(name);
 
-	for (unsigned int i = 0; i < theBotInfo.masterList.size(); i++)
+	for (unsigned int i = 0; i < theBotInfo.masterInfo.masters.size(); i++)
 	{
-		if (name == theBotInfo.masterList[i].master)
+		if (name == theBotInfo.masterInfo.masters[i].master)
 		{
-			if (!theBotInfo.masterList[i].hostmask.size())
+			if (!theBotInfo.masterInfo.masters[i].hostmask.size())
 			{
-				if(theBotInfo.masterList[i].verification != eVerified)
+				if(theBotInfo.masterInfo.masters[i].verification != eVerified)
 				{
 					client.sendMessage(reply,"unverified");
 					return false;
 				}
 
-				if(theBotInfo.masterList[i].hostmask != hostmask)
+				if(theBotInfo.masterInfo.masters[i].hostmask != hostmask)
 				{
 					client.sendMessage(reply,"hostmask does not match verification");
 					return false;
@@ -891,7 +941,7 @@ bool checkMaster ( std::string name, std::string hostmask, std::string reply )
 			}
 			else
 			{
-				if(theBotInfo.masterList[i].hostmask != hostmask)
+				if(theBotInfo.masterInfo.masters[i].hostmask != hostmask)
 				{
 					client.sendMessage(reply,"hostmask does not match verification");
 					return false;
@@ -922,6 +972,17 @@ bool isForMe ( std::string word )
 	return false;
 }
 
+bool isExempt ( std::string channel, std::string name, std::string hostmask )
+{
+	if (isWhiteList(name,hostmask) || isWhiteList(channel,name,hostmask))
+		return true; // in a whitelist
+
+	if ( isMasterVerified(name,hostmask) || isChannelMaster(channel,name,hostmask))
+		return true;
+
+	return false;
+}
+
 void channelMessage ( trMessageEventInfo *info )
 {
 	std::string myNick = string_util::tolower(client.getNick());
@@ -942,26 +1003,23 @@ void channelMessage ( trMessageEventInfo *info )
 		std::string command = string_util::tolower(info->params[1]);
 		// its for me
 		// see if there is a command Handler for it
-		if (command == "factoid" || !callBotCommand(command,info->source,info->from,info))
+		if (!callBotCommand(command,info->source,info->from,info))
 		{
-			// see if it's a factoid
-			if (!callBotCommand("factoid",info->source,info->from,info))
-			{
-				// it's not, we dono what it is, but it was addressed to us
-				std::string	dono = getRandomString(theBotInfo.unknownResponces);
+			// it's not, we dono what it is, but it was addressed to us
+			std::string	dono = getRandomString(theBotInfo.unknownResponces);
 
-				dono = string_util::replace_all(dono,"%u",info->from);
-				dono = string_util::replace_all(dono,"%c",info->target);
-				dono = string_util::replace_all(dono,"%b",client.getNick());
+			dono = string_util::replace_all(dono,"%u",info->from);
+			dono = string_util::replace_all(dono,"%c",info->target);
+			dono = string_util::replace_all(dono,"%b",client.getNick());
 
-				client.sendMessage(info->target,dono);
-			}
+			client.sendMessage(info->target,dono);
 		}
 	}
 	else
 	{
-		// we don't check for spam from masters who are IDed
-		if (!isWhiteList(info->from,client.getUserManager().getUserHost(info->from)) && !isMasterVerified(info->from,client.getUserManager().getUserHost(info->from)))
+		std::string hostmask = client.getUserManager().getUserHost(info->from);
+
+		if (!isExempt(info->target,info->from,hostmask))
 			checkForSpam(info->target,info->from,info->message);
 	}
 }
@@ -1078,8 +1136,6 @@ void registerEventHandlers ( void )
 	client.registerEventHandler(eIRCNickNameError,&eventHandler);
 	client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCUserKickedEvent,&eventHandler);
-
-	client.registerCommandHandler(&botNumericsHandler);
 }
 
 void initInfo ( std::string config )
@@ -1140,95 +1196,6 @@ bool quitCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class helloCommand : public botCommandHandler
-{
-public:
-	helloCommand() {name = "hello";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false );
-};
-
-bool helloCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
-{
-	std::string message = std::string("Hey ") + from + std::string(" how are you?");
-	client.sendMessage(respondTo,message);
-	return true;
-}
-
-class factoidCommand : public botCommandHandler
-{
-public:
-	factoidCommand() {name = "factoid";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false );
-};
-
-bool factoidCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
-{
-	int	paramOffset = privMsg ? 0 : 1;
-
-	std::string factoid = string_util::tolower(info->params[paramOffset]);
-	
-	// it may have a ?, lop it off
-	if (*(factoid.end()-1) == '?')
-		factoid.erase(factoid.end()-1);
-
-	factoidMap::iterator itr = theBotInfo.factoids.find(factoid);
-	if (itr == theBotInfo.factoids.end())
-	{
-		if ( ((int)info->params.size() > 1+paramOffset) && (info->params[1+paramOffset] == "is") )
-		{
-			trFactoid	newFactoid;
-			
-			newFactoid.name = factoid;
-			newFactoid.action = (string_util::tolower(info->params[2+paramOffset]) == "<reply>");
-
-			if (!newFactoid.action)
-				newFactoid.response = (string_util::tolower(info->params[2+paramOffset]) == "<respond>");
-			else
-				newFactoid.response = false;
-
-			newFactoid.message = info->getAsString(newFactoid.action || newFactoid.response ? 3+paramOffset : 2+paramOffset);
-
-			theBotInfo.factoids[factoid] = newFactoid;
-
-			std::string message = "Ok, " + from;
-			client.sendMessage(respondTo,message,itr->second.action);
-			return true;
-		}
-		return false;
-	}
-
-	std::string message;
-	
-	if (!itr->second.response && !itr->second.action)
-		message = itr->second.name + " is ";
-
-	message += itr->second.message;
-
-	message = string_util::replace_all(message,"%u",from);
-	message = string_util::replace_all(message,"%c",info->target);
-	message = string_util::replace_all(message,"%b",client.getNick());
-
-	client.sendMessage(respondTo,message,itr->second.action);
-
-	return true;
-}
-
-class channelCommand : public botCommandHandler
-{
-public:
-	channelCommand() {name = "channel";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool channelCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	if (privMsg)
-		client.sendMessage(respondTo,"Invalid command, no channel");
-	else
-		client.sendMessage(respondTo,info->target);
-	return true;
-}
-
 class flushCommand : public botCommandHandler
 {
 public:
@@ -1277,6 +1244,9 @@ public:
 
 bool channelsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+		return true;
+
 	string_list	chans = client.listChanels();
 	string_list::iterator itr = chans.begin();
 	std::string plural = chans.size()>1 ? "s" : "";
@@ -1407,114 +1377,7 @@ bool permaJoinCommand::command ( std::string command, std::string source, std::s
 		std::string message = "Ok, " + from;
 		client.sendMessage(respondTo,message);
 		if (client.join(joinTarget))
-			theBotInfo.channels.push_back(joinTarget);
-	}
-	return true;
-}
-
-class usersCommand : public botCommandHandler
-{
-public:
-	usersCommand() {name = "users";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool usersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	std::string channel;
-
-	if (privMsg)
-	{
-		if ( info->params.size()<2)
-			client.sendMessage(respondTo,"Usage: users SOME_CHANNEL");
-		else
-			channel = info->params[1];
-	}
-	else
-	{
-		if ( info->params.size()<3)
-			channel = info->target;
-		else
-			channel = info->params[2];
-	}
-
-	if (channel.size())
-	{
-		string_list userList = client.listUsers(channel);
-		string_list::iterator itr = userList.begin();
-
-		std::string theLine = info->from + std::string(" this channel contains ");
-		while( itr != userList.end())
-		{
-			theLine += *itr;
-			itr++;
-			if ( itr != userList.end() )
-				theLine += ", ";
-		}
-		client.sendMessage(respondTo,theLine);
-	}
-
-	return true;
-}
-
-class allUsersCommand : public botCommandHandler
-{
-public:
-	allUsersCommand() {name = "allusers";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool allUsersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	string_list userList = client.listUsers(std::string(""));
-	string_list::iterator itr = userList.begin();
-
-	std::string theLine = info->from + std::string(" I know of ");
-	while( itr != userList.end())
-	{
-		theLine += *itr;
-		itr++;
-		if ( itr != userList.end() )
-			theLine += ", ";
-	}
-	client.sendMessage(respondTo,theLine);
-	return true;
-}
-
-class addjoinCommand : public botCommandHandler
-{
-public:
-	addjoinCommand() {name = "addjoin";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool addjoinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
-		return true;
-
-	std::string channel;
-
-	if (privMsg)
-	{
-		if ( info->params.size()<2)
-			client.sendMessage(respondTo,"Usage: users SOME_CHANNEL");
-		else
-			channel = info->params[1];
-	}
-	else
-	{
-		if ( info->params.size()<3)
-			channel = info->target;
-		else
-			channel = info->params[2];
-	}
-	if (channel.size())
-	{
-		std::string message = "Ok, " + from + ", channel, " + channel + " added to startup list";
-		client.sendMessage(respondTo,message);
-		client.join(channel);
-		theBotInfo.channels.push_back(channel);
+			theBotInfo.startupChannels.push_back(joinTarget);
 	}
 	return true;
 }
@@ -1557,229 +1420,7 @@ bool addmasterCommand::command ( std::string command, std::string source, std::s
 		master.hostmask = client.getUserManager().getUserHost(newMaster);
 		master.verification = eUnverified;
 		master.master = string_util::tolower(newMaster);
-		theBotInfo.masterList.push_back(master);
-	}
-	return true;
-}
-
-class libVersCommand : public botCommandHandler
-{
-public:
-	libVersCommand() {name = "libversion";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool libVersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	client.sendMessage(respondTo, getLibVersion());
-	return true;
-}
-
-class longTestCommand : public botCommandHandler
-{
-public:
-	longTestCommand() {name = "longtest";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool longTestCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	std::string longString ;
-
-	int paramOffset = privMsg ? 0 : 1;
-
-	if ((int)info->params.size() <= 1+paramOffset)
-	{
-		longString = "this is a realy,";
-
-		for ( int i =0; i < 100; i++)
-			longString += " realy,";
-
-		longString += " long string";
-
-	}
-	else
-	{
-		longString = "this is a long string\nwith\nsome\nnewlines in it\n\nIsn't it cool?";
-	}
-
-	client.sendMessage(respondTo,longString);
-	return true;
-}
-
-class chanPermsCommand : public botCommandHandler
-{
-public:
-	chanPermsCommand() {name = "chanperms";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool chanPermsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
-		return true;
-
-	std::string channel;
-	
-	if (privMsg)
-	{
-		if ( info->params.size()<2)
-			client.sendMessage(respondTo,"Usage: chanperms SOME_CHANNEL");
-		else
-			channel = info->params[1];
-	}
-	else
-	{
-		if ( info->params.size()<3)
-			client.sendMessage(respondTo,"Usage: chanperms SOME_CHANNEL");
-		else
-			channel = info->params[2];
-	}
-
-	if (channel.size())
-	{
-		trIRCChannelPermisions perms = client.getChanPerms(channel);
-
-		std::string message = from + ", " +channel + " mode is " + perms.mode;
-		client.sendMessage(respondTo,message);
-	}
-	return true;
-}
-
-class userInfoCommand : public botCommandHandler
-{
-public:
-	userInfoCommand() {name = "userinfo";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool userInfoCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	std::string userName;
-
-	if (privMsg)
-	{
-		if ( info->params.size()<2)
-			client.sendMessage(respondTo,"Usage: userinfo SOME_USER");
-		else
-			userName = info->params[1];
-	}
-	else
-	{
-		if ( info->params.size()<3)
-			client.sendMessage(respondTo,"Usage: userinfo SOME_USER");
-		else
-			userName = info->params[2];
-	}
-
-	if (userName.size())
-	{
-		IRCUserManager	&userManager = client.getUserManager();
-
-		if (!userManager.userExists(userName))
-		{
-			client.sendMessage(respondTo,std::string("Sorry ") + source + " I don't know about " + userName);
-			return true;
-		}
-
-		int userID = userManager.getUserID(userName);
-
-		client.sendMessage(respondTo,std::string("OK ") + from);
-		client.sendMessage(respondTo,userName + "'s host is " + userManager.getUserHost(userID));
-		if ( !userManager.userHasChannels(userID) )
-			client.sendMessage(respondTo,"and isn't in any channels");
-		else
-		{
-			string_list chans = userManager.listUserChannelNames(userID);
-			std::string message = "is in the folowing channel";
-			if ( chans.size() > 1)
-				message += "s";
-
-			string_list::iterator itr = chans.begin();
-			while ( itr != chans.end() )
-				message += std::string(" ") + *(itr++);
-			client.sendMessage(respondTo,message);
-		}
-
-		if ( userManager.userIsIdentified(userID) )
-			client.sendMessage(respondTo,"and is identified");
-
-		trIRCUserPermisions	perms = userManager.getUserPerms(userID);
-
-		if (perms.mode.size())
-			client.sendMessage(respondTo,std::string("MODE is set to \"") + perms.mode + "\"");
-
-		std::string lastSaid = userManager.getUserLastMessage(userID);
-		if ( lastSaid.size() )
-		{
-			client.sendMessage(respondTo,std::string("last said \"") + lastSaid + "\"");
-			if (userManager.getUserLastMessageChannel(userID) != -1)
-				client.sendMessage(respondTo,std::string("in ") + userManager.getUserLastMessageChannelName(userID) );
-		}
-	}
-	return true;
-}
-
-class chanInfoCommand : public botCommandHandler
-{
-public:
-	chanInfoCommand() {name = "chaninfo";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool chanInfoCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	std::string channelName;
-
-	if (privMsg)
-	{
-		if ( info->params.size()<2)
-			client.sendMessage(respondTo,"Usage: chaninfo SOME_CHANNEL");
-		else
-			channelName = info->params[1];
-	}
-	else
-	{
-		if ( info->params.size()<3)
-			client.sendMessage(respondTo,"Usage: chaninfo SOME_CHANNEL");
-		else
-			channelName = info->params[2];
-	}
-
-	if (channelName.size())
-	{
-		IRCUserManager	&userManager = client.getUserManager();
-
-		if (!userManager.channelExists(channelName))
-		{
-			client.sendMessage(respondTo,std::string("Sorry ") + from + " I don't know about " + channelName);
-			return true;
-		}
-
-		int chanID = userManager.getChannelID(channelName);
-
-		client.sendMessage(respondTo,std::string("OK ") + from);
-		client.sendMessage(respondTo,channelName + "'s topic is " + userManager.getChannelTopic(chanID));
-
-		string_list ops = client.listChanOps(channelName);
-
-		std::string message = "it's operators are, ";
-		string_list::iterator itr = ops.begin();
-		while ( itr != ops.end() )
-			message += std::string(" ") + *(itr++);
-		client.sendMessage(respondTo,message);
-
-		trIRCChannelPermisions	perms = userManager.getChannelPerms(chanID);
-
-		if (perms.mode.size())
-			client.sendMessage(respondTo,std::string("MODE is set to \"") + perms.mode + "\"");
-
-		std::string lastSaid = userManager.getChannelLastMessage(chanID);
-		if ( lastSaid.size() )
-		{
-			client.sendMessage(respondTo,std::string("last message was \"") + lastSaid + "\"");
-			client.sendMessage(respondTo,std::string("by ") + userManager.getChannelLastMessageUserName(chanID));
-		}
+		theBotInfo.masterInfo.masters.push_back(master);
 	}
 	return true;
 }
@@ -1832,29 +1473,6 @@ bool helpCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
-class factoidListCommand : public botCommandHandler
-{
-public:
-	factoidListCommand() {name = "factoidlist";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool factoidListCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	factoidMap::iterator itr = theBotInfo.factoids.begin();
-	std::string message = "Current factoids;";
-
-	while (itr != theBotInfo.factoids.end())
-	{
-		message += std::string(" ") + itr->first;
-		itr++;
-	}
-
-	client.sendMessage(respondTo,message);
-
-	return true;
-}
-
 class kickCommand : public botCommandHandler
 {
 public:
@@ -1863,41 +1481,35 @@ public:
 };
 
 bool kickCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+{	
+	if (privMsg)
 		return true;
+
+	std::string hostmask = client.getUserManager().getUserHost(from);
+	if (!isChannelMaster(respondTo,from,hostmask))
+	{
+		if(!checkMaster(from,hostmask,respondTo))
+			return true;
+	}
 
 	std::string bastard;
 	std::string channel;
 	std::string reason;
 
-	if (privMsg)
-	{
-		if ( info->params.size()<4)
-			client.sendMessage(respondTo,"Usage: kick SOME_CHANNEL SOME_POOR_BASTARD SOME_LAME_REASON");
-		else
-		{
-			bastard = info->params[1];
-			channel = info->params[2];
-			reason = info->getAsString(3);
-		}
-	}
+
+	if ( info->params.size()<3)
+		client.sendMessage(respondTo,"Usage: kick SOME_POOR_BASTARD SOME_LAME_REASON");
 	else
 	{
-		if ( info->params.size()<5)
-			client.sendMessage(respondTo,"Usage: kick SOME_CHANNEL SOME_POOR_BASTARD SOME_LAME_REASON");
-		else{
-			bastard = info->params[2];
-			channel = info->params[3];
-			reason = info->getAsString(4);
-		}
+		bastard = info->params[2];
+		reason = info->getAsString(3);
 	}
 
 	if (bastard.size())
 	{
 		client.sendMessage(respondTo,std::string("OK ") + from);
 
-		client.kick(bastard,channel,reason);
+		client.kick(bastard,respondTo,reason);
 	}
 	return true;
 }
@@ -1998,41 +1610,6 @@ bool addSpamHostCommand::command ( std::string command, std::string source, std:
 	return true;
 }
 
-class beNiceCommand : public botCommandHandler
-{
-public:
-	beNiceCommand() {name = "benice";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool beNiceCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
-		return true;
-
-	shitList.clear();
-	theBotInfo.beNice = true;
-	client.sendMessage(respondTo,std::string("Playing it safe ") + from);
-	return true;
-}
-
-class hardballCommand : public botCommandHandler
-{
-public:
-	hardballCommand() {name = "hardball";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
-};
-
-bool hardballCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
-{
-	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
-		return true;
-
-	theBotInfo.beNice = false;
-	client.sendMessage(respondTo,std::string("Playing for keeps ") + from);
-	return true;
-}
-
 class masterVerifyCommand : public botCommandHandler
 {
 public:
@@ -2066,6 +1643,42 @@ bool masterVerifyCommand::command ( std::string command, std::string source, std
 	return true;
 }
 
+bool setOpt ( trChannelInfo &chanInfo, std::string &option, std::string value )
+{
+	value = string_util::tolower(value);
+	bool valueB = false;
+
+	if ( value == "0" || value == "off" || value == "disable" || value == "false" || value == "f")
+		valueB = false;
+	if ( value == "1" || value == "on" || value == "enable" || value == "true" || value == "t")
+		valueB = true;
+
+	option = string_util::tolower(option);
+
+	if ( option == "repeatcheck" )
+	{
+		chanInfo.checkRepeats = valueB;
+		chanInfo.repeatLimits = 3;
+	}
+	else if ( option == "filtercheck" )
+		chanInfo.fiterMessages = valueB;
+	else if ( option == "hostcheck" )
+		chanInfo.filterHosts = valueB;
+	else if ( option == "bantol" )
+		chanInfo.banTolerance = atoi(value.c_str());
+	else if ( option == "kickb4ban" )
+		chanInfo.kickBeforeBan = valueB;
+	else if ( option == "hibernate" )
+		chanInfo.hibernate = valueB;
+	else
+		return false;
+
+	if ( chanInfo.banTolerance  < 1 )
+		chanInfo.banTolerance = 1;
+
+	return true;
+}
+
 class setOptCommand : public botCommandHandler
 {
 public:
@@ -2074,7 +1687,7 @@ public:
 	virtual bool help ( std::string respondTo, bool privMsg = false )
 	{
 		client.sendMessage(respondTo,std::string("Usage: setopt SOME_OPTION SOME_VALUE"));
-		client.sendMessage(respondTo,std::string("Valid Options: repeatcheck, filtercheck, hostcheck, dicklimit"));
+		client.sendMessage(respondTo,std::string("Valid Options: kickb4ban, repeatcheck, filtercheck, hostcheck, bantol"));
 		client.sendMessage(respondTo,std::string("Valid Values: 0, Off, False, 1, On, True"));
 		return true;	
 	};
@@ -2109,33 +1722,47 @@ bool setOptCommand::command ( std::string command, std::string source, std::stri
 		}
 	}
 
-	value = string_util::tolower(value);
-
-	if ( value == "0" || value == "off" || value == "disable" || value == "false" || value == "f")
-		valueB = false;
-	if ( value == "1" || value == "on" || value == "enable" || value == "true" || value == "t")
-		valueB = true;
-
-	option = string_util::tolower(option);
-
-	if ( option == "repeatcheck" )
-		theBotInfo.doRepeatCheck = valueB;
-	else if ( option == "filtercheck" )
-		theBotInfo.doMessageFilter = valueB;
-	else if ( option == "hostcheck" )
-		theBotInfo.doHostFilter = valueB;
-	else if ( option == "dicklimit" )
-		theBotInfo.dickTol = atoi(value.c_str());
-	else
+	if(!setOpt(theBotInfo.masterInfo,option,value))
 	{
 		client.sendMessage(respondTo,std::string("Unknown option ") + option);
 		return true;
 	}
 
-	if ( theBotInfo.dickTol < 1 )
-		theBotInfo.dickTol = 1;
-
 	client.sendMessage(respondTo,std::string("OK ") + from);
+
+	return true;
+}
+
+bool setWhiteList ( trChannelInfo &chanInfo, std::string &command, std::string &value )
+{
+	if ( command == "nick)" )
+		chanInfo.whiteNicks.push_back(value);
+	else if ( command == "host" )
+		chanInfo.whiteHosts.push_back(value);
+	else if ( command == "nick-" )
+	{
+		string_list::iterator itr = chanInfo.whiteNicks.begin();
+		while (itr != chanInfo.whiteNicks.end())
+		{
+			if (*itr == value)
+				itr == chanInfo.whiteNicks.erase(itr);
+			else
+				itr++;
+		}
+	}
+	else if ( command == "host-" )
+	{
+		string_list::iterator itr = chanInfo.whiteHosts.begin();
+		while (itr != chanInfo.whiteHosts.end())
+		{
+			if (*itr == value)
+				itr == chanInfo.whiteHosts.erase(itr);
+			else
+				itr++;
+		}
+	}
+	else
+		return false;
 
 	return true;
 }
@@ -2185,33 +1812,7 @@ bool whiteListCommand::command ( std::string command, std::string source, std::s
 	value = string_util::tolower(value);
 	option = string_util::tolower(option);
 
-	if ( option == "nick)" )
-		nickWhiteList.push_back(option);
-	else if ( option == "host" )
-		hostWhiteList.push_back(option);
-	else if ( option == "nick-" )
-	{
-		string_list::iterator itr = nickWhiteList.begin();
-		while (itr != nickWhiteList.end())
-		{
-			if (*itr == option)
-				itr == nickWhiteList.erase(itr);
-			else
-				itr++;
-		}
-	}
-	else if ( option == "host-" )
-	{
-		string_list::iterator itr = hostWhiteList.begin();
-		while (itr != hostWhiteList.end())
-		{
-			if (*itr == option)
-				itr == hostWhiteList.erase(itr);
-			else
-				itr++;
-		}
-	}
-	else
+	if (!setWhiteList ( theBotInfo.masterInfo, option, value ))
 	{
 		client.sendMessage(respondTo,std::string("Unknown option ") + option);
 		return true;
@@ -2219,8 +1820,155 @@ bool whiteListCommand::command ( std::string command, std::string source, std::s
 
 	writeDatabase();
 
-	if ( theBotInfo.dickTol < 1 )
-		theBotInfo.dickTol = 1;
+	client.sendMessage(respondTo,std::string("OK ") + from);
+
+	return true;
+}
+
+class setChanOptCommand : public botCommandHandler
+{
+public:
+	setChanOptCommand() {name = "setchanopt";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("Usage: setChanOpt SOME_OPTION SOME_VALUE"));
+		client.sendMessage(respondTo,std::string("Valid Options: hibernate, kickb4ban, repeatcheck, filtercheck, hostcheck, bantol"));
+		client.sendMessage(respondTo,std::string("Valid Values: 0, Off, False, 1, On, True"));
+		client.sendMessage(respondTo,std::string("Only Sets the optiosn for this channel"));
+		return true;	
+	};
+};
+
+bool setChanOptCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (privMsg)
+		return false;
+
+	// has to be a channel master or a master
+
+	std::string hostmask = client.getUserManager().getUserHost(from);
+	if (!isChannelMaster(respondTo,from,hostmask))
+	{
+		if(!checkMaster(from,hostmask,respondTo))
+			return true;
+	}
+
+	std::string option;
+	std::string value;
+	bool		valueB = false;
+
+	trChannelInfo &chanInfo = getChannelInfo(respondTo);
+
+	if ( info->params.size()<4)
+		client.sendMessage(respondTo,"Usage: setopt SOME_OPTION SOME_VALUE");
+	else
+	{
+		option = info->params[2];
+		value = info->params[3];
+	}
+
+	if(!setOpt(chanInfo,option,value))
+	{
+		client.sendMessage(respondTo,std::string("Unknown option ") + option);
+		return true;
+	}
+
+	client.sendMessage(respondTo,std::string("OK ") + from);
+	saveConfig();
+
+	return true;
+}
+
+class addChanMasterCommand : public botCommandHandler
+{
+public:
+	addChanMasterCommand() {name = "addChanMaster";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool addChanMasterCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!checkMaster(from,client.getUserManager().getUserHost(from),respondTo))
+		return true;
+
+	std::string newMaster;
+
+	if (privMsg)
+		return true;
+
+	if ( info->params.size()<3)
+		client.sendMessage(respondTo,"Usage: addChanMaster SOME_DUDE");
+	else
+		newMaster = info->params[2];
+
+	trChannelInfo &chanInfo = getChannelInfo(respondTo);
+
+	if (newMaster.size())
+	{
+		std::string message = "Ok, " + from + ", user, " + newMaster + " added to channel masters list";
+		client.sendMessage(respondTo,message);
+
+		trMaster master;
+		master.hostmask = client.getUserManager().getUserHost(newMaster);
+		master.verification = eUnverified;
+		master.master = string_util::tolower(newMaster);
+		chanInfo.masters.push_back(master);
+
+		saveConfig();
+	}
+	return true;
+}
+
+class chanWhiteListCommand : public botCommandHandler
+{
+public:
+	chanWhiteListCommand() {name = "chanwhitelist";}
+	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	virtual bool help ( std::string respondTo, bool privMsg = false )
+	{
+		client.sendMessage(respondTo,std::string("Usage: chanWhiteListCommand SOME_OPTION SOME_VALUE"));
+		client.sendMessage(respondTo,std::string("Valid Options: nick, host, nick-, host-"));
+		client.sendMessage(respondTo,std::string("Valid Values: a nick or a host"));
+		return true;	
+	};
+};
+
+bool chanWhiteListCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (privMsg)
+		return true;
+		
+
+	std::string hostmask = client.getUserManager().getUserHost(from);
+	if (!isChannelMaster(respondTo,from,hostmask))
+	{
+		if(!checkMaster(from,hostmask,respondTo))
+			return true;
+	}
+
+	std::string option;
+	std::string value;
+	trChannelInfo &chanInfo = getChannelInfo(respondTo);
+
+	if ( info->params.size()<4)
+		client.sendMessage(respondTo,"Usage: whitelist SOME_OPTION SOME_VALUE");
+	else
+	{
+		option = info->params[2];
+		value = info->params[3];
+	}
+
+	value = string_util::tolower(value);
+	option = string_util::tolower(option);
+
+	if (!setWhiteList ( chanInfo, option, value ))
+	{
+		client.sendMessage(respondTo,std::string("Unknown option ") + option);
+		return true;
+	}
+
+	saveConfig();
 
 	client.sendMessage(respondTo,std::string("OK ") + from);
 
@@ -2230,50 +1978,24 @@ bool whiteListCommand::command ( std::string command, std::string source, std::s
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
-	installBotCommand(new helloCommand);
-	installBotCommand(new factoidCommand);
-	installBotCommand(new channelCommand);
 	installBotCommand(new flushCommand);
 	installBotCommand(new rawCommand);
 	installBotCommand(new channelsCommand);
 	installBotCommand(new partCommand);
 	installBotCommand(new joinCommand);
 	installBotCommand(new permaJoinCommand);
-	installBotCommand(new usersCommand);
-	installBotCommand(new allUsersCommand);
-	installBotCommand(new addjoinCommand);
 	installBotCommand(new addmasterCommand);
-	installBotCommand(new libVersCommand);
-	installBotCommand(new chanPermsCommand);
-	installBotCommand(new userInfoCommand);
-	installBotCommand(new chanInfoCommand);
 	installBotCommand(new helpCommand);
-	installBotCommand(new factoidListCommand);
 	installBotCommand(new kickCommand);
 	installBotCommand(new addSpamCommand);
 	installBotCommand(new addSpamHostCommand);
-	installBotCommand(new beNiceCommand);
-	installBotCommand(new hardballCommand);
 	installBotCommand(new masterVerifyCommand);
 	installBotCommand(new setOptCommand);
 	installBotCommand(new whiteListCommand);
+
+	// channel commands
+	installBotCommand(new setChanOptCommand);
+	installBotCommand(new addChanMasterCommand);
+	installBotCommand(new chanWhiteListCommand);
+
 }
-
-BotNumericsHandler::BotNumericsHandler()
-{
-	name = "NUMERIC";
-}
-
-bool BotNumericsHandler::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info )
-{
-	int numeric = atoi(info.command.c_str());
-
-	switch(numeric)
-	{
-	case 311:
-	case 320:
-		break;
-	}
-	return true;
-}
-
