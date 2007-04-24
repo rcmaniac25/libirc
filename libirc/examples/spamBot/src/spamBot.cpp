@@ -658,10 +658,6 @@ bool checkForRepeatedMessages ( std::string &channel, std::string &hostmask, std
 			return true; // it's the same thing, fromt he same person and its long it's spam
 	}
 
-	// it was difrent, save it
-	chanInfo.lastHostMask = hostmask;
-	chanInfo.lastMessage = message;
-
 	if (chanInfo.userInfo.find(hostmask) == chanInfo.userInfo.end())
 	{
 		trUserInfo temp;
@@ -996,7 +992,7 @@ void channelMessage ( trMessageEventInfo *info )
 
 	firstWord = string_util::tolower(firstWord);
 
-	bool master = isMaster(info->from);
+	trChannelInfo	&chanInfo = getChannelInfo(info->target);
 
 	if ( isForMe(firstWord) )
 	{
@@ -1021,6 +1017,10 @@ void channelMessage ( trMessageEventInfo *info )
 
 		if (!isExempt(info->target,info->from,hostmask))
 			checkForSpam(info->target,info->from,info->message);
+
+		// it was difrent, save it
+		chanInfo.lastHostMask = hostmask;
+		chanInfo.lastMessage = info->message;
 	}
 }
 
