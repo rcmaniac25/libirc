@@ -519,40 +519,40 @@ void saveConfig ( void )
 		trChannelInfo	&info = getChannelInfo(theBotInfo.startupChannels[i]);
 
 		if(info.kickBeforeBan)
-			fprintf(fp,"chanopt:benice 1 %s",lineEnd.c_str());
+			fprintf(fp,"chanopt:%s benice 1 %s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 		else
-			fprintf(fp,"chanopt:benice 0 %s",lineEnd.c_str());
+			fprintf(fp,"chanopt:%s benice 0 %s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 
 		if(info.fiterMessages)
-			fprintf(fp,"chanopt:filterchat 1 %s",lineEnd.c_str());
+			fprintf(fp,"chanopt:%s filterchat 1 %s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 		else
-			fprintf(fp,"chanopt:filterchat 0 %s",lineEnd.c_str());
+			fprintf(fp,"chanopt:%s filterchat 0 %s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 
 		if(info.filterHosts)
-			fprintf(fp,"chanopt:filterhosts 1 %s",lineEnd.c_str());
+			fprintf(fp,"chanopt:%s filterhosts 1 %s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 		else
-			fprintf(fp,"chanopt:filterhosts 0 %s",lineEnd.c_str());
+			fprintf(fp,"chanopt:%s filterhosts 0 %s",theBotInfo.startupChannels[i].c_str(),lineEnd.c_str());
 
-		fprintf(fp,"chanopt:bantol %d %s",info.banTolerance,lineEnd.c_str());
-		fprintf(fp,"chanopt:checkRepeats %d %s",info.repeatLimits,lineEnd.c_str());
+		fprintf(fp,"chanopt:%s bantol %d %s",theBotInfo.startupChannels[i].c_str(),info.banTolerance,lineEnd.c_str());
+		fprintf(fp,"chanopt:%s checkRepeats %d %s",theBotInfo.startupChannels[i].c_str(),info.repeatLimits,lineEnd.c_str());
 		for ( unsigned int t = 0; t < info.whiteHosts.size(); t++ )
-			fprintf(fp,"chanmaster:whitehost %s%s",info.whiteHosts[t].c_str(),lineEnd.c_str());
+			fprintf(fp,"chanmaster:%s whitehost %s%s",theBotInfo.startupChannels[i].c_str(),info.whiteHosts[t].c_str(),lineEnd.c_str());
 		for ( unsigned int t = 0; t < info.whiteNicks.size(); t++ )
-			fprintf(fp,"chanmaster:whitenick %s%s",info.whiteNicks[t].c_str(),lineEnd.c_str());
+			fprintf(fp,"chanmaster:%s whitenick %s%s",theBotInfo.startupChannels[i].c_str(),info.whiteNicks[t].c_str(),lineEnd.c_str());
 
 		for ( unsigned int t = 0; t < info.masters.size(); t++ )
 		{
 			if (info.masters[t].hostmask.size())
-				fprintf(fp,"chanmaster:%s %s%s",info.masters[t].master.c_str(),info.masters[t].hostmask.c_str(),lineEnd.c_str());
+				fprintf(fp,"chanmaster:%s %s %s%s",theBotInfo.startupChannels[i].c_str(),info.masters[t].master.c_str(),info.masters[t].hostmask.c_str(),lineEnd.c_str());
 			else
-				fprintf(fp,"chanmaster:%s%s",info.masters[t].master.c_str(),lineEnd.c_str());
+				fprintf(fp,"chanmaster:%s %s%s",theBotInfo.startupChannels[i].c_str(),info.masters[t].master.c_str(),lineEnd.c_str());
 		}
 
 		for ( unsigned int t = 0; t < info.connectMessages.size(); t++ )
-			fprintf(fp,"chanconnectmessage:%s \"%s\"%s",info.connectMessages[t].to.c_str(),info.connectMessages[t].message.c_str(),lineEnd.c_str());	
+			fprintf(fp,"chanconnectmessage:%s %s \"%s\"%s",theBotInfo.startupChannels[i].c_str(),info.connectMessages[t].to.c_str(),info.connectMessages[t].message.c_str(),lineEnd.c_str());	
 	
 		for ( unsigned int t = 0; t < info.joinMessags.size(); t++ )
-			fprintf(fp,"joinmessage:\"%s\"%s",info.joinMessags[t].c_str(),lineEnd.c_str());
+			fprintf(fp,"joinmessage:%s \"%s\"%s",theBotInfo.startupChannels[i].c_str(),info.joinMessags[t].c_str(),lineEnd.c_str());
 	}
 
 	fprintf(fp,"%s",lineEnd.c_str());
