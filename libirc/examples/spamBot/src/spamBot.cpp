@@ -41,13 +41,10 @@ string_list								hostWhiteList;
 
 std::map<std::string,int>				shitList;
 
-
-class BotNumericsHandler : public IRCClientCommandHandler
+typedef struct 
 {
-public:
-	BotNumericsHandler();
-	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
-};
+	std::vector<std::string> history;
+}trUserInfo;
 
 BotNumericsHandler	botNumericsHandler;
 
@@ -67,30 +64,75 @@ typedef struct
 
 typedef struct 
 {
+	std::string to;
+	std::string message;
+}trPrivateMessageRecord;
+
+typedef struct trChannelInfo
+{
+	bool								checkRepeats;
+	bool								fiterMessages;
+	bool								filterHosts;
+	int									banTolerance;
+	bool								kickBeforeBan;
+
+	int									repeatLimits;
+	
+	std::map<std::string,trUserInfo>	userInfo;
+	std::string							lastMessage;
+	std::vector<trMaster>				masters;
+	std::vector<std::string>			whiteHosts;
+	std::vector<std::string>			whiteNicks;
+	string_list							joinMessags;
+	std::vector<trPrivateMessageRecord> connectMessages;
+
+	trChannelInfo()
+	{
+		checkRepeats = true;
+		fiterMessages = true;
+		filterHosts = true;
+		banTolerance = 3;
+		kickBeforeBan = false;
+		repeatLimits = 2;
+	}
+}trChannelInfo;
+
+std::map<std::string, trChannelInfo> channelInfo;
+
+class BotNumericsHandler : public IRCClientCommandHandler
+{
+public:
+	BotNumericsHandler();
+	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+};
+
+typedef struct 
+{
 	string_list commandStrings;
 	std::string server;
 	int			port;
+
 	string_list	nicks;
 	int			nick;
+	bool		ghost;
+	std::string password;
+
 	std::string username;
 	std::string host;
 	std::string realName;
-	string_list channels;
-	std::vector<trMaster>	masterList;
+	
+	string_list startupChannels;
+
+	trChannelInfo masterInfo;
+
 	string_list unknownResponces;
 	string_list	partMessages;
 	string_list	quitMessages;
 	factoidMap	factoids;
-	string_map	joinMessages;
+	
 	std::string config;
 	std::string databaseFile;
-	bool		beNice;
-	int			dickTol;
-	std::string password;
-
-	bool		doRepeatCheck;
-	bool		doMessageFilter;
-	bool		doHostFilter;
+	
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -141,6 +183,19 @@ std::string getRandomString ( string_list &source )
 	return source[(int)(rand()%(source.size()))];
 }
 
+trChannelInfo& getChannelInfo ( std::string &channel )
+{
+	if (channelInfo.find(channel) == channelInfo.end())
+	{
+		trChannelInfo info;
+		info.checkRepeats = theBotInfo.masterInfo.checkRepeats;
+		info.fiterMessages = theBotInfo.masterInfo.fiterMessages;
+		info.filterHosts = theBotInfo.masterInfo.filterHosts;
+	}
+
+	return channelInfo[channel];
+}
+
 void readDatabase ( void )
 {
 	spamMatches.clear();
@@ -187,9 +242,9 @@ void readDatabase ( void )
 			else if (key=="host")
 				spamHosts.push_back(nubs[1]);
 			else if (key == "whitenick")
-				nickWhiteList.push_back(nubs[1]);
+				theBotInfo.masterInfo.whiteNicks.push_back(nubs[1]);
 			else if (key == "whitehost")
-				hostWhiteList.push_back(nubs[1]);
+				theBotInfo.masterInfo.whiteHosts.push_back(nubs[1]);
 		}
 	}
 }
@@ -216,11 +271,11 @@ void writeDatabase ( void )
 	for ( unsigned int i = 0; i < spamHosts.size(); i++)
 		fprintf(fp,"host^%s%s",spamHosts[i].c_str(),lineEnd.c_str());
 	
-	for ( unsigned int i = 0; i < nickWhiteList.size(); i++)
-		fprintf(fp,"whitenick^%s%s",nickWhiteList[i].c_str(),lineEnd.c_str());
+	for ( unsigned int i = 0; i < theBotInfo.masterInfo.whiteNicks.size(); i++)
+		fprintf(fp,"whitenick^%s%s",theBotInfo.masterInfo.whiteNicks[i].c_str(),lineEnd.c_str());
 	
-	for ( unsigned int i = 0; i < hostWhiteList.size(); i++)
-		fprintf(fp,"whitehost^%s%s",hostWhiteList[i].c_str(),lineEnd.c_str());
+	for ( unsigned int i = 0; i < theBotInfo.masterInfo.whiteHosts.size(); i++)
+		fprintf(fp,"whitehost^%s%s",theBotInfo.masterInfo.whiteHosts[i].c_str(),lineEnd.c_str());
 
 	fclose(fp);
 }
@@ -253,12 +308,8 @@ void readConfig ( std::string file )
 	lineEnd = "\n";
 #endif
 
-	theBotInfo.beNice = false;
-	theBotInfo.dickTol = 3;
-
-	theBotInfo.doRepeatCheck = true;
-	theBotInfo.doMessageFilter = true;
-	theBotInfo.doHostFilter = true;
+	// defautl data
+	theBotInfo.ghost = false;
 
 	string_list lines = string_util::tokenize(config,lineEnd);
 
@@ -286,6 +337,10 @@ void readConfig ( std::string file )
 			{
 				theBotInfo.nicks.push_back(dataStr);
 			}
+			else if (command == "ghost")
+			{
+				theBotInfo.ghost = dataStr != "0";
+			}
 			else if (command == "server")
 			{
 				theBotInfo.server = dataStr;
@@ -308,7 +363,7 @@ void readConfig ( std::string file )
 			}
 			else if (command == "channel")
 			{
-				theBotInfo.channels.push_back(dataStr);
+				theBotInfo.startupChannels.push_back(dataStr);
 			}
 			else if (command == "master")
 			{
@@ -321,11 +376,63 @@ void readConfig ( std::string file )
 				}
 				else
 					master.master = string_util::tolower(dataStr);
-				theBotInfo.masterList.push_back(master);
+				theBotInfo.masterInfo.masters.push_back(master);
+			}
+			else if (command == "chanmaster")
+			{
+				if (params.size() > 1)
+				{
+					trMaster	master;
+					master.verification = eUnverified;
+					if (params.size() > 2)
+					{
+						master.master = params[1];
+						master.hostmask = params[2];
+					}
+					else
+						master.master = string_util::tolower(dataStr);
+
+					getChannelInfo(params[0]).masters.push_back(master);
+				}
+			}
+			else if (command == "chanopt")
+			{
+				if (params.size() > 2)
+				{
+					if ( params[1] == "filterchat")
+						getChannelInfo(params[0]).fiterMessages = params[2] != "0";
+					else if ( params[1] == "filterhosts")
+						getChannelInfo(params[0]).filterHosts = params[2] != "0";
+					else if ( params[1] == "checkRepeats")
+					{
+						getChannelInfo(params[0]).checkRepeats = params[2] != "0";
+						getChannelInfo(params[0]).repeatLimits = atoi(params[0]);
+						if ( getChannelInfo(params[0]).repeatLimits < 2 )
+							getChannelInfo(params[0]).repeatLimits = 2;
+					}
+					else if (params[1] == "bantol" )
+						getChannelInfo(params[0]).banTolerance = atoi(params[0]); 
+					else if ( params[1] == "benice")
+						getChannelInfo(params[0]).kickBeforeBan = params[2] != "0"; 
+					else if ( params[1] == "whitehost")
+						getChannelInfo(params[0]).whiteHosts.push_back(params[2]); 
+					else if ( params[1] == "whitenick")
+						getChannelInfo(params[0]).whiteNicks.push_back(params[2]); 
+				}
+			}
+			else if (command == "chanconnectmessage")
+			{
+				if (params.size() > 2)
+				{
+					trPrivateMessageRecord record;
+					record.to = params[1];
+					record.message = params[2];
+					getChannelInfo(params[0]).connectMessages.push_back(record);
+				}
 			}
 			else if (command == "joinmessage")
 			{
-				theBotInfo.joinMessages[params[0]] = params[1];
+				getChannelInfo(params[0]).joinMessags.push_back(params[1]);
 			}
 			else if (command == "dontknow")
 			{
@@ -422,6 +529,8 @@ void saveConfig ( void )
 		stringItr++;
 	}
 
+	fprintf(fp,"ghost:%s%s",theBotInfo.ghost ? "1" : "0",lineEnd.c_str());
+
 	stringItr = theBotInfo.commandStrings.begin();
 	while ( stringItr != theBotInfo.commandStrings.end() )
 	{
@@ -441,36 +550,51 @@ void saveConfig ( void )
 		fprintf(fp,"database:%s%s",theBotInfo.databaseFile.c_str(),lineEnd.c_str());
 
 	// channels
-	stringItr = theBotInfo.channels.begin();
+	stringItr = theBotInfo.startupChannels.begin();
 
-	while ( stringItr != theBotInfo.channels.end() )
+	for ( unsigned int i = 0; i <  theBotInfo.channels.size(); i++ )
 	{
-		fprintf(fp,"channel:%s%s",stringItr->c_str(),lineEnd.c_str());
-		stringItr++;
+		fprintf(fp,"channel:%s%s",theBotInfo.channels[i].c_str(),lineEnd.c_str());
+		
+		trChannelInfo	&info = getChannelInfo(theBotInfo.channels[i]);
+		fprintf(fp,"chanopt:benice %s %s",info.kickBeforeBan ? "1" | "0",lineEnd.c_str());
+		fprintf(fp,"chanopt:bantol %d %s",info.banTolerance,lineEnd.c_str());
+		fprintf(fp,"chanopt:filterchat %s %s",info.fiterMessages ? "1" | "0",lineEnd.c_str());
+		fprintf(fp,"chanopt:filterhosts %s %s",info.filterHosts ? "1" | "0",lineEnd.c_str());
+		fprintf(fp,"chanopt:checkRepeats %d %s",info.repeatLimits,lineEnd.c_str());
+		for ( unsigned int t = 0; t < info.whiteHosts.size(); t++ )
+			fprintf(fp,"chanmaster:whitehost %s%s",info.whiteHosts[t].c_str(),lineEnd.c_str());
+		for ( unsigned int t = 0; t < info.whiteNicks.size(); t++ )
+			fprintf(fp,"chanmaster:whitenick %s%s",info.whiteNicks[t].c_str(),lineEnd.c_str());
+
+		for ( unsigned int t = 0; t < info.masters.size(); t++ )
+		{
+			if (info.masters[t].hostmask.size())
+				fprintf(fp,"chanmaster:%s %s%s",info.masters[t].master.c_str(),info.masters[t].hostmask.c_str(),lineEnd.c_str());
+			else
+				fprintf(fp,"chanmaster:%s%s",info.masters[t].master.c_str(),lineEnd.c_str());
+		}
+
+		for ( unsigned int t = 0; t < info.connectMessages.size(); t++ )
+			fprintf(fp,"chanconnectmessage:%s \"%s\"%s",info.connectMessages[t].to.c_str(),info.connectMessages[t].message.c_str(),lineEnd.c_str());	
+	
+		for ( unsigned int t = 0; t < info.joinMessags.size(); t++ )
+			fprintf(fp,"joinmessage:\"%s\"%s",info.joinMessags[t].c_str(),lineEnd.c_str());
 	}
+
 	fprintf(fp,"%s",lineEnd.c_str());
 
 	// masters
 
-	for ( unsigned int i = 0; i <  theBotInfo.masterList.size(); i++ )
+	for ( unsigned int i = 0; i <  theBotInfo.masterInfo.masters.size(); i++ )
 	{
-		if (theBotInfo.masterList[i].hostmask.size())
-			fprintf(fp,"master:%s %s%s",theBotInfo.masterList[i].master.c_str(),theBotInfo.masterList[i].hostmask.c_str(),lineEnd.c_str());
+		if (theBotInfo.masterInfo.masters[i].hostmask.size())
+			fprintf(fp,"master:%s %s%s",theBotInfo.masterInfo.masters[i].master.c_str(),theBotInfo.masterInfo.masters[i].hostmask.c_str(),lineEnd.c_str());
 		else
-			fprintf(fp,"master:%s%s",theBotInfo.masterList[i].master.c_str(),lineEnd.c_str());
+			fprintf(fp,"master:%s%s",theBotInfo.masterInfo.masters[i].master.c_str(),lineEnd.c_str());
 	}
 	fprintf(fp,"%s",lineEnd.c_str());
 	
-	// join messages
-	string_map::iterator stringMapItr = theBotInfo.joinMessages.begin();
-
-	while ( stringMapItr != theBotInfo.joinMessages.end() )
-	{
-		fprintf(fp,"joinmessage:%s \"%s\"%s",stringMapItr->first.c_str(),stringMapItr->second.c_str(),lineEnd.c_str());
-		stringMapItr++;
-	}
-	fprintf(fp,"%s",lineEnd.c_str());
-
 	// don't knows
 	stringItr = theBotInfo.unknownResponces.begin();
 
@@ -1050,8 +1174,7 @@ bool factoidCommand::command ( std::string command, std::string source, std::str
 	factoidMap::iterator itr = theBotInfo.factoids.find(factoid);
 	if (itr == theBotInfo.factoids.end())
 	{
-
-		if ( (info->params.size() > 1+paramOffset) && (info->params[1+paramOffset] == "is") )
+		if ( ((int)info->params.size() > 1+paramOffset) && (info->params[1+paramOffset] == "is") )
 		{
 			trFactoid	newFactoid;
 			
@@ -2121,7 +2244,6 @@ void registerBotCommands ( void )
 	installBotCommand(new addjoinCommand);
 	installBotCommand(new addmasterCommand);
 	installBotCommand(new libVersCommand);
-	installBotCommand(new longTestCommand);
 	installBotCommand(new chanPermsCommand);
 	installBotCommand(new userInfoCommand);
 	installBotCommand(new chanInfoCommand);
