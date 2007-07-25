@@ -599,7 +599,7 @@ bool TCPServerConnection::disconectPeer ( TCPServerConnectedPeer* peer )
 	if (!peer)
 		return false;
 
-	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = peers.begin();
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = peers.begin(), itr2 = peers.begin();
 
 	while ( itr != peers.end() )
 	{
@@ -612,7 +612,10 @@ bool TCPServerConnection::disconectPeer ( TCPServerConnectedPeer* peer )
 			net_TCP_DelSocket(socketSet, itr->first);
 			net_TCP_Close(itr->first);
 
-			itr = peers.erase(itr);
+			itr2 = itr;
+			itr2++;
+			peers.erase(itr);
+			itr = itr2;
 			return true;
 		}
 		itr++;
