@@ -573,7 +573,7 @@ TCPServerConnectedPeer* TCPServerConnection::getPeerFromUID ( unsigned int UID )
 
 bool TCPServerConnection::disconectPeer ( unsigned int UID )
 {
-	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = peers.begin();
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = peers.begin(), itr2 = peers.begin();
 
 	while ( itr != peers.end() )
 	{
@@ -586,7 +586,10 @@ bool TCPServerConnection::disconectPeer ( unsigned int UID )
 			net_TCP_DelSocket(socketSet, itr->first);
 			net_TCP_Close(itr->first);
 
-			itr = peers.erase(itr);
+			itr2 = itr;
+			itr2++;
+			peers.erase(itr);
+			itr = itr2;
 			return true;
 		}
 		itr++;
@@ -658,7 +661,7 @@ bool TCPServerConnection::update ( void )
 		}
 	}
 
-	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = peers.begin();
+	std::map<TCPsocket,TCPServerConnectedPeer>::iterator itr = peers.begin(), itr2 = peers.begin();
 
 	while ( itr != peers.end() )
 	{
@@ -681,7 +684,12 @@ bool TCPServerConnection::update ( void )
 
 				net_TCP_DelSocket(socketSet, itr->first);
 				net_TCP_Close(itr->first);
-				itr = peers.erase(itr);
+
+				itr2 = itr;
+				itr2++;
+				peers.erase(itr);
+				itr = itr2;
+				return true;
 			}
 		}
 		else
