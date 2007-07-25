@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libIRC.la
 
 libIRC_la_SOURCES = 	\
 	TCPConnection.cpp \
-	TextUtils.cxx	\
+	IRCTextUtils.cxx	\
 	ircCommands.cpp	\
 	libIRC.cpp 		\
 	IRCClient.cpp 		\

@@ -210,7 +210,7 @@
 				Name="utils"
 				>
 				<File
-					RelativePath="..\src\TextUtils.cxx"
+					RelativePath="..\src\IRCTextUtils.cxx"
 					>
 				</File>
 			</Filter>

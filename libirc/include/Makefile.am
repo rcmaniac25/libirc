@@ -2,7 +2,7 @@
 
 include_HEADERS = \
 	TCPConnection.h \
-	TextUtils.h	\
+	IRCTextUtils.h	\
 	Singleton.h \
 	IRCNumerics.h \
 	IRCEvents.h \
