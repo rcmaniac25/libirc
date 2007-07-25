@@ -29,6 +29,7 @@ typedef enum
 	eIRCNickNameChange,
 	eIRCWelcomeEvent,
 	eIRCEndMOTDEvent,
+	eIRCConnectedEvent,
 	eIRCChannelJoinEvent,
 	eIRCChannelPartEvent,
 	eIRCChannelBanEvent,

@@ -52,6 +52,7 @@ void IRCClient::endMOTD ( void )
 
 	trBaseEventInfo	info;	// no info
 	callEventHandler(eIRCEndMOTDEvent,info);
+	callEventHandler(eIRCConnectedEvent,info);
 }	
 
 void IRCClient::joinMessage ( BaseIRCCommandInfo	&info )
