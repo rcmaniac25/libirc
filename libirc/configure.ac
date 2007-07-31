@@ -612,44 +612,15 @@ AC_CONFIG_FILES([
 	examples/stupidBot/Makefile
 	examples/stupidBot/src/Makefile
 	include/Makefile
+	m4/Makefile
 	misc/Makefile
 	src/Makefile
 ])
 
 AC_OUTPUT
 
-
-#################
-# patch libtool #
-#################
-case $host_os in
-    darwin*)
-	for script in $ac_top_builddir $ac_abs_builddir $ac_builddir . ; do
-	    if test "x$script" = "x" ; then
-		libtoolscript="libtool"
-	    else
-		libtoolscript="${script}/libtool"
-	    fi
-	    if test -f ${libtoolscript} ; then
-		if test -w ${libtoolscript} ; then
-		    # remove any -all_load option.
-		    # provokes libtool linker bug with noinst libraries.
-		    sed 's/-all_load.*convenience//g' < $libtoolscript > ${libtoolscript}.sed
-		    sed "s/temp_rpath=\$/temp_rpath=$TCL_PATH:$TK_PATH/g" < $libtoolscript.sed > ${libtoolscript}.sed2
-		    if test ! "x`cat ${libtoolscript}`" = "x`cat ${libtoolscript}.sed2`" ; then
-			AC_MSG_RESULT([Found -all_load in libtool script, removing])
-			cp ${libtoolscript}.sed2 ${libtoolscript}
-		    fi
-		    rm -f ${libtoolscript}.sed
-		    rm -f ${libtoolscript}.sed2
-		else
-		    AC_MSG_WARN([libtool script exists but is not writable so not attempting to edit])
-		fi
-	    fi
-	done
-	;;
-esac
-
+# patch libtool if it has the -all_load bug
+BC_PATCH_LIBTOOL
 
 dnl
 dnl Expand the variables for summary reporting

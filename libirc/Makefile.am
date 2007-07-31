@@ -11,6 +11,7 @@ endif
 
 SUBDIRS = \
 	include \
+	m4 \
 	misc \
 	src \
 	$(EXAMPLES)
@@ -18,6 +19,7 @@ SUBDIRS = \
 DIST_SUBDIRS = \
 	examples \
 	include \
+	m4 \
 	misc \
 	src \
 	vc7.1 \
