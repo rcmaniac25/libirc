@@ -47,7 +47,7 @@ public:
 	}
 };
 
-DefaultServerIRCLogHandler	defaultLoger;
+static DefaultServerIRCLogHandler	defaultLogger;
 
 
 IRCServerConnectedClient::IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer )
@@ -91,7 +91,7 @@ IRCServer::IRCServer()
 	tcpServer = NULL;
 
 	debugLogLevel = 0;
-	logHandler = &defaultLoger;
+	logHandler = &defaultLogger;
 
 	ircMessageTerminator = "\r\n";
 	ircCommandDelimator	 = " ";
@@ -115,12 +115,12 @@ std::vector<IRCServerConnectedClient>::iterator IRCServer::getClientItr ( IRCSer
 	return clients.end();
 }
 
-void IRCServer::setLogHandler ( IRCServerLogHandler * loger )
+void IRCServer::setLogHandler ( IRCServerLogHandler * logger )
 {
-	if (!loger)
-		logHandler = &defaultLoger;
+	if (!logger)
+		logHandler = &defaultLogger;
 	else
-		logHandler = loger;
+		logHandler = logger;
 }
 
 void IRCServer::setLogfile ( std::string file )

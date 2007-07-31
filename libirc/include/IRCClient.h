@@ -66,7 +66,7 @@ public:
 	virtual ~IRCClient();
 
 	// logging
-	void	setLogHandler ( IRCClientLogHandler * loger );
+	void	setLogHandler ( IRCClientLogHandler * logger );
 
 	virtual void setLogfile ( std::string file );
 	virtual std::string  getLogfile ( void );

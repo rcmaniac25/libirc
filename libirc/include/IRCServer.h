@@ -66,7 +66,7 @@ public:
 	virtual ~IRCServer();
 
 	// loging
-	void	setLogHandler ( IRCServerLogHandler * loger );
+	void	setLogHandler ( IRCServerLogHandler * logger );
 
 	virtual void setLogfile ( std::string file );
 	virtual std::string  getLogfile ( void );

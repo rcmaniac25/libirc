@@ -47,7 +47,7 @@ public:
 	}
 };
 
-DefaultIRCLogHandler	defaultLoger;
+static DefaultIRCLogHandler	defaultLogger;
 
 // IRC class stuff
 
@@ -63,7 +63,7 @@ IRCClient::IRCClient()
 	debugLogLevel = 0;
 	ircServerPort = _DEFAULT_IRC_PORT;
 	ircConnectionState = eNotConnected;
-	logHandler = &defaultLoger;
+	logHandler = &defaultLogger;
 }
 
 // irc client
@@ -275,12 +275,12 @@ bool IRCClient::sendTextToServer ( std::string &text )
 	return true;
 }
 
-void	IRCClient::setLogHandler ( IRCClientLogHandler * loger )
+void	IRCClient::setLogHandler ( IRCClientLogHandler * logger )
 {
-	if (!loger)
-		logHandler = &defaultLoger;
+	if (!logger)
+		logHandler = &defaultLogger;
 	else
-		logHandler = loger;
+		logHandler = logger;
 }
 
 void IRCClient::log ( const char *text, int level )
