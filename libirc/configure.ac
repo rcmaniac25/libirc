@@ -176,38 +176,7 @@ dnl ***********************
 BC_CONFIGURE_STAGE([arguments], [1 of 9])
 
 # Allow user to specify flags without relying on environment
-AC_ARG_WITH(cflags, AC_HELP_STRING(--with-cflags,
-		[Specify additional flags to pass to the C compiler]),
-	[
-		if test "x$withval" != "xno" ; then
-			CFLAGS="$CFLAGS $withval"
-		fi
-	]	
-)
-AC_ARG_WITH(cppflags, AC_HELP_STRING(--with-cppflags,
-		[Specify additional flags to pass to C preprocessor]),
-	[
-		if test "x$withval" != "xno"; then
-			CPPFLAGS="$CPPFLAGS $withval"
-		fi
-	]
-)
-AC_ARG_WITH(ldflags, AC_HELP_STRING(--with-ldflags,
-		[Specify additional flags to pass to linker]),
-	[
-		if test "x$withval" != "xno" ; then
-			LDFLAGS="$LDFLAGS $withval"
-		fi
-	]	
-)
-AC_ARG_WITH(libs, AC_HELP_STRING(--with-libs,
-		[Specify additional libraries to link against]),
-	[
-		if test "x$withval" != "xno" ; then
-			LIBS="$LIBS $withval"
-		fi
-	]	
-)
+BC_WITH_FLAG_ARGS
 
 # build examples
 AC_MSG_CHECKING(whether to build the libIRC examples)
