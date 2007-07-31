@@ -521,7 +521,8 @@ void IRCUserManager::userJoinChannel ( int user,  int channel )
 void IRCUserManager::userJoinChannel ( int user, std::string &channel )
 {
 	trIRCChannelRecord	&channelRecord = getChannelInfo(channel);
-	trIRCUserRecord	&userRecord = getUserInfo(getUserNick(user));
+	std::string nick = getUserNick(user);
+	trIRCUserRecord	&userRecord = getUserInfo(nick);
 
 	trIRCChannelUserPermisions	perms;
 	setDefaultChannelUserPerms(perms);
@@ -534,7 +535,8 @@ void IRCUserManager::userJoinChannel ( int user, std::string &channel )
 void IRCUserManager::userJoinChannel ( std::string &user, int channel )
 {
 	trIRCChannelRecord	&channelRecord = getChannelInfo(channel);
-	trIRCUserRecord	&userRecord = getUserInfo(getCleanNick(user));
+	std::string nick = getCleanNick(user);
+	trIRCUserRecord	&userRecord = getUserInfo(nick);
 
 	trIRCChannelUserPermisions	perms;
 	setDefaultChannelUserPerms(perms);
@@ -553,7 +555,8 @@ void IRCUserManager::userJoinChannel ( std::string &user, int channel )
 void IRCUserManager::userJoinChannel ( std::string &user, std::string &channel )
 {
 	trIRCChannelRecord	&channelRecord = getChannelInfo(channel);
-	trIRCUserRecord	&userRecord = getUserInfo(getCleanNick(user));
+	std::string nick = getCleanNick(user);
+	trIRCUserRecord	&userRecord = getUserInfo(nick);
 
 	trIRCChannelUserPermisions	perms;
 	setDefaultChannelUserPerms(perms);
@@ -841,10 +844,12 @@ void IRCUserManager::purgeNonChannelUsers ( void )
 		if ( !userItr->second.channels.size() )
 		{
 			userNameLookup.erase(userNameLookup.find(userItr->second.nick));
-			userItr = users.erase(userItr);
+			std::map<int,trIRCUserRecord>::iterator nextItr = userItr++;
+			users.erase(userItr);
+			userItr = nextItr;
 		}
 		else
-			userItr ++;
+			userItr++;
 	}
 }
 
@@ -1029,7 +1034,9 @@ void IRCUserManager::removeUser ( int user )
 		}
 		userItr->second.channels.clear();
 		userNameLookup.erase(userNameLookup.find(userItr->second.nick));
-		userItr = users.erase(userItr);
+		std::map<int,trIRCUserRecord>::iterator nextItr = userItr++;
+		users.erase(userItr);
+		userItr = nextItr;
 	}
 }
 
