@@ -49,7 +49,8 @@ int main ( int argc, char *argv[] )
 	std::string name = std::string("billybot");
 	std::string username = std::string("billy");
 	std::string fullname = std::string("William Shatner");
-	client.login(name, username, fullname, std::string(""));
+	std::string meh = std::string("");
+	client.login(name, username, fullname, meh);
 
 	while (client.process())
 	{
