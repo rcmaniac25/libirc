@@ -185,7 +185,7 @@ void net_TCP_Close(TCPsocket sock);
 typedef struct _net_SocketSet *net_SocketSet;
 
 /* Any network socket can be safely cast to this socket type */
-typedef struct {
+typedef struct _net_GenericSocket {
 	int ready;
 } *net_GenericSocket;
 
