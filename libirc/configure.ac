@@ -1,6 +1,5 @@
 dnl BRL-CAD
-dnl Copyright (c) 2004 Christopher Sean Morrison
-dnl $Id$
+dnl Copyright (c) 2004-2007 Christopher Sean Morrison
 dnl
 dnl This program is free software; you can redistribute it and/or
 dnl modify it under the terms of the appropriate license described in
@@ -9,6 +8,8 @@ dnl
 dnl This program is distributed in the hope that it will be useful,
 dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
 dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+dnl
+dnl $Id$
 dnl
 dnl ******************************************************************
 dnl ***                  libIRC's configure.ac                     ***
@@ -39,38 +40,83 @@ dnl
 dnl Features of the GNU Autotools that would require an increase in
 dnl the minimum version requirement are highly discouraged.  Likewise
 dnl discouraged is rolling back support for versions released prior
-dnl to autoconf 2.50.
+dnl to the AC_PREREQ version shown below unless extensive testing has
+dnl been performed.
 dnl
 
-AC_PREREQ(2.50)
+AC_PREREQ(2.52)
 
-AC_INIT(libIRC, 0.1, [http://libirc.sf.net], libIRC)
+AC_INIT(libIRC, 0.3, [http://libirc.sf.net], libIRC)
 AC_REVISION($Revision$)
+
 AC_CONFIG_AUX_DIR(misc)
 
-dnl If any of the version numbers are incremented up to a 2-digit
-dnl number, remember to add an asterisk to both echo lines below.
-dnl
+# keep track of cmd-line options for later
+ARG0="$0"
+AC_SUBST(ARG0)
+ARGS="$*"
+AC_SUBST(ARGS)
+
+dnl just in case
+PACKAGE_NAME="libIRC"
+AC_SUBST(PACKAGE_NAME)
+
 dnl See HACKING for details on how to properly update the version
 MAJOR_VERSION=0
-MINOR_VERSION=1
+MINOR_VERSION=3
 PATCH_VERSION=0
 AC_SUBST(MAJOR_VERSION)
 AC_SUBST(MINOR_VERSION)
 AC_SUBST(PATCH_VERSION)
 
-CONFIG_DATE=`date +%Y%m%d`
-CONFIG_TIME="`date '+%H %M %S'`"
 LIBIRC_VERSION="$MAJOR_VERSION.$MINOR_VERSION.$PATCH_VERSION"
-echo "********************************************************"
-echo "*** Configuring libIRC Release $LIBIRC_VERSION, Build $CONFIG_DATE ***"
-echo "********************************************************"
+AC_SUBST(LIBIRC_VERSION)
+
+# force locale setting to C so things like date output as expected
+LC_ALL=C
+
+CONFIG_DAY=`date +%d`
+CONFIG_MONTH=`date +%m`
+CONFIG_YEAR=`date +%Y`
+CONFIG_DATE="${CONFIG_YEAR}${CONFIG_MONTH}${CONFIG_DAY}"
+CONFIG_TIME="`date '+%H %M %S'`"
+AC_SUBST(CONFIG_DAY)
+AC_SUBST(CONFIG_MONTH)
+AC_SUBST(CONFIG_YEAR)
 AC_SUBST(CONFIG_DATE)
 AC_SUBST(CONFIG_TIME)
-AC_SUBST(LIBIRC_VERSION)
+
+title="Configuring libIRC Release $LIBIRC_VERSION, Build $CONFIG_DATE"
+length="`echo x${title}x | wc -c`"
+separator=""
+while test $length -gt 1 ; do
+separator="${separator}*"
+length="`expr $length - 1`"
+done
+
+AC_MSG_RESULT([***${separator}***])
+AC_MSG_RESULT([*** ${title} ***])
+AC_MSG_RESULT([***${separator}***])
 
 # necessary for proper file creation on nfs volumes
 umask 022
+
+# override the default autoconf cflags if user has not modified them
+if test "x$CFLAGS" = "x" ; then
+	# an unset CFLAGS var is set to "-O2 -g" during AC_PROG_CC, so
+	# set it to something benign instead like whitespace
+	CFLAGS=" "
+fi
+if test "x$CXXFLAGS" = "x" ; then
+	# an unset CXXFLAGS var is set to "-O2 -g" during AC_PROG_CXX, so
+	# set it to something benign instead like whitespace
+	CXXFLAGS=" "
+fi
+
+# cannot override LD directly, so warn about that (configure sets it)
+if test "x$LD" != "x" ; then
+	AC_MSG_WARN([LD cannot be set directly yet it seems to be set ($LD)])
+fi
 
 # classify this machine
 AC_CANONICAL_HOST
@@ -82,67 +128,52 @@ if test "x$build_vendor" = "xsgi" ; then
    PATH="`echo $PATH | sed 's/\/brl\/bin/bin/g'`"
 fi
 
+# sanity check, make sure we have sources where we expect them
 AC_CONFIG_SRCDIR([src/libIRC.cpp])
 
+# if this is not a CVS checkout, disable dependency tracking for a
+# faster build. it's not likely that the user is doing development
+# from a source release. at least they really should not given the
+# extra steps that are necessary for making a proper useful diff.
 AC_MSG_CHECKING([whether dependency tracking should be enabled])
 if test -d $srcdir/CVS ; then
-	AC_MSG_RESULT(it should)
-	AM_INIT_AUTOMAKE
+	if test "x$enable_maintainer_mode" = "x" ; then
+		enable_maintainer_mode="yes"
+	fi
+	if test "x$enable_dependency_tracking" = "x" ; then
+		enable_dependency_tracking="yes"
+	fi
+	AC_MSG_RESULT([yes])
 else
-	AC_MSG_RESULT(it should not)
-	AM_INIT_AUTOMAKE(no-dependencies)
+	if test "x$enable_maintainer_mode" = "x" ; then
+		enable_maintainer_mode="no"
+	fi
+	if test "x$enable_dependency_tracking" = "x" ; then
+		enable_dependency_tracking="no"
+	fi
+	AC_MSG_RESULT([no])
 fi
-AM_CONFIG_HEADER(include/config.h)
+
+# init the venerable automake only _once_ or incur the wrath of
+# several automake bugs (like "aclocal-" and install detection)
+AM_INIT_AUTOMAKE([1.6 dist-zip dist-bzip2])
+
+# disables the build system dependency tracking by default for the
+# automake and autoconf template files.
+AM_MAINTAINER_MODE
+
+# write out all of our definitions to this header
+AM_CONFIG_HEADER([include/config.h])
 
 # automatically enable and load our configure cache file if available
-AC_MSG_CHECKING([whether a configure cache exists])
-if test "x$cache_file" = "x/dev/null" ; then
-	libirc_cache="config.cache.${host_os}.${ac_hostname}"
-	CONFIG_CACHE=""
-	if test -f "$libirc_cache"; then
-		# if the configure script has been modified since
-		# the last caching, assume it to be invalid.
-		last_modified="`ls -Lt $libirc_cache configure`"
-		case "x$last_modified" in
-			xconfigure*)
-				AC_MSG_RESULT([found but out of date])
-				rm -f $libirc_cache
-				;;
-			*)
-				AC_MSG_RESULT([found $libirc_cache])
-
-				dnl go ahead and load our cache
-				case $libirc_cache in
-					[\\/]* | ?:[\\/]* )
-						. $libirc_cache
-						;;
-					*)
-						. ./$libirc_cache
-						;;
-				esac
-		esac
-	else
-		AC_MSG_RESULT([not found])
-	fi
-
-	dnl if we are on sgi, bash may choke on sed syntax in the cache
-	if test "x$host_os" != "xirix6.5" ; then
-		AC_MSG_NOTICE([*** Automatically caching to $libirc_cache ***])
-		>$libirc_cache
-		cache_file="$libirc_cache"
-		CONFIG_CACHE="$cache_file"
-	else
-		AC_MSG_NOTICE([Automatic caching is unavailable on IRIX])
-	fi
-	AC_SUBST(CONFIG_CACHE)
-else
-	AC_MSG_RESULT($cache_file)
-fi
+BC_CONFIG_CACHE
 
 
 dnl ***********************
 dnl *** Check arguments ***
 dnl ***********************
+
+BC_CONFIGURE_STAGE([arguments], [1 of 9])
 
 # Allow user to specify flags without relying on environment
 AC_ARG_WITH(cflags, AC_HELP_STRING(--with-cflags,
@@ -188,17 +219,6 @@ AC_ARG_WITH(examples, AC_HELP_STRING(--with-examples,
 	fi]
 )
 AC_MSG_RESULT($build_examples)
-
-# doxygen
-AC_MSG_CHECKING(whether to generate documentation with doxygen)
-use_doxygen=no
-AC_ARG_ENABLE(doxygen, AC_HELP_STRING(--enable-doxygen,
-		[enable documentation generation with doxygen (default=no)]),
-	[if test "x$enable_doxygen" != "xno" ; then
-		use_doxygen=yes
-	fi]
-)
-AC_MSG_RESULT($use_doxygen)
 
 # optimized
 dnl optimized has alias(es)
@@ -294,47 +314,15 @@ AC_MSG_CHECKING(whether to enable verbose compilation warnings)
 AC_MSG_RESULT($use_warnings)
 
 
-dnl XXX should only add to build paths when something fails that is
-dnl necessary additionally, a compiler might complain if /usr/local or
-dnl /sw are already in the system search path -- so need to try a
-dnl compile test..
-
-dnl autosearch /usr/local
-AC_MSG_CHECKING([for /usr/local])
-if test -d /usr/local/include ; then
-	AC_MSG_RESULT([found, adding /usr/local to search paths])
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	if test -d /usr/local/lib ; then
-		LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	fi
-else
-	AC_MSG_RESULT([not found])
-fi
-
-dnl autosearch fink paths
-AC_MSG_CHECKING([for fink in /sw])
-if test -d /sw/include ; then
-	AC_MSG_RESULT([found, adding /sw to search paths])
-	CPPFLAGS="$CPPFLAGS -I/sw/include"
-	if test -d /sw/lib ; then
-		LDFLAGS="$LDFLAGS -L/sw/lib"
-	fi
-else
-	AC_MSG_RESULT([not found])
-fi
-
-
-# override the default autoconf cflags if user has not modified them
-if test "x$CFLAGS" = "x" ; then
-	# an unset CFLAGS var is set to "-O2 -g" during AC_PROG_CC, so
-	# set it to something benign
-	CFLAGS=" "
-fi
+dnl automatically scan /usr/local (e.g. BSD uses /usr/local for ports)
+BC_SEARCH_DIRECTORY([/usr/local])
 
 
 dnl **************************
 dnl *** Check for programs ***
 dnl **************************
+
+BC_CONFIGURE_STAGE([programs], [2 of 9])
 
 AC_PROG_CC
 AM_PROG_CC_STDC
@@ -394,28 +382,19 @@ fi
 
 AC_DEFINE(EXTERN_STDOUT,,[Stdout is extern])
 
-if test "x$use_doxygen" = "xyes" ; then
-	AC_PATH_PROG(DOXYGEN, doxygen, , $PATH)
-	if test "x$DOXYGEN" = "x" ; then
-		AC_MSG_NOTICE([>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>])
-		AC_MSG_ERROR([*** Unable to find doxygen ***])
-	fi
-	AC_MSG_NOTICE([>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>])
-	AC_MSG_ERROR([*** Feature unimplemented ***])
-fi
-AC_MSG_CHECKING(whether to enable doxygen)
-AC_MSG_RESULT($use_doxygen)
-
 
 dnl ***************************
 dnl *** Check for libraries ***
 dnl ***************************
 
+BC_CONFIGURE_STAGE([libraries], [3 of 9])
 
 
 dnl *************************
 dnl *** Check for headers ***
 dnl *************************
+
+BC_CONFIGURE_STAGE([headers], [4 of 9])
 
 AC_HEADER_STDC
 dnl AC_CHECK_HEADERS( \
@@ -426,11 +405,14 @@ dnl **********************************
 dnl *** Check for types/structures ***
 dnl **********************************
 
+BC_CONFIGURE_STAGE([types], [5 of 9])
 
 
 dnl ******************************************
 dnl *** Check for compiler characteristics ***
 dnl ******************************************
+
+BC_CONFIGURE_STAGE([compiler], [6 of 9])
 
 dnl include our include directory
 CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/include"
@@ -590,6 +572,8 @@ dnl ***************************
 dnl *** Check for functions ***
 dnl ***************************
 
+BC_CONFIGURE_STAGE([functions], [7 of 9])
+
 dnl AC_CHECK_FUNCS(\
 dnl )
 
@@ -599,12 +583,22 @@ dnl *********************************
 dnl *** Check for system services ***
 dnl *********************************
 
+BC_CONFIGURE_STAGE([services], [8 of 9])
 
 
 
-dnl ***************************
-dnl *** Configure Makefiles ***
-dnl ***************************
+dnl **************************************
+dnl *** Configure Makefiles and output ***
+dnl **************************************
+
+BC_CONFIGURE_STAGE([output], [9 of 9])
+
+# remove surrounding whitspace
+CFLAGS="`echo $CFLAGS`"
+CXXFLAGS="`echo $CXXFLAGS`"
+CPPFLAGS="`echo $CPPFLAGS`"
+LDFLAGS="`echo $LDFLAGS`"
+LIBS="`echo $LIBS`"
 
 AM_CONDITIONAL(BUILD_EXAMPLES, [test "x$build_examples" != "xno"])
 
@@ -624,6 +618,39 @@ AC_CONFIG_FILES([
 
 AC_OUTPUT
 
+
+#################
+# patch libtool #
+#################
+case $host_os in
+    darwin*)
+	for script in $ac_top_builddir $ac_abs_builddir $ac_builddir . ; do
+	    if test "x$script" = "x" ; then
+		libtoolscript="libtool"
+	    else
+		libtoolscript="${script}/libtool"
+	    fi
+	    if test -f ${libtoolscript} ; then
+		if test -w ${libtoolscript} ; then
+		    # remove any -all_load option.
+		    # provokes libtool linker bug with noinst libraries.
+		    sed 's/-all_load.*convenience//g' < $libtoolscript > ${libtoolscript}.sed
+		    sed "s/temp_rpath=\$/temp_rpath=$TCL_PATH:$TK_PATH/g" < $libtoolscript.sed > ${libtoolscript}.sed2
+		    if test ! "x`cat ${libtoolscript}`" = "x`cat ${libtoolscript}.sed2`" ; then
+			AC_MSG_RESULT([Found -all_load in libtool script, removing])
+			cp ${libtoolscript}.sed2 ${libtoolscript}
+		    fi
+		    rm -f ${libtoolscript}.sed
+		    rm -f ${libtoolscript}.sed2
+		else
+		    AC_MSG_WARN([libtool script exists but is not writable so not attempting to edit])
+		fi
+	    fi
+	done
+	;;
+esac
+
+
 dnl
 dnl Expand the variables for summary reporting
 dnl
@@ -635,6 +662,8 @@ sysconfdir=`eval "echo $sysconfdir"`
 sysconfdir=`eval "echo $sysconfdir"`
 mandir=`eval "echo $mandir"`
 mandir=`eval "echo $mandir"`
+datadir=`eval "echo $datadir"`
+datadir=`eval "echo $datadir"`
 
 dnl
 dnl Compute configuration time elapsed
@@ -646,37 +675,60 @@ else
 fi
 
 
+# AC_OUTPUT won't update the brlcad_config.h.in template timestamp if
+# the file is unchanged.  forcibly update the timestamp so autoheader
+# doesn't try to invoke.
+if test ! "x`cat include/config.h.in`" = "x" ; then
+    touch include/config.h.in
+fi
+
+
 dnl **********************
 dnl *** Report Summary ***
 dnl **********************
 
-echo "Done."
-echo
-echo "libIRC $LIBIRC_VERSION, Build $CONFIG_DATE"
-echo
-echo "             Prefix: ${prefix}"
-echo "           Binaries: ${bindir}"
-echo "Configuration files: ${sysconfdir}"
-echo "       Manual pages: ${mandir}"
-echo
-echo "CC       = ${CC}"
-echo "CFLAGS   = ${CFLAGS}"
-echo "CPPFLAGS = ${CPPFLAGS}"
-echo "LDFLAGS  = ${LDFLAGS}"
-echo "LIBS     = ${LIBS}"
-echo
-echo Build optimized release ..............: $use_optimized
-echo Build debug release ..................: $use_debug
-echo Build profile release ................: $use_profiling
-echo Build static libraries ...............: $enable_static
-echo Build shared/dynamic libraries .......: $enable_shared
-echo Print verbose compilation warnings ...: $use_warnings
-echo Build examples .......................: $build_examples
-echo Generate doxygen documentation .......: $use_doxygen
-echo
-if test "x$time_elapsed" != "xunknown" ; then
-echo Elapsed configuration time ...........: $time_elapsed
+AC_MSG_RESULT([Done.])
+AC_MSG_RESULT([])
+AC_MSG_RESULT([libIRC $LIBIRC_VERSION, Build $CONFIG_DATE])
+AC_MSG_RESULT([])
+AC_MSG_RESULT([             Prefix: ${prefix}])
+AC_MSG_RESULT([           Binaries: ${bindir}])
+AC_MSG_RESULT([       Manual pages: ${mandir}])
+AC_MSG_RESULT([Configuration files: ${sysconfdir}])
+AC_MSG_RESULT([Data resource files: ${datadir}])
+if test ! "x$ARGS" = "x" ; then
+AC_MSG_RESULT([Options & variables: $ARGS])
 fi
-echo ---
-echo "$0 complete, type 'make' to begin building"
-echo
+AC_MSG_RESULT([])
+AC_MSG_RESULT([CC       = ${CC}])
+AC_MSG_RESULT([CXX      = ${CXX}])
+if test ! "x$CFLAGS" = "x" ; then
+AC_MSG_RESULT([CFLAGS   = ${CFLAGS}])
+fi
+if test ! "x$CXXFLAGS" = "x" ; then
+AC_MSG_RESULT([CXXFLAGS = ${CXXFLAGS}])
+fi
+if test ! "x$CPPFLAGS" = "x" ; then
+AC_MSG_RESULT([CPPFLAGS = ${CPPFLAGS}])
+fi
+if test ! "x$LDFLAGS" = "x" ; then
+AC_MSG_RESULT([LDFLAGS  = ${LDFLAGS}])
+fi
+if test ! "x$LIBS" = "x" ; then
+AC_MSG_RESULT([LIBS     = ${LIBS}])
+fi
+AC_MSG_RESULT([])
+AC_MSG_RESULT([Build optimized release ..............: $use_optimized])
+AC_MSG_RESULT([Build debug release ..................: $use_debug])
+AC_MSG_RESULT([Build profile release ................: $use_profiling])
+AC_MSG_RESULT([Build static libraries ...............: $enable_static])
+AC_MSG_RESULT([Build shared/dynamic libraries .......: $enable_shared])
+AC_MSG_RESULT([Print verbose compilation warnings ...: $use_warnings])
+AC_MSG_RESULT([Build examples .......................: $build_examples])
+AC_MSG_RESULT([])
+if test "x$time_elapsed" != "xunknown" ; then
+AC_MSG_RESULT([Elapsed configuration time ...........: $time_elapsed])
+fi
+AC_MSG_RESULT([---])
+AC_MSG_RESULT(["$0 complete, type 'make' to begin building"])
+AC_MSG_RESULT([])
