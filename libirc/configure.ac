@@ -567,8 +567,12 @@ AC_CONFIG_FILES([
 	examples/simpleIRCConnect/src/Makefile
 	examples/simpleTCPConnect/Makefile
 	examples/simpleTCPConnect/src/Makefile
+	examples/spamBot/Makefile
+	examples/spamBot/src/Makefile
 	examples/stupidBot/Makefile
 	examples/stupidBot/src/Makefile
+	examples/stupidServer/Makefile
+	examples/stupidServer/src/Makefile
 	include/Makefile
 	m4/Makefile
 	misc/Makefile

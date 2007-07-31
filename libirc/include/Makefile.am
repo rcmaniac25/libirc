@@ -24,3 +24,5 @@ libirc_version.h:
 # make sure that the build date/version is updated every time make is run
 all-local:
 	@sh $(top_srcdir)/misc/vers.sh libirc_version "libIRC" > libirc_version.h
+
+include $(top_srcdir)/misc/Makefile.defs

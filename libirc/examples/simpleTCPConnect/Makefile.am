@@ -11,3 +11,5 @@ DIST_SUBDIRS = \
 EXTRA_DIST = readme.txt
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include $(top_srcdir)/misc/Makefile.defs

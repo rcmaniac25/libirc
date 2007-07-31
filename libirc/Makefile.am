@@ -39,16 +39,6 @@ EXTRA_DIST = \
 	configure.ac \
 	libtool
 
-MAINTAINERCLEANFILES = \
-	@CONFIG_CACHE@ \
-	Makefile.in \
-	aclocal.m4 \
-	autom4te.cache \
-	config.log \
-	config.status \
-	configure \
-	libtool
-
 examples: all-am
 	cd examples && $(MAKE) $(AM_MAKEFLAGS)
 
@@ -109,3 +99,15 @@ all-local:
 	  @ECHO@ "Run 'make test' to test the libIRC framework" ;\
 	fi
 	@@ECHO@
+
+MAINTAINERCLEANFILES = \
+	@CONFIG_CACHE@ \
+	Makefile.in \
+	aclocal.m4 \
+	autom4te.cache \
+	config.log \
+	config.status \
+	configure \
+	libtool
+
+include $(top_srcdir)/misc/Makefile.defs

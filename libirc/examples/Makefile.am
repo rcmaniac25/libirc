@@ -3,7 +3,10 @@
 SUBDIRS = \
 	simpleIRCConnect \
 	simpleTCPConnect \
-	stupidBot		 \
+	spamBot \
+	stupidBot \
 	stupidServer
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include $(top_srcdir)/misc/Makefile.defs

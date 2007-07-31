@@ -13,3 +13,5 @@ EXTRA_DIST = \
 	sample.cfg
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include $(top_srcdir)/misc/Makefile.defs
