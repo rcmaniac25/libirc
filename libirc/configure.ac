@@ -554,18 +554,7 @@ AC_C_VOLATILE
 AM_C_PROTOTYPES
 
 dnl Last step is to make sure that we can actually compile
-AC_MSG_CHECKING(compiler and flags for sanity)
-AC_TRY_RUN([
-#include <stdio.h>
-int main(){exit(0);}
-	],
-	[	AC_MSG_RESULT(yes) ],
-	[
-		AC_MSG_RESULT(no)
-		AC_MSG_NOTICE([>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>])
-		AC_MSG_ERROR([*** compiler cannot create working executables, check config.log ***])
-	]
-)
+BC_SANITY_CHECK
 
 
 dnl ***************************

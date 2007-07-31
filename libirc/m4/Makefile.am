@@ -3,6 +3,7 @@
 brlcad_m4 = \
 	args.m4 \
 	cache.m4 \
+	compiler.m4 \
 	patch.m4 \
 	search.m4 \
 	stage.m4
