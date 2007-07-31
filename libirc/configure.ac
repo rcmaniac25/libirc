@@ -131,12 +131,12 @@ fi
 # sanity check, make sure we have sources where we expect them
 AC_CONFIG_SRCDIR([src/libIRC.cpp])
 
-# if this is not a CVS checkout, disable dependency tracking for a
+# if this is not a SVN checkout, disable dependency tracking for a
 # faster build. it's not likely that the user is doing development
 # from a source release. at least they really should not given the
 # extra steps that are necessary for making a proper useful diff.
 AC_MSG_CHECKING([whether dependency tracking should be enabled])
-if test -d $srcdir/CVS ; then
+if test -d $srcdir/.svn ; then
 	if test "x$enable_maintainer_mode" = "x" ; then
 		enable_maintainer_mode="yes"
 	fi
