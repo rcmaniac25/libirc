@@ -204,6 +204,14 @@ AC_ARG_WITH(cflags, AC_HELP_STRING(--with-cflags,
 		fi
 	]
 )
+AC_ARG_WITH(cxxflags, AC_HELP_STRING(--with-cxxflags,
+		[Specify additional flags to pass to the C++ compiler]),
+	[
+		if test "x$withval" != "xno" ; then
+			CXXFLAGS="$CXXFLAGS $withval"
+		fi
+	]
+)
 AC_ARG_WITH(cppflags, AC_HELP_STRING(--with-cppflags,
 		[Specify additional flags to pass to C preprocessor]),
 	[
