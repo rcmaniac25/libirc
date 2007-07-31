@@ -1,16 +1,12 @@
 # $Id$
 
-SUBDIRS = \
-	src
-
-DIST_SUBDIRS = \
-	src \
-	vc7.1 \
-	vc8
+SUBDIRS = src
 
 EXTRA_DIST = \
 	readme.txt \
-	sample.cfg
+	sample.cfg \
+	vc7.1 \
+	vc8
 
 MAINTAINERCLEANFILES = Makefile.in
 

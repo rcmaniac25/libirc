@@ -21,9 +21,7 @@ DIST_SUBDIRS = \
 	include \
 	m4 \
 	misc \
-	src \
-	vc7.1 \
-	vc8
+	src
 
 EXTRA_DIST = \
 	AUTHORS \
@@ -33,11 +31,13 @@ EXTRA_DIST = \
 	HACKING \
 	INSTALL \
 	NEWS \
-	ReadMe.txt \
+	README \
 	TODO \
 	autogen.sh \
 	configure.ac \
-	libtool
+	libtool \
+	vc7.1 \
+	vc8
 
 examples: all-am
 	cd examples && $(MAKE) $(AM_MAKEFLAGS)
@@ -56,7 +56,6 @@ all-local:
 	@@ECHO@
 	@@ECHO@ "libIRC @LIBIRC_VERSION@, Build @CONFIG_DATE@"
 	@@ECHO@
-	@@ECHO@ "$(MAKECMDGOALS) is goals"
 	@if test "x$(MAKECMDGOALS)" = "xall-am" ; then \
 	  @ECHO@ @ECHO_N@ "Elapsed compilation time: " ;\
 	  sh $(top_srcdir)/misc/elapsed.sh `cat $(top_builddir)/include/libirc_version.h | grep Compilation` ;\
@@ -100,14 +99,16 @@ all-local:
 	fi
 	@@ECHO@
 
-MAINTAINERCLEANFILES = \
-	@CONFIG_CACHE@ \
-	Makefile.in \
+DISTCLEANFILES = \
+	$(CONFIG_CACHE) \
 	aclocal.m4 \
-	autom4te.cache \
 	config.log \
 	config.status \
 	configure \
-	libtool
+	install.$(host_triplet).log \
+	libtool \
+	so_locations
+
+MAINTAINERCLEANFILES = Makefile.in
 
 include $(top_srcdir)/misc/Makefile.defs

@@ -1,20 +1,32 @@
 # $Id$
 
 include_HEADERS = \
-	TCPConnection.h \
-	IRCTextUtils.h	\
-	Singleton.h \
-	IRCNumerics.h \
+	IRCClient.h \
 	IRCEvents.h \
+	IRCNumerics.h \
+	IRCServer.h \
+	IRCTextUtils.h	\
+	IRCUserManager.h \
+	Singleton.h \
+	TCPConnection.h \
 	ircCommands.h \
-	libIRC.h 
+	libIRC.h \
+	net.h
 
 noinst_HEADERS = \
+	config.h \
 	libirc_version.h
 
 EXTRA_DIST = \
 	config.h.in \
 	version
+
+BUILT_SOURCES = \
+	libirc_version.h \
+	version
+
+DISTCLEANFILES = \
+	$(BUILT_SOURCES)
 
 MAINTAINERCLEANFILES = Makefile.in
 

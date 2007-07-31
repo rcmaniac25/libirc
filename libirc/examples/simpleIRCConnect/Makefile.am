@@ -1,14 +1,11 @@
 # $Id$
 
-SUBDIRS = \
-	src
+SUBDIRS = src
 
-DIST_SUBDIRS = \
-	src \
+EXTRA_DIST = \
+	readme.txt \
 	vc7.1 \
 	vc8
-
-EXTRA_DIST = readme.txt
 
 MAINTAINERCLEANFILES = Makefile.in
 
