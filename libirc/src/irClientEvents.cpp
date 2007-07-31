@@ -139,7 +139,10 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 
 			std::string banMask = info.params[2];
 			if (add)
-				userManager.addBan(who,banMask,info.source,getTimeStamp());
+			{
+			  std::string ts = getTimeStamp();
+			  userManager.addBan(who,banMask,info.source,ts);
+			}
 			else	
 				userManager.removeBan(who,banMask);
 
@@ -166,7 +169,8 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo	&info )
 	{
 		modeInfo.eventType = eIRCUserModeSet;
 		modeInfo.mode = info.params[1];
-		userManager.modeReceved(who,info.source,info.getAsString(1));
+		std::string infostring = info.getAsString(1);
+		userManager.modeReceved(who,info.source, infostring);
 	}
 
 	if(modeInfo.eventType != eIRCNULLEvent)

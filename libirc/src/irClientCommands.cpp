@@ -123,7 +123,8 @@ bool IRCClient::part ( std::string channel, std::string reason )
 	}
 
 	// notify that we parted the channel
-	userManager.userPartChannel(getNick(),channel);
+	std::string nick = getNick();
+	userManager.userPartChannel(nick, channel);
 
 	trPartEventInfo	eventInfo;
 
