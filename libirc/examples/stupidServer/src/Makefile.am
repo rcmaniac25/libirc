@@ -2,7 +2,9 @@
 
 noinst_PROGRAMS = stupidServer
 
-stupidBot_SOURCES = stupidServer.cpp
-stupidBot_LDADD = $(top_builddir)/src/libIRC.la
+stupidServer_SOURCES = stupidServer.cpp
+stupidServer_LDADD = $(top_builddir)/src/libIRC.la
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include $(top_srcdir)/misc/Makefile.defs
