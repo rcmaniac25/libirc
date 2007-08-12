@@ -78,7 +78,7 @@ void getLibVersion ( int &major, int &minor, int &rev )
 
 BaseIRCCommandInfo::BaseIRCCommandInfo()
 {
-	type = eUnknown;
+	type = eUnknownCommand;
 	command = "NULL";
 }
 

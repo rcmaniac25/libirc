@@ -47,7 +47,7 @@ void getLibVersion ( int &major, int &minor, int &rev );
 // the types of command info structures
 typedef enum
 {
-	eUnknown = 0,
+	eUnknownCommand = 0,
 	eIRCCommand,
 	eCTCPCommand,
 	eDDECommand
