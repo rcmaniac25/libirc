@@ -28,7 +28,7 @@ public:
 bool myEndMOTDCallback::process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info )
 {
 	printf("********************** starting up ************************\n");
-	ircClient.join("#opencombat");
+	ircClient.join("#botpark");
 	return true;
 }
 

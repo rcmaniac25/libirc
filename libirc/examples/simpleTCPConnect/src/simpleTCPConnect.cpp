@@ -80,8 +80,8 @@ void myClientDataPendingListener::pending ( TCPClientConnection *connection, int
 		break;
 
 		case 0:
-			sendToServer(connection,"JOIN #BZFlag");
-			sendToServer(connection,"MODE #BZFlag");
+			sendToServer(connection,"JOIN #botpark");
+			sendToServer(connection,"MODE #botpark");
 			state =1;
 		break;
 	}
