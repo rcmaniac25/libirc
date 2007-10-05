@@ -256,12 +256,12 @@ bool IRCClient::devoice ( std::string user, std::string channel )
 
 bool IRCClient::op ( std::string user, std::string channel )
 {
-	return mode(std::string("+v"),channel,user);
+	return mode(std::string("+o"),channel,user);
 }
 
 bool IRCClient::deop ( std::string user, std::string channel )
 {
-	return mode(std::string("-v"),channel,user);
+	return mode(std::string("-o"),channel,user);
 }
 
 bool IRCClient::quiet ( std::string user, std::string channel )
