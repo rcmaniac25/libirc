@@ -52,44 +52,44 @@ typedef struct
 typedef struct 
 {
 	std::string mode;
-	bool				allowColors;
-	bool				forwarded;
-	bool				inviteOnly;
-	bool				anyInvite;
-	bool				juped;
-	int					userLimit;
-	bool				moderated;
-	bool				externalMessages;
-	bool				permanent;
-	bool				regForVoice;
-	bool				regOnly;
-	bool				secret;
-	bool				reducedModeraton;
+	bool	allowColors;
+	bool	forwarded;
+	bool	inviteOnly;
+	bool	anyInvite;
+	bool	juped;
+	int		userLimit;
+	bool	moderated;
+	bool	externalMessages;
+	bool	permanent;
+	bool	regForVoice;
+	bool	regOnly;
+	bool	secret;
+	bool	reducedModeraton;
 }trIRCChannelPermisions;
 
 typedef struct 
 {
-	int																			id;
-	std::string															name;
-	trIRCChannelPermisions									perms;
+	int								id;
+	std::string						name;
+	trIRCChannelPermisions			perms;
 	std::map<int,trIRCChannelUserPermisions>userPerms;
-	std::string															lastMessage;
-	int																			lastMessageUser;
-	std::string															topic;
-	std::vector<trIRCBanListItem>						banList;														
+	std::string						lastMessage;
+	int								lastMessageUser;
+	std::string						topic;
+	std::vector<trIRCBanListItem>	banList;
 }trIRCChannelRecord;
 
 typedef struct 
 {
-	int											id;
-	std::string							nick;
-	std::string							host;
+	int						id;
+	std::string				nick;
+	std::string				host;
 
-	int											lastMessageChannel;
-	std::string							lastMessage;
+	int						lastMessageChannel;
+	std::string				lastMessage;
 
-	trIRCUserPermisions			perms;
-	std::vector<int>				channels;
+	trIRCUserPermisions		perms;
+	std::vector<int>		channels;
 }trIRCUserRecord;
 
 class IRCUserManager
@@ -179,8 +179,8 @@ public:
 		std::vector<trIRCBanListItem>	getChannelBanList ( std::string &channel );
 
 		std::vector<int> listChannelUsers ( int id );
-		std::vector<int> listChannelsUser ( std::string &name );
-		std::vector<std::string> listChanneUserlNames ( int id );
+		std::vector<int> listChannelUsers ( std::string &name );
+		std::vector<std::string> listChannelUserNames ( int id );
 		std::vector<std::string> listChannelUserNames ( std::string &name );
 
 		std::vector<int> listChannels ( void );
@@ -252,9 +252,9 @@ protected:
 	std::map<std::string,int>	userNameLookup;
 	std::map<std::string,int>	channelNameLookup;
 
-	bool			autoPurgeOnLastPart;
-	int				lastUserID;
-	int				lastChannelID;
+	bool	autoPurgeOnLastPart;
+	int		lastUserID;
+	int		lastChannelID;
 };
 
 #endif//_IRC_USER_MANAGER_

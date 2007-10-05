@@ -665,7 +665,7 @@ string_list IRCClient::listChanOps ( std::string channel )
 	return userNames;
 }
 
-string_list IRCClient::listChanels ( void )
+string_list IRCClient::listChannels ( void )
 {
 	return userManager.listChannelNames();
 }

@@ -457,7 +457,7 @@ std::vector<int> IRCUserManager::listChannelUsers ( int id )
 	return userList;
 }
 
-std::vector<int> IRCUserManager::listChannelsUser ( std::string &name )
+std::vector<int> IRCUserManager::listChannelUsers ( std::string &name )
 {
 	trIRCChannelRecord	&channel = getChannelInfo(name);
 
@@ -469,7 +469,7 @@ std::vector<int> IRCUserManager::listChannelsUser ( std::string &name )
 	return userList;
 }
 
-std::vector<std::string> IRCUserManager::listChanneUserlNames ( int id )
+std::vector<std::string> IRCUserManager::listChannelUserNames ( int id )
 {
 	trIRCChannelRecord	&channel = getChannelInfo(id);
 

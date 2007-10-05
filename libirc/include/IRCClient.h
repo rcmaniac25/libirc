@@ -131,7 +131,7 @@ public:
 
 	// IRC info operations
 	virtual string_list listUsers ( std::string channel );
-	virtual string_list listChanels ( void );
+	virtual string_list listChannels ( void );					// NOTE: was this listChanels for a reason??  mm_202.
 	virtual string_list listChanOps ( std::string channel );
 
 	virtual trIRCChannelPermisions getChanPerms ( std::string channel );
@@ -209,13 +209,13 @@ protected:
 
 	// networking
 	TCPClientConnection		*tcpClient;	
-	TCPConnection					&tcpConnection;
+	TCPConnection			&tcpConnection;
 
 	// irc data
-	std::string						ircServerName;
-	std::string						reportedServerHost;
-	unsigned short				ircServerPort;
-	std::string						lastRecevedData;
+	std::string				ircServerName;
+	std::string				reportedServerHost;
+	unsigned short			ircServerPort;
+	std::string				lastRecevedData;
 
 	// IRC "constants"
 	std::string		ircMessageTerminator;
@@ -233,7 +233,7 @@ protected:
 
 	teIRCConnectionState	ircConnectionState;
 
-	bool									registered;
+	bool					registered;
 
 	virtual teIRCConnectionState getConnectionState ( void ){return ircConnectionState;}
 	virtual void setConnectionState ( teIRCConnectionState state ){ircConnectionState = state;}
@@ -253,8 +253,8 @@ protected:
 	void registerDefaultCommandhandlers ( void );
 
 	// event handlers
-	tmIRCEventMap							defaultEventHandlers;
-	tmIRCEventListMap					userEventHandlers;
+	tmIRCEventMap				defaultEventHandlers;
+	tmIRCEventListMap			userEventHandlers;
 
 	void addDefaultEventHandlers ( teIRCEventType eventType, IRCBasicEventCallback* handler );
 	void clearDefaultEventHandlers ( void );
@@ -262,17 +262,17 @@ protected:
 
 	// loging
 	IRCClientLogHandler				*logHandler;
-	std::string								logfile;
-	int												debugLogLevel;
+	std::string						logfile;
+	int								debugLogLevel;
 
 	// info from the connection
-	std::string								MOTD;
-	std::string								requestedNick;
-	std::string								nickname;
+	std::string						MOTD;
+	std::string						requestedNick;
+	std::string						nickname;
 
-	IRCUserManager						userManager;
+	IRCUserManager					userManager;
 	// flood protection
-	float											minCycleTime;
+	float							minCycleTime;
 };
 
 #endif //_IRC_CLIENT_H_
