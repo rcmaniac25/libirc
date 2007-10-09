@@ -19,19 +19,19 @@
 
 // special case commands
 // handles ALL posible messages, dosn't actualy DO anythign with them tho
-class IRCALLCommand : public IRCClientCommandHandler
+class IRCClientALLCommand : public IRCClientCommandHandler
 {
 public:
-  IRCALLCommand();
+  IRCClientALLCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // numerics, handles any IRC numeric return code
-class IRCNumericCommand : public IRCClientCommandHandler
+class IRCClientNumericCommand : public IRCClientCommandHandler
 {
 public:
-  IRCNumericCommand();
+  IRCClientNumericCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
@@ -39,115 +39,120 @@ public:
 
 // IRC "NICK" command
 // paramaters {NICKNAME}
-class IRCNickCommand : public IRCClientCommandHandler
+class IRCClientNickCommand : public IRCClientCommandHandler
 {
 public:
-  IRCNickCommand();
+  IRCClientNickCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "USER" command
 // paramaters {USERNAME, HOST, SERVER, REAL_NAME}
-class IRCUserCommand : public IRCClientCommandHandler
+class IRCClientUserCommand : public IRCClientCommandHandler
 {
 public:
-  IRCUserCommand();
+  IRCClientUserCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "PING" command
 // paramaters {}
-class IRCPingCommand : public IRCClientCommandHandler
+class IRCClientPingCommand : public IRCClientCommandHandler
 {
 public:
-  IRCPingCommand();
+  IRCClientPingCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "PONG" command
 // paramaters {}
-class IRCPongCommand : public IRCClientCommandHandler
+class IRCClientPongCommand : public IRCClientCommandHandler
 {
 public:
-  IRCPongCommand();
+  IRCClientPongCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "NOTICE" command
 // paramaters {}
-class IRCNoticeCommand : public IRCClientCommandHandler
+class IRCClientNoticeCommand : public IRCClientCommandHandler
 {
 public:
-  IRCNoticeCommand();
+  IRCClientNoticeCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "JOIN" command
 // paramaters {chanel1,chanel2......}
-class IRCJoinCommand : public IRCClientCommandHandler
+class IRCClientJoinCommand : public IRCClientCommandHandler
 {
 public:
-  IRCJoinCommand();
+  IRCClientJoinCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "PART" command
 // paramaters {channel reason}
-class IRCPartCommand : public IRCClientCommandHandler
+class IRCClientPartCommand : public IRCClientCommandHandler
 {
 public:
-  IRCPartCommand();
+  IRCClientPartCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "QUIT" command
 // paramaters {channel reason}
-class IRCQuitCommand : public IRCClientCommandHandler
+class IRCClientQuitCommand : public IRCClientCommandHandler
 {
 public:
-  IRCQuitCommand();
+  IRCClientQuitCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "MODE" command
 // paramaters {target,modes}
-class IRCModeCommand : public IRCClientCommandHandler
+class IRCClientModeCommand : public IRCClientCommandHandler
 {
 public:
-  IRCModeCommand();
+  IRCClientModeCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "PRIVMSG" command
 // paramaters 
-class IRCPrivMsgCommand : public IRCClientCommandHandler
+class IRCClientPrivMsgCommand : public IRCClientCommandHandler
 {
 public:
-  IRCPrivMsgCommand();
+  IRCClientPrivMsgCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
 // IRC "KICK" command
 // paramaters {user,reason}
-class IRCKickCommand : public IRCClientCommandHandler
+class IRCClientKickCommand : public IRCClientCommandHandler
 {
 public:
-  IRCKickCommand();
+  IRCClientKickCommand();
   virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
   virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info );
 };
 
-
-
-
 #endif //_IRC_BASIC_COMMANDS_
+
+// Local Variables: ***
+// mode: C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8

@@ -169,6 +169,7 @@ public:
   //command handler methods... for lower level API
   virtual bool registerCommandHandler ( IRCClientCommandHandler *handler );
   virtual bool removeCommandHandler ( IRCClientCommandHandler *handler );
+ 
   virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
   virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
 
@@ -307,3 +308,11 @@ protected:
 };
 
 #endif //_IRC_CLIENT_H_
+
+// Local Variables: ***
+// mode:C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8

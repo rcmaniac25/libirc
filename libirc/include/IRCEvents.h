@@ -134,3 +134,10 @@ typedef std::map<teIRCEventType,tvIRCEventList> tmIRCEventListMap;
 typedef std::map<teIRCEventType,IRCBasicEventCallback*> tmIRCEventMap;
 
 #endif // __IRC_EVENTS_H__ 
+// Local Variables: ***
+// mode: C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8

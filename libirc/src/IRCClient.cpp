@@ -552,21 +552,21 @@ void IRCClient::registerDefaultCommandHandlers ( void )
   clearDefaultCommandHandlers();
 
   // the "special" handlers
-  addDefaultCommandHandlers(new IRCALLCommand );
-  addDefaultCommandHandlers(new IRCNumericCommand );
+  addDefaultCommandHandlers(new IRCClientALLCommand );
+  addDefaultCommandHandlers(new IRCClientNumericCommand );
 
   // basic IRC commands
-  addDefaultCommandHandlers(new IRCNickCommand );
-  addDefaultCommandHandlers(new IRCUserCommand );
-  addDefaultCommandHandlers(new IRCPingCommand );
-  addDefaultCommandHandlers(new IRCPongCommand );
-  addDefaultCommandHandlers(new IRCNoticeCommand );
-  addDefaultCommandHandlers(new IRCJoinCommand );
-  addDefaultCommandHandlers(new IRCPartCommand );
-  addDefaultCommandHandlers(new IRCQuitCommand );
-  addDefaultCommandHandlers(new IRCModeCommand );
-  addDefaultCommandHandlers(new IRCPrivMsgCommand );
-  addDefaultCommandHandlers(new IRCKickCommand );
+  addDefaultCommandHandlers(new IRCClientNickCommand );
+  addDefaultCommandHandlers(new IRCClientUserCommand );
+  addDefaultCommandHandlers(new IRCClientPingCommand );
+  addDefaultCommandHandlers(new IRCClientPongCommand );
+  addDefaultCommandHandlers(new IRCClientNoticeCommand );
+  addDefaultCommandHandlers(new IRCClientJoinCommand );
+  addDefaultCommandHandlers(new IRCClientPartCommand );
+  addDefaultCommandHandlers(new IRCClientQuitCommand );
+  addDefaultCommandHandlers(new IRCClientModeCommand );
+  addDefaultCommandHandlers(new IRCClientPrivMsgCommand );
+  addDefaultCommandHandlers(new IRCClientKickCommand );
 }
 
 // logical event handlers
