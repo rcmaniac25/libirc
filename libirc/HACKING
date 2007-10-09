@@ -52,10 +52,10 @@ Developers are encouraged to participate in any or all of them.
 * Internet Relay Chat
 
   The primary and generally preferred mechanism for interactive
-  developer discussions is via IRC.  Several of the core developers
-  and users of libIRC hang out in #brlcad and #bzflag on the Freenode
-  network.  With most any irc client you should be able to join
-  #brlcad or #bzflag on irc.freenode.net, port 6667.  See
+  developer discussions is via IRC. The project maintains an IRC
+  channel on the Freenode network (#libIRC). Several of the core developers
+  and users of libIRC hang out there.  With most any irc client you should 
+  be able to join #libIRC on irc.freenode.net, port 6667.  See
   http://brlcad.org/irc/ and http://irchelp.org for more information.
 
 To contribute source code to libIRC, begin by submiting source code
