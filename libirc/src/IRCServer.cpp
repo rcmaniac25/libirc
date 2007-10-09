@@ -686,7 +686,7 @@ bool IRCServer::process ( IRCServer *ircServer, teIRCEventType  eventType, trBas
   {
     case eIRCConnectedEvent:
       {
-	char *text = getConnectionText(info.client);
+	const char *text = getConnectionText(info.client);
 	if (!text)
 	  return false;
 
