@@ -245,14 +245,10 @@ void IRCClient::processIRCLine ( std::string line )
     commandInfo.source = getServerHost();
 
   // call the "ALL" handler special if there is one
-  handler = std::string("ALL");
-  receveCommand(handler,commandInfo);
+  receveCommand(std::string("ALL"),commandInfo);
 
   if (atoi(commandInfo.command.c_str()) != 0) 
-  {
-    handler = std::string("NUMERIC");
-    receveCommand(handler,commandInfo);
-  }
+    receveCommand(std::string("NUMERIC"),commandInfo);
 
   // notify any handlers for this specific command
   receveCommand(commandInfo.command,commandInfo);
@@ -406,7 +402,7 @@ bool IRCClient::sendCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info
   return sendCommand(info.command,info);
 }
 
-bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &info )
+bool IRCClient::receveCommand ( const std::string &commandName, BaseIRCCommandInfo &info )
 {
   tmUserCommandHandlersMap::iterator    commandListItr = userCommandHandlers.find(commandName);
 

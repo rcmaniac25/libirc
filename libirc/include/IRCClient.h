@@ -67,10 +67,10 @@ public:
   // it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
 
   // called when the client receves a command of this type
-  virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info ){return true;}
+  virtual bool receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info ){return true;}
 
   // called when the user wishes to send a command of this type
-  virtual bool send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info ){return true;}
+  virtual bool send ( IRCClient &client,  const std::string &command, BaseIRCCommandInfo  &info ){return true;}
 protected:
   std::string name;
 };
@@ -178,7 +178,7 @@ public:
   virtual bool sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
   virtual bool sendCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
 
-  virtual bool receveCommand ( std::string &commandName, BaseIRCCommandInfo &info );
+  virtual bool receveCommand ( const std::string &commandName, BaseIRCCommandInfo &info );
   virtual bool receveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
   virtual bool receveCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
 
