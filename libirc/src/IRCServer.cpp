@@ -498,6 +498,78 @@ void IRCServer::registerDefaultCommandHandlers ( void )
 
 }
 
+bool IRCServer::registerCommandHandler ( IRCServerCommandHandler *handler )
+{
+  if (!handler)
+    return false;
+
+  std::string command = handler->getCommandName();
+
+  tmCommandHandlerListMap::iterator  commandListItr = userCommandHandlers.find(command);
+  if (commandListItr == userCommandHandlers.end())
+  {
+    std::vector<IRCServerCommandHandler*> handlerList;
+    handlerList.push_back(handler);
+    userCommandHandlers[command] = handlerList;
+  }
+  else
+    commandListItr->second.push_back(handler);
+
+  return true;
+}
+
+bool IRCServer::removeCommandHandler ( IRCServerCommandHandler *handler )
+{
+  if (!handler)
+    return false;
+
+  std::string command = handler->getCommandName();
+
+  tmCommandHandlerListMap::iterator    commandListItr = userCommandHandlers.find(command);
+  if (commandListItr == userCommandHandlers.end())
+    return false;
+  else
+  {
+    std::vector<IRCServerCommandHandler*>::iterator  itr = commandListItr->second.begin();
+    while ( itr != commandListItr->second.end())
+    {
+      if (*itr == handler)
+	itr = commandListItr->second.erase(itr);
+      else
+	itr++;
+    }
+  }
+  return true;
+}
+
+int IRCServer::listUserHandledCommands ( std::vector<std::string> &commandList )
+{
+  commandList.clear();
+
+  tmCommandHandlerListMap::iterator  itr = userCommandHandlers.begin();
+
+  while (itr != userCommandHandlers.end())
+  {
+    commandList.push_back(itr->first);
+    itr++;
+  }
+  return (int)commandList.size();
+}
+
+int IRCServer::listDefaultHandledCommands ( std::vector<std::string> &commandList )
+{
+  commandList.clear();
+
+  tmCommandHandlerMap::iterator  itr = defaultCommandHandlers.begin();
+
+  while (itr != defaultCommandHandlers.end())
+  {
+    commandList.push_back(itr->first);
+    itr++;
+  }
+  return (int)commandList.size();
+}
+
 
 // Local Variables: ***
 // mode:C++ ***

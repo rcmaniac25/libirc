@@ -88,7 +88,7 @@ protected:
   class ChannelUserData
   {
   public:
-    virtual ~ChannelUserData();
+    virtual ~ChannelUserData(){};
     bool voice;
     bool op;
   };
@@ -104,23 +104,23 @@ protected:
 class IRCServerCommandHandler
 {
 public:
-	IRCServerCommandHandler(){return;}
-	virtual ~IRCServerCommandHandler(){return;}
+  IRCServerCommandHandler(){return;}
+  virtual ~IRCServerCommandHandler(){return;}
 
-	// called when the system wishes to know the name of this command
-	virtual std::string getCommandName ( void ){return name;}
+  // called when the system wishes to know the name of this command
+  virtual std::string getCommandName ( void ){return name;}
 
-	// the send and receve methods return true if the default handler is to be called
-	// it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
+  // the send and receve methods return true if the default handler is to be called
+  // it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
 
-	// called when the client receves a command of this type
-	virtual bool receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
+  // called when the client receves a command of this type
+  virtual bool receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
 
-	// called when the user wishes to send a command of this type
-	virtual bool send ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
+  // called when the user wishes to send a command of this type
+  virtual bool send ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
 
 protected:
-	std::string name;
+  std::string name;
 };
 
 class IRCServer : public TCPServerDataPendingListener
@@ -168,6 +168,13 @@ public:
 
   // commands
   virtual bool receveCommand ( const std::string &commandName, IRCServerConnectedClient *client, const BaseIRCCommandInfo &info );
+
+  //command handler methods... for lower level API
+  virtual bool registerCommandHandler ( IRCServerCommandHandler *handler );
+  virtual bool removeCommandHandler ( IRCServerCommandHandler *handler );
+
+  virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
+  virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
 
 protected:
   friend class IRCServerConnectedClient;
