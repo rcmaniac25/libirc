@@ -279,9 +279,9 @@ protected:
   tmCommandHandlerMap      defaultCommandHandlers;
   tmUserCommandHandlersMap  userCommandHandlers;
 
-  void addDefaultCommandhandlers ( IRCClientCommandHandler* handler );
-  void clearDefaultCommandhandlers ( void );
-  void registerDefaultCommandhandlers ( void );
+  void addDefaultCommandHandlers ( IRCClientCommandHandler* handler );
+  void clearDefaultCommandHandlers ( void );
+  void registerDefaultCommandHandlers ( void );
 
   // event handlers
   tmIRCEventMap        defaultEventHandlers;
