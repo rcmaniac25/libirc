@@ -114,10 +114,10 @@ public:
 	// it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
 
 	// called when the client receves a command of this type
-	virtual bool receve ( IRCServer &server, IRCServerConnectedClient *client, std::string &command, BaseIRCCommandInfo  &info ){return true;}
+	virtual bool receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
 
 	// called when the user wishes to send a command of this type
-	virtual bool send ( IRCServer &server, IRCServerConnectedClient *client, std::string &command, BaseIRCCommandInfo  &info ){return true;}
+	virtual bool send ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
 
 protected:
 	std::string name;
@@ -165,6 +165,9 @@ public:
 
   IRCServerChannel *getChannel ( const char *name );
   IRCServerChannel *getChannel ( const std::string& name );
+
+  // commands
+  virtual bool receveCommand ( const std::string &commandName, IRCServerConnectedClient *client, const BaseIRCCommandInfo &info );
 
 protected:
   friend class IRCServerConnectedClient;

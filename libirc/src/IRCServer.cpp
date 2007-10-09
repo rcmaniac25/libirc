@@ -445,6 +445,35 @@ bool IRCServer::allowConnection ( const char* hostmask, unsigned char ip[4] )
 
 void IRCServer::clientIRCCommand ( const BaseIRCCommandInfo &command, IRCServerConnectedClient *client )
 {
+  receveCommand(std::string("ALL"),client,command);
+
+  if (atoi(command.command.c_str()) != 0) 
+    receveCommand( std::string("NUMERIC"),client,command);
+
+  // notify any handlers for this specific command
+  receveCommand(command.command,client,command);
+}
+
+bool IRCServer::receveCommand ( const std::string &commandName, IRCServerConnectedClient *client, const BaseIRCCommandInfo &info )
+{
+  tmCommandHandlerListMap::iterator itr = userCommandHandlers.find(commandName);
+  if ( itr != userCommandHandlers.end() )
+  {
+    bool callDefault = false;
+    for ( unsigned int i = 0; i < (unsigned int) itr->second.size(); i++ )
+    {
+      if ( itr->second[i]->receve(this,client,commandName,info))
+	callDefault = true;
+    }
+    if (!callDefault)
+      return true;
+  }
+
+  tmCommandHandlerMap::iterator defaultIter = defaultCommandHandlers.find(commandName);
+  if ( defaultIter != defaultCommandHandlers.end() && defaultIter->second )
+    return defaultIter->second->receve(this,client,commandName,info);
+
+  return false;
 }
 
 void IRCServer::addDefaultCommandHandlers ( IRCServerCommandHandler* handler )
