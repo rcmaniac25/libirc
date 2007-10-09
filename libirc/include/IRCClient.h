@@ -19,13 +19,36 @@
 #include "libIRC.h"
 #include "ircCommands.h"
 #include "IRCEvents.h"
-#include "TCPConnection.h"
 #include "IRCUserManager.h"
+
+#include "TCPConnection.h"
 
 // global includes
 #include <string>
 #include <vector>
 #include <map>
+
+// client network handler if they install one (TODO:: make a default one of these that runs our networking)
+
+class CIRCClientNetworkHandler
+{
+public:
+	virtual ~CIRCClientNetworkHandler(){};
+
+	virtual bool connected ( void ) = 0;
+	virtual bool connect ( const char *server, int port ) = 0;
+	virtual void disconnect ( bool quit ) = 0;
+
+	virtual void update ( void ){};
+	// inbound pending data
+	virtual int pendingPackets ( void ) = 0;
+	virtual unsigned int getPacketSize ( int packet ) = 0;
+	virtual const char *getPacketData ( int packet ) = 0;
+	virtual void flushInboundPackets ( void ) = 0;
+	
+	// outbound pending data
+	virtual bool send ( const char *data, int len ) = 0;
+};
 
 // need this later
 class IRCClient;
@@ -62,7 +85,7 @@ public:
 class IRCClient : public TCPClientDataPendingListener, IRCBasicEventCallback
 {
 public:
-	IRCClient();
+	IRCClient( CIRCClientNetworkHandler* h = NULL);
 	virtual ~IRCClient();
 
 	// logging
@@ -204,12 +227,18 @@ public:
 	// used by the defalt event handlers
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
 
+	// external network access
+	void setNetworkHandler ( CIRCClientNetworkHandler * _netHandler ){netHandler = _netHandler;}
+
 protected:
 	friend class IRCClientCommandHandler;
 
 	// networking
 	TCPClientConnection		*tcpClient;	
 	TCPConnection			&tcpConnection;
+
+	// external data handler
+	CIRCClientNetworkHandler	*netHandler;
 
 	// irc data
 	std::string				ircServerName;
@@ -240,6 +269,8 @@ protected:
 
 	// receved data processing
 	void processIRCLine ( std::string line );
+
+	void addDataToLine ( std::string &line, unsigned int len, const char *data );
 
 	// the command handlers
 	typedef std::map<std::string, IRCClientCommandHandler*>	tmCommandHandlerMap;
