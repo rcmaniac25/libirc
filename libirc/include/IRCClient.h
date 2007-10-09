@@ -82,7 +82,7 @@ public:
   virtual void log ( IRCClient &client, int level, std::string line ) = 0;
 };
 
-class IRCClient : public TCPClientDataPendingListener, IRCBasicEventCallback
+class IRCClient : public TCPClientDataPendingListener, IRCClientEventCallback
 {
 public:
   IRCClient( CIRCClientNetworkHandler* h = NULL);
@@ -162,8 +162,8 @@ public:
   IRCUserManager& getUserManager ( void ){return userManager;}
 
   //event handler methods.... for higher level API
-  virtual bool registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
-  virtual bool removeEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler );
+  virtual bool registerEventHandler ( teIRCEventType eventType, IRCClientEventCallback *handler );
+  virtual bool removeEventHandler ( teIRCEventType eventType, IRCClientEventCallback *handler );
   virtual void callEventHandler ( teIRCEventType eventType, trBaseEventInfo &info );
 
   //command handler methods... for lower level API
@@ -285,10 +285,10 @@ protected:
   void registerDefaultCommandHandlers ( void );
 
   // event handlers
-  tmIRCEventMap        defaultEventHandlers;
-  tmIRCEventListMap      userEventHandlers;
+  tmIRCClientEventMap        defaultEventHandlers;
+  tmIRCClientEventListMap      userEventHandlers;
 
-  void addDefaultEventHandlers ( teIRCEventType eventType, IRCBasicEventCallback* handler );
+  void addDefaultEventHandlers ( teIRCEventType eventType, IRCClientEventCallback* handler );
   void clearDefaultEventHandlers ( void );
   void registerDefaultEventHandlers ( void );
 

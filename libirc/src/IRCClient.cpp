@@ -570,7 +570,7 @@ void IRCClient::registerDefaultCommandHandlers ( void )
 //tmIRCEventMap              defaultEventHandlers;
 //tmIRCEventListMap          userEventHandlers;
 
-void IRCClient::addDefaultEventHandlers ( teIRCEventType eventType, IRCBasicEventCallback* handler )
+void IRCClient::addDefaultEventHandlers ( teIRCEventType eventType, IRCClientEventCallback* handler )
 {
   if (handler)
     defaultEventHandlers[eventType] = handler;
@@ -578,7 +578,7 @@ void IRCClient::addDefaultEventHandlers ( teIRCEventType eventType, IRCBasicEven
 
 void IRCClient::clearDefaultEventHandlers ( void )
 {
-  tmIRCEventMap::iterator itr = defaultEventHandlers.begin();
+  tmIRCClientEventMap::iterator itr = defaultEventHandlers.begin();
 
   while ( itr != defaultEventHandlers.end())
   {
@@ -597,15 +597,15 @@ void IRCClient::registerDefaultEventHandlers ( void )
   addDefaultEventHandlers(eIRCNickNameError,this);
 }
 
-bool IRCClient::registerEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler )
+bool IRCClient::registerEventHandler ( teIRCEventType eventType, IRCClientEventCallback *handler )
 {
   if (!handler)
     return false;
 
-  tmIRCEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
+  tmIRCClientEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
   if (eventListItr == userEventHandlers.end())
   {
-    tvIRCEventList handlerList;
+    tvIRCClientEventList handlerList;
     handlerList.push_back(handler);
     userEventHandlers[eventType] = handlerList;
   }
@@ -615,17 +615,17 @@ bool IRCClient::registerEventHandler ( teIRCEventType eventType, IRCBasicEventCa
   return true;
 }
 
-bool IRCClient::removeEventHandler ( teIRCEventType eventType, IRCBasicEventCallback *handler )
+bool IRCClient::removeEventHandler ( teIRCEventType eventType, IRCClientEventCallback *handler )
 {
   if (!handler)
     return false;
 
-  tmIRCEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
+  tmIRCClientEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
   if (eventListItr == userEventHandlers.end())
     return false;
   else
   {
-    tvIRCEventList::iterator  itr = eventListItr->second.begin();
+    tvIRCClientEventList::iterator  itr = eventListItr->second.begin();
     while ( itr != eventListItr->second.end())
     {
       if ((*itr)== handler)
@@ -641,7 +641,7 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
 {
   bool callDefault = true;
 
-  tmIRCEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
+  tmIRCClientEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
 
   // make sure the event type is cool
   info.eventType = eventType;
@@ -652,7 +652,7 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
     callDefault = false;
     // is this right?
     // should we do them all? or just the first one that "HANDLES" it?
-    tvIRCEventList::iterator  itr = eventListItr->second.begin();
+    tvIRCClientEventList::iterator  itr = eventListItr->second.begin();
     while (itr != eventListItr->second.end())
     {
       if ( (*itr)->process(*this,eventType,info))
@@ -665,7 +665,7 @@ void IRCClient::callEventHandler ( teIRCEventType eventType, trBaseEventInfo &in
 
   if (callDefault)  // check for the default
   {
-    tmIRCEventMap::iterator itr = defaultEventHandlers.find(eventType);
+    tmIRCClientEventMap::iterator itr = defaultEventHandlers.find(eventType);
     if (itr != defaultEventHandlers.end())
     {
       itr->second->process(*this,eventType,info);

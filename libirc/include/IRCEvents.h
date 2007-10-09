@@ -20,6 +20,7 @@
 #include "IRCTextUtils.h"
 
 class IRCClient;
+class IRCServer;
 class IRCServerConnectedClient;
 
 typedef enum
@@ -122,16 +123,27 @@ typedef struct trClientMessageEventInfo : public trBaseEventInfo
   std::string getAsString ( int start = 0, int end = -1 ) {return string_util::getStringFromList(params," ",start,end);}
 }trClientMessageEventInfo;
 
-class IRCBasicEventCallback
+class IRCClientEventCallback
 {
 public:
-  virtual ~IRCBasicEventCallback(){return;}
+  virtual ~IRCClientEventCallback(){return;}
   virtual bool process ( IRCClient &ircClient, teIRCEventType  eventType, trBaseEventInfo &info ) = 0;
 };
 
-typedef std::vector<IRCBasicEventCallback*>  tvIRCEventList;
-typedef std::map<teIRCEventType,tvIRCEventList> tmIRCEventListMap;
-typedef std::map<teIRCEventType,IRCBasicEventCallback*> tmIRCEventMap;
+class IRCServerEventCallback
+{
+public:
+  virtual ~IRCServerEventCallback(){return;}
+  virtual bool process ( IRCServer *ircServer, teIRCEventType  eventType, trBaseServerEventInfo &info ) = 0;
+};
+
+typedef std::vector<IRCClientEventCallback*>  tvIRCClientEventList;
+typedef std::map<teIRCEventType,tvIRCClientEventList> tmIRCClientEventListMap;
+typedef std::map<teIRCEventType,IRCClientEventCallback*> tmIRCClientEventMap;
+
+typedef std::vector<IRCServerEventCallback*>  tvIRCServerEventList;
+typedef std::map<teIRCEventType,tvIRCServerEventList> tmIRCServerEventListMap;
+typedef std::map<teIRCEventType,IRCServerEventCallback*> tmIRCServerEventMap;
 
 #endif // __IRC_EVENTS_H__ 
 // Local Variables: ***
