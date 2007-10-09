@@ -62,7 +62,7 @@ class botCommandHandaler
 public:
 	botCommandHandaler(){return;}
 	virtual ~botCommandHandaler(){return;}
-	virtual bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false ) = 0;
+	virtual bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg = false ) = 0;
 	std::string name;
 };
 
@@ -80,7 +80,7 @@ void installBotCommand ( botCommandHandaler* handaler )
 	botCommands[string_util::tolower(handaler->name)] = handaler;
 }
 
-bool callBotCommand ( std::string command, std::string source, std::string from, trMessageEventInfo *info, bool privMsg = false )
+bool callBotCommand ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, bool privMsg = false )
 {
 	tmBotCommandHandalerMap::iterator itr = botCommands.find(command);
 	if (itr == botCommands.end())
@@ -381,32 +381,32 @@ void joinChannels ( void )
 	}
 }
 
-void joinedChannel ( trJoinEventInfo *info )
+void joinedChannel ( trClientJoinEventInfo *info )
 {
 	std::map<std::string,std::string>::iterator itr = theBotInfo.joinMessages.find(info->channel);
 
 	if (itr == theBotInfo.joinMessages.end())
 		return;
 
-	IRCCommandINfo	commandInfo;
+	IRCCommandInfo	commandInfo;
 
 	commandInfo.target = info->channel;
 	commandInfo.params.push_back (itr->second);
 	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
 
-void  partedChannel (trPartEventInfo* info )
+void  partedChannel (trClientPartEventInfo* info )
 {
-	IRCCommandINfo	commandInfo;
+	IRCCommandInfo	commandInfo;
 
 	commandInfo.target = "JeffM";
 	commandInfo.params.push_back ("Got a channel part Message");
 	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
 
-void  userPartedChannel (trPartEventInfo* info )
+void  userPartedChannel (trClientPartEventInfo* info )
 {
-	IRCCommandINfo	commandInfo;
+	IRCCommandInfo	commandInfo;
 
 	commandInfo.target = info->channel;
 	commandInfo.params.push_back ("Got a user part Message");
@@ -447,11 +447,11 @@ bool isForMe ( std::string word )
 	return false;
 }
 
-void channelMessage ( trMessageEventInfo *info )
+void channelMessage ( trClientMessageEventInfo *info )
 {
 	std::string myNick = string_util::tolower(client.getNick());
 
-	IRCCommandINfo	commandInfo;
+	IRCCommandInfo	commandInfo;
 	commandInfo.target = info->target;
 
 	std::string firstWord = info->params[0];
@@ -485,9 +485,9 @@ void channelMessage ( trMessageEventInfo *info )
 	}
 }
 
-void privateMessage ( trMessageEventInfo *info )
+void privateMessage ( trClientMessageEventInfo *info )
 {
-	IRCCommandINfo	commandInfo;
+	IRCCommandInfo	commandInfo;
 	commandInfo.target = info->target;
 
 	std::string command = string_util::tolower(info->params[0]);
@@ -524,7 +524,7 @@ void privateMessage ( trMessageEventInfo *info )
 	}
 }
 
-void userKicked (trKickBanEventInfo *info)
+void userKicked (trClientKickBanEventInfo *info)
 {
 	std::string	message = "whoa, ";
 	message += info->user + " got kicked by " + info->kicker + " for " + info->reason + " that has to suck!";
@@ -550,27 +550,27 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			break;
 
 		case eIRCChannelJoinEvent:
-			joinedChannel((trJoinEventInfo*)&info);
+			joinedChannel((trClientJoinEventInfo*)&info);
 			break;
 
 		case eIRCChannelPartEvent:
-			partedChannel((trPartEventInfo*)&info);
+			partedChannel((trClientPartEventInfo*)&info);
 			break;
 
 		case eIRCUserPartEvent:
-			userPartedChannel((trPartEventInfo*)&info);
+			userPartedChannel((trClientPartEventInfo*)&info);
 			break;
 
 		case eIRCPrivateMessageEvent:
-			privateMessage ((trMessageEventInfo*)&info);
+			privateMessage ((trClientMessageEventInfo*)&info);
 			break;
 
 		case eIRCChannelMessageEvent:
-			channelMessage ((trMessageEventInfo*)&info);
+			channelMessage ((trClientMessageEventInfo*)&info);
 			break;
 
 		case eIRCUserKickedEvent:
-			userKicked ((trKickBanEventInfo*)&info);
+			userKicked ((trClientKickBanEventInfo*)&info);
 			break;
 
 		case eIRCNickNameError:
@@ -652,10 +652,10 @@ class quitCommand : public botCommandHandaler
 {
 public:
 	quitCommand() {name = "quit";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg = false );
 };
 
-bool quitCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
+bool quitCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -671,10 +671,10 @@ class helloCommand : public botCommandHandaler
 {
 public:
 	helloCommand() {name = "hello";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg = false );
 };
 
-bool helloCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
+bool helloCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg )
 {
 	std::string message = std::string("Hey ") + from + std::string(" how are you?");
 	client.sendMessage(respondTo,message);
@@ -685,10 +685,10 @@ class factoidCommand : public botCommandHandaler
 {
 public:
 	factoidCommand() {name = "factoid";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg = false );
 };
 
-bool factoidCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo, bool privMsg )
+bool factoidCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo, bool privMsg )
 {
 	std::string factoid = string_util::tolower(info->params[1]);
 	
@@ -745,10 +745,10 @@ class channelCommand : public botCommandHandaler
 {
 public:
 	channelCommand() {name = "channel";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool channelCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool channelCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (privMsg)
 		client.sendMessage(respondTo,"Invalid command, no channel");
@@ -761,10 +761,10 @@ class flushCommand : public botCommandHandaler
 {
 public:
 	flushCommand() {name = "flush";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool flushCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool flushCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -784,10 +784,10 @@ class rawCommand : public botCommandHandaler
 {
 public:
 	rawCommand() {name = "raw";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool rawCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool rawCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -806,12 +806,12 @@ class channelsCommand : public botCommandHandaler
 {
 public:
 	channelsCommand() {name = "channels";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool channelsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool channelsCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
-	string_list	chans = client.listChanels();
+	string_list	chans = client.listChannels();
 	string_list::iterator itr = chans.begin();
 	std::string plural = chans.size()>1 ? "s" : "";
 
@@ -831,10 +831,10 @@ class partCommand : public botCommandHandaler
 {
 public:
 	partCommand() {name = "part";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool partCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool partCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -867,7 +867,7 @@ bool partCommand::command ( std::string command, std::string source, std::string
 
 		client.part(partTarget, getRandomString(theBotInfo.partMessages));
 
-		if (!client.listChanels().size())
+		if (!client.listChannels().size())
 			part = true;
 	}
 	return true;
@@ -877,10 +877,10 @@ class joinCommand : public botCommandHandaler
 {
 public:
 	joinCommand() {name = "join";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool joinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool joinCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -918,10 +918,10 @@ class usersCommand : public botCommandHandaler
 {
 public:
 	usersCommand() {name = "users";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool usersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool usersCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	std::string channel;
 
@@ -963,10 +963,10 @@ class allUsersCommand : public botCommandHandaler
 {
 public:
 	allUsersCommand() {name = "allusers";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool allUsersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool allUsersCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	string_list userList = client.listUsers(std::string(""));
 	string_list::iterator itr = userList.begin();
@@ -987,10 +987,10 @@ class addjoinCommand : public botCommandHandaler
 {
 public:
 	addjoinCommand() {name = "addjoin";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool addjoinCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool addjoinCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -1028,10 +1028,10 @@ class addmasterCommand : public botCommandHandaler
 {
 public:
 	addmasterCommand() {name = "addmaster";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool addmasterCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool addmasterCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -1070,10 +1070,10 @@ class libVersCommand : public botCommandHandaler
 {
 public:
 	libVersCommand() {name = "libversion";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool libVersCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool libVersCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	client.sendMessage(respondTo, getLibVersion());
 	return true;
@@ -1083,10 +1083,10 @@ class longTestCommand : public botCommandHandaler
 {
 public:
 	longTestCommand() {name = "longtest";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool longTestCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool longTestCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	std::string longString ;
 
@@ -1115,10 +1115,10 @@ class chanPermsCommand : public botCommandHandaler
 {
 public:
 	chanPermsCommand() {name = "chanperms";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool chanPermsCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool chanPermsCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
@@ -1157,10 +1157,10 @@ class userInfoCommand : public botCommandHandaler
 {
 public:
 	userInfoCommand() {name = "userinfo";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool userInfoCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool userInfoCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	std::string userName;
 
@@ -1231,10 +1231,10 @@ class chanInfoCommand : public botCommandHandaler
 {
 public:
 	chanInfoCommand() {name = "chaninfo";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool chanInfoCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool chanInfoCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	std::string channelName;
 
@@ -1295,10 +1295,10 @@ class helpCommand : public botCommandHandaler
 {
 public:
 	helpCommand() {name = "help";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool helpCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool helpCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	tmBotCommandHandalerMap::iterator itr = botCommands.begin();
 	std::string message = "Current commands;";
@@ -1318,10 +1318,10 @@ class factoidListCommand : public botCommandHandaler
 {
 public:
 	factoidListCommand() {name = "factoidlist";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool factoidListCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool factoidListCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	factoidMap::iterator itr = theBotInfo.factoids.begin();
 	std::string message = "Current factoids;";
@@ -1341,10 +1341,10 @@ class kickCommand : public botCommandHandaler
 {
 public:
 	kickCommand() {name = "kick";}
-	bool command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
 };
 
-bool kickCommand::command ( std::string command, std::string source, std::string from, trMessageEventInfo *info, std::string respondTo , bool privMsg )
+bool kickCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
 {
 	if (!isMaster(from))
 	{
