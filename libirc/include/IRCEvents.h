@@ -61,7 +61,11 @@ typedef struct trBaseEventInfo
 // events with no data use this
 typedef struct trBaseServerEventInfo : public trBaseEventInfo
 {
-	IRCServerConnectedClient	*client;
+  trBaseServerEventInfo(IRCServerConnectedClient*c)
+  {
+    client = c;
+  }
+  IRCServerConnectedClient	*client;
 }trBaseServerEventInfo;
 
 // nickname error type events, used for eIRCNickNameError

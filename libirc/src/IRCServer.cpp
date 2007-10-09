@@ -400,11 +400,11 @@ void IRCServer::pending ( TCPServerConnection *connection, TCPServerConnectedPee
     for ( unsigned int i = 0; i < size; i++ )
     {
       if ( data[i] != 13 )
-  theLine += data[i];
+	theLine += data[i];
       else
       {
-  processIRCLine(theLine,client);
-  theLine = "";
+	processIRCLine(theLine,client);
+	theLine = "";
       }
     }
   }
@@ -432,6 +432,8 @@ void IRCServer::disconnect ( TCPServerConnection *connection, TCPServerConnected
 
 void IRCServer::clientConnect ( IRCServerConnectedClient *client )
 {
+  trBaseServerEventInfo  info(client);
+  callEventHandler(eIRCConnectedEvent,info);
 }
 
 void IRCServer::clientDisconnect ( IRCServerConnectedClient *client )
@@ -495,7 +497,7 @@ void IRCServer::clearDefaultCommandHandlers ( void )
 
 void IRCServer::registerDefaultCommandHandlers ( void )
 {
-
+  registerDefaultEventHandlers();
 }
 
 bool IRCServer::registerCommandHandler ( IRCServerCommandHandler *handler )
@@ -568,6 +570,135 @@ int IRCServer::listDefaultHandledCommands ( std::vector<std::string> &commandLis
     itr++;
   }
   return (int)commandList.size();
+}
+
+void IRCServer::addDefaultEventHandlers ( teIRCEventType eventType, IRCServerEventCallback* handler )
+{
+  if (handler)
+    defaultEventHandlers[eventType] = handler;
+}
+
+void IRCServer::clearDefaultEventHandlers ( void )
+{
+  tmIRCServerEventMap::iterator itr = defaultEventHandlers.begin();
+
+  while ( itr != defaultEventHandlers.end())
+  {
+    if (itr->second && (itr->second != this) )
+      delete(itr->second);
+    itr++;
+  }
+  defaultEventHandlers.clear();
+}
+
+void IRCServer::registerDefaultEventHandlers ( void )
+{
+  userEventHandlers.clear();
+  clearDefaultEventHandlers();
+
+  registerEventHandler(eIRCConnectedEvent,this);
+}
+
+bool IRCServer::registerEventHandler ( teIRCEventType eventType, IRCServerEventCallback *handler )
+{
+  if (!handler)
+    return false;
+
+  tmIRCServerEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
+  if (eventListItr == userEventHandlers.end())
+  {
+    tvIRCServerEventList handlerList;
+    handlerList.push_back(handler);
+    userEventHandlers[eventType] = handlerList;
+  }
+  else
+    eventListItr->second.push_back(handler);
+
+  return true;
+}
+
+bool IRCServer::removeEventHandler ( teIRCEventType eventType, IRCServerEventCallback *handler )
+{
+  if (!handler)
+    return false;
+
+  tmIRCServerEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
+  if (eventListItr == userEventHandlers.end())
+    return false;
+  else
+  {
+    tvIRCServerEventList::iterator  itr = eventListItr->second.begin();
+    while ( itr != eventListItr->second.end())
+    {
+      if ((*itr)== handler)
+	itr = eventListItr->second.erase(itr);
+      else
+	itr++;
+    }
+  }
+  return true;
+}
+
+void IRCServer::callEventHandler ( teIRCEventType eventType, trBaseServerEventInfo &info )
+{
+  bool callDefault = true;
+
+  tmIRCServerEventListMap::iterator    eventListItr = userEventHandlers.find(eventType);
+
+  // make sure the event type is cool
+  info.eventType = eventType;
+
+  if (eventListItr != userEventHandlers.end() && eventListItr->second.size())  // do we have a custom command handler
+  {
+    // someone has to want us to call the defalt now
+    callDefault = false;
+    // is this right?
+    // should we do them all? or just the first one that "HANDLES" it?
+    tvIRCServerEventList::iterator  itr = eventListItr->second.begin();
+    while (itr != eventListItr->second.end())
+    {
+      if ( (*itr)->process(this,eventType,info))
+	callDefault = true;
+      itr++;
+    }
+    if (!callDefault)
+      return;
+  }
+
+  if (callDefault)  // check for the default
+  {
+    tmIRCServerEventMap::iterator itr = defaultEventHandlers.find(eventType);
+    if (itr != defaultEventHandlers.end())
+    {
+      itr->second->process(this,eventType,info);
+      return;
+    }
+  }
+  return;
+}
+
+bool IRCServer::process ( IRCServer *ircServer, teIRCEventType  eventType, trBaseServerEventInfo &info )
+{
+  if (ircServer != this)
+    return false;
+
+  switch(eventType)
+  {
+    case eIRCConnectedEvent:
+      {
+	char *text = getConnectionText(info.client);
+	if (!text)
+	  return false;
+
+	std::vector<std::string> lines = string_util::tokenize(std::string(text),std::string("\n"));
+	for (unsigned int i = 0; i < (unsigned int)lines.size(); i++)
+	{
+	  // send out each line as it's own message
+	}
+      }
+    return true;
+  }
+  return false;
 }
 
 

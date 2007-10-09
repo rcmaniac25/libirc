@@ -123,7 +123,7 @@ protected:
   std::string name;
 };
 
-class IRCServer : public TCPServerDataPendingListener
+class IRCServer : public TCPServerDataPendingListener, IRCServerEventCallback
 {
 public:
   IRCServer();
@@ -175,6 +175,17 @@ public:
 
   virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
   virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
+
+  //event handler methods.... for higher level API
+  virtual bool registerEventHandler ( teIRCEventType eventType, IRCServerEventCallback *handler );
+  virtual bool removeEventHandler ( teIRCEventType eventType, IRCServerEventCallback *handler );
+  virtual void callEventHandler ( teIRCEventType eventType, trBaseServerEventInfo &info );
+
+  // internal event callbacks
+  virtual bool process ( IRCServer *ircServer, teIRCEventType  eventType, trBaseServerEventInfo &info );
+
+  // super high level common overides
+  virtual const char * getConnectionText ( IRCServerConnectedClient *client ){return NULL;}
 
 protected:
   friend class IRCServerConnectedClient;
@@ -229,6 +240,15 @@ protected:
   void addDefaultCommandHandlers ( IRCServerCommandHandler* handler );
   void clearDefaultCommandHandlers ( void );
   void registerDefaultCommandHandlers ( void );
+
+  // event handlers
+  tmIRCServerEventMap        defaultEventHandlers;
+  tmIRCServerEventListMap      userEventHandlers;
+
+  void addDefaultEventHandlers ( teIRCEventType eventType, IRCServerEventCallback* handler );
+  void clearDefaultEventHandlers ( void );
+  void registerDefaultEventHandlers ( void );
+
 
 };
 
