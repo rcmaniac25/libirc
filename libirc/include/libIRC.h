@@ -31,7 +31,7 @@ typedef std::vector<std::string> string_list;
 #endif
 
 
-#define _DEFAULT_IRC_PORT	6667
+#define _DEFAULT_IRC_PORT  6667
 
 // simple OS indpendent sleep function
 // used by so many things, so we have one here
@@ -47,56 +47,56 @@ void getLibVersion ( int &major, int &minor, int &rev );
 // the types of command info structures
 typedef enum
 {
-	eUnknownCommand = 0,
-	eIRCCommand,
-	eCTCPCommand,
-	eDDECommand
+  eUnknownCommand = 0,
+  eIRCCommand,
+  eCTCPCommand,
+  eDDECommand
 }commndInfoTypes;
 
 // base struct in witch all info structures are derived
 class BaseIRCCommandInfo
 {
 public:
-	BaseIRCCommandInfo();
-	virtual ~BaseIRCCommandInfo();
+  BaseIRCCommandInfo();
+  virtual ~BaseIRCCommandInfo();
 
-	void parse ( std::string line );
-	std::string getAsString ( int start = 0, int end = -1 );
+  void parse ( std::string line );
+  std::string getAsString ( int start = 0, int end = -1 );
 
-	commndInfoTypes	type;
-	std::string command;
+  commndInfoTypes  type;
+  std::string command;
 
-	std::string raw;
-	std::vector<std::string> params;
-	bool prefixed;
-	std::string source;
-	std::string target;
+  std::string raw;
+  std::vector<std::string> params;
+  bool prefixed;
+  std::string source;
+  std::string target;
 };
 
 // a normal Internet Relay Chat command
 class IRCCommandINfo : public BaseIRCCommandInfo
 {
 public:
-	teIRCCommands						 ircCommand;
+  teIRCCommands             ircCommand;
 };
 
 // a Client To Client Protocol command
 class CTCPCommandINfo : public BaseIRCCommandInfo
 {
 public:
-	teCTCPCommands					 ctcpCommand;
-	std::string from;
-	std::string to;
-	bool				request;
+  teCTCPCommands           ctcpCommand;
+  std::string from;
+  std::string to;
+  bool        request;
 };
 
 // a Direct Client Connect command
 class DCCCommandINfo : public BaseIRCCommandInfo
 {
-	std::string from;
-	std::string to;
-	bool				request;
-	std::string data;
+  std::string from;
+  std::string to;
+  bool        request;
+  std::string data;
 };
 
 #include "IRCClient.h"

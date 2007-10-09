@@ -36,152 +36,153 @@ class IRCServer;
 class IRCServerLogHandler
 {
 public:
-	virtual ~IRCServerLogHandler(){return;}
-	virtual void log ( IRCServer &server, int level, std::string line ) = 0;
+  virtual ~IRCServerLogHandler(){return;}
+  virtual void log ( IRCServer &server, int level, std::string line ) = 0;
 };
 
 class IRCServerConnectedClient
 {
 public:
-	IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer );
-	virtual ~IRCServerConnectedClient();
+  IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer );
+  virtual ~IRCServerConnectedClient();
 
-	unsigned int getClientID ( void ) { return clientID;}
-	virtual bool sendText ( const std::string &text );
-	virtual bool sendText ( const  char*text );
-	std::string lastData;
+  unsigned int getClientID ( void ) { return clientID;}
+  virtual bool sendText ( const std::string &text );
+  virtual bool sendText ( const  char*text );
+  std::string lastData;
 
-	std::string getHostMask ( void );
-	bool getIP ( unsigned char ip[4] );
+  std::string getHostMask ( void );
+  bool getIP ( unsigned char ip[4] );
 
-	virtual bool joinChannel ( const char* channel );
-	virtual bool partChannel ( const char* channel );
+  virtual bool joinChannel ( const char* channel );
+  virtual bool partChannel ( const char* channel );
 
 protected:
-	unsigned int clientID;
-	bool localUser;
-	
-	// local user connection
-	TCPServerConnectedPeer	*peer;
-	IRCServer *server;
+  unsigned int clientID;
+  bool localUser;
+  
+  // local user connection
+  TCPServerConnectedPeer  *peer;
+  IRCServer *server;
 
-	// remote user connection
-	std::string remoteServer;
+  // remote user connection
+  std::string remoteServer;
 
-	std::vector<std::string> channels;
+  std::vector<std::string> channels;
 };
 
 class IRCServerChannel
 {
 public:
-	IRCServerChannel( const char * _name );
-	virtual ~IRCServerChannel();
+  IRCServerChannel( const char * _name );
+  virtual ~IRCServerChannel();
 
-	virtual void addMember ( IRCServerConnectedClient *member );
-	virtual void removeMember ( IRCServerConnectedClient *member );
+  virtual void addMember ( IRCServerConnectedClient *member );
+  virtual void removeMember ( IRCServerConnectedClient *member );
 
-	virtual bool sendText ( const std::string &text );
-	virtual bool sendText ( const char*text );
+  virtual bool sendText ( const std::string &text );
+  virtual bool sendText ( const char*text );
 
 protected:
-	std::string name;
-	class ChannelUserData
-	{
-	public:
-		virtual ~ChannelUserData();
-		bool voice;
-		bool op;
-	};
+  std::string name;
+  class ChannelUserData
+  {
+  public:
+    virtual ~ChannelUserData();
+    bool voice;
+    bool op;
+  };
 
-	virtual ChannelUserData* newUserData ( void ){ return new ChannelUserData;}
-	virtual void deleteUserData ( ChannelUserData *data ){ delete(data);}
+  virtual ChannelUserData* newUserData ( void ){ return new ChannelUserData;}
+  virtual void deleteUserData ( ChannelUserData *data ){ delete(data);}
 
-	typedef std::map <IRCServerConnectedClient*, ChannelUserData*> MemberDataMap;
-	MemberDataMap members;
+  typedef std::map <IRCServerConnectedClient*, ChannelUserData*> MemberDataMap;
+  MemberDataMap members;
 };
 
 class IRCServer : public TCPServerDataPendingListener
 {
 public:
-	IRCServer();
-	virtual ~IRCServer();
+  IRCServer();
+  virtual ~IRCServer();
 
-	// loging
-	void	setLogHandler ( IRCServerLogHandler * logger );
+  // loging
+  void  setLogHandler ( IRCServerLogHandler * logger );
 
-	virtual void setLogfile ( std::string file );
-	virtual std::string  getLogfile ( void );
+  virtual void setLogfile ( std::string file );
+  virtual std::string  getLogfile ( void );
 
-	virtual void setDebugLevel ( int level );
-	virtual int getDebugLevel ( void );
+  virtual void setDebugLevel ( int level );
+  virtual int getDebugLevel ( void );
 
-	// general connection methods
-	virtual bool listen ( int maxConnections = 32, int port = -1 );
-	virtual bool disconnect ( std::string reason );
+  // general connection methods
+  virtual bool listen ( int maxConnections = 32, int port = -1 );
+  virtual bool disconnect ( std::string reason );
 
-	void setFloodProtectTime ( float time ){minCycleTime = time;}
-	float getFloodProtectTime ( void ){return minCycleTime;}
+  void setFloodProtectTime ( float time ){minCycleTime = time;}
+  float getFloodProtectTime ( void ){return minCycleTime;}
 
-	// update methods
-	virtual bool process ( void );
+  // update methods
+  virtual bool process ( void );
 
-	// low level log calls
-	virtual void log ( std::string text, int level = 0 );
-	virtual void log ( const char *text, int level = 0 );
+  // low level log calls
+  virtual void log ( std::string text, int level = 0 );
+  virtual void log ( const char *text, int level = 0 );
 
-	virtual bool connect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer );
-	virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, unsigned int count );
-	virtual void disconnect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, bool forced = false );
+  virtual bool connect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer );
+  virtual void pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, unsigned int count );
+  virtual void disconnect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, bool forced = false );
 
-	// virtual methods for basic IRC functions
-	virtual bool allowConnection ( const char* hostmask, unsigned char ip[4] );
-	virtual void clientConnect ( IRCServerConnectedClient *client );
-	virtual void clientDisconnect ( IRCServerConnectedClient *client );
-	virtual void clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client );
+  // virtual methods for basic IRC functions
+  virtual bool allowConnection ( const char* hostmask, unsigned char ip[4] );
+  virtual void clientConnect ( IRCServerConnectedClient *client );
+  virtual void clientDisconnect ( IRCServerConnectedClient *client );
+  virtual void clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client );
 
-	IRCServerChannel *getChannel ( const char *name );
-	IRCServerChannel *getChannel ( const std::string& name );
+  IRCServerChannel *getChannel ( const char *name );
+  IRCServerChannel *getChannel ( const std::string& name );
 
 protected:
-	friend class IRCServerConnectedClient;
+  friend class IRCServerConnectedClient;
 
-	// overide thsese if you want to derive your own classes
-	virtual IRCServerChannel* newChannel ( const char * name ){ return new IRCServerChannel(name); }
-	virtual void deleteChannel ( IRCServerChannel *channel ){ delete(channel); }
+  // overide thsese if you want to derive your own classes
+  virtual IRCServerChannel* newChannel ( const char * name ){ return new IRCServerChannel(name); }
+  virtual void deleteChannel ( IRCServerChannel *channel ){ delete(channel); }
 
-	virtual IRCServerConnectedClient* newClient ( IRCServer *_server, TCPServerConnectedPeer* _peer  ){ return new IRCServerConnectedClient(_server,_peer); }
-	virtual void deleteClient ( IRCServerConnectedClient *client ){ delete(client); }
+  virtual IRCServerConnectedClient* newClient ( IRCServer *_server, TCPServerConnectedPeer* _peer  ){ return new IRCServerConnectedClient(_server,_peer); }
+  virtual void deleteClient ( IRCServerConnectedClient *client ){ delete(client); }
 
-	// common functions
-	bool sendTextToPeer ( const std::string &text, TCPServerConnectedPeer *peer );
+  // common functions
+  bool sendTextToPeer ( const std::string &text, TCPServerConnectedPeer *peer );
 
-	virtual void processIRCLine ( std::string line, IRCServerConnectedClient *client );
+  virtual void processIRCLine ( std::string line, IRCServerConnectedClient *client );
 
-	// networking
-	TCPServerConnection		*tcpServer;	
-	TCPConnection			&tcpConnection;
-	int						ircServerPort;
+  // networking
+  TCPServerConnection    *tcpServer;  
+  TCPConnection      &tcpConnection;
+  int            ircServerPort;
 
-	// loging
-	IRCServerLogHandler				*logHandler;
-	std::string						logfile;
-	int								debugLogLevel;
+  // loging
+  IRCServerLogHandler        *logHandler;
+  std::string            logfile;
+  int                debugLogLevel;
 
-	// helpers
-	std::string ircMessageTerminator;
-	std::string ircCommandDelimator;
+  // helpers
+  std::string ircMessageTerminator;
+  std::string ircCommandDelimator;
 
-	// flood protection
-	float							minCycleTime;
+  // flood protection
+  float              minCycleTime;
 
-	// users
-	typedef std::vector<IRCServerConnectedClient*> ClientList;
-	ClientList	clients;
+  // users
+  typedef std::vector<IRCServerConnectedClient*> ClientList;
+  ClientList  clients;
 
-	ClientList::iterator getClientItr ( IRCServerConnectedClient *client );
+  ClientList::iterator getClientItr ( IRCServerConnectedClient *client );
 
-	// channels
-	std::map<std::string, IRCServerChannel*>	chanels;
+  // channels
+  typedef std::map<std::string, IRCServerChannel*> ChannelMap;
+  ChannelMap channels;
 };
 
 #endif //_IRC_SERVER_H_

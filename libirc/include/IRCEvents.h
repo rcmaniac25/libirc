@@ -23,105 +23,105 @@ class IRCClient;
 
 typedef enum
 {
-	eIRCNULLEvent = 0,
-	eIRCNoticeEvent,
-	eIRCNickNameError,
-	eIRCNickNameChange,
-	eIRCWelcomeEvent,
-	eIRCEndMOTDEvent,
-	eIRCConnectedEvent,
-	eIRCChannelJoinEvent,
-	eIRCChannelPartEvent,
-	eIRCChannelBanEvent,
-	eIRCChannelMessageEvent,
-	eIRCPrivateMessageEvent,
-	eIRCTopicEvent,
-	eIRCUserJoinEvent,
-	eIRCUserPartEvent,
-	eIRCUserKickedEvent,
-	eIRCTopicChangeEvent,
-	eIRCChanInfoCompleteEvent,
-	eIRCChannelModeSet,
-	eIRCChannelUserModeSet,
-	eIRCUserModeSet,
-	eIRCQuitEvent,
-	eIRCLastEvent
+  eIRCNULLEvent = 0,
+  eIRCNoticeEvent,
+  eIRCNickNameError,
+  eIRCNickNameChange,
+  eIRCWelcomeEvent,
+  eIRCEndMOTDEvent,
+  eIRCConnectedEvent,
+  eIRCChannelJoinEvent,
+  eIRCChannelPartEvent,
+  eIRCChannelBanEvent,
+  eIRCChannelMessageEvent,
+  eIRCPrivateMessageEvent,
+  eIRCTopicEvent,
+  eIRCUserJoinEvent,
+  eIRCUserPartEvent,
+  eIRCUserKickedEvent,
+  eIRCTopicChangeEvent,
+  eIRCChanInfoCompleteEvent,
+  eIRCChannelModeSet,
+  eIRCChannelUserModeSet,
+  eIRCUserModeSet,
+  eIRCQuitEvent,
+  eIRCLastEvent
 }teIRCEventType;
 
 // basic structiure that all events are based on
 // events with no data use this
 typedef struct trBaseEventInfo
 {
-	teIRCEventType	eventType;
+  teIRCEventType  eventType;
 }trBaseEventInfo;
 
 // nickname error type events, used for eIRCNickNameError
 typedef struct trNickErrorEventInfo : public trBaseEventInfo
 {
-	int	error;
-	std::string message;
+  int  error;
+  std::string message;
 }trNickErrorEventInfo;
 
 // join type evetns, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent
 typedef struct trJoinEventInfo : public trBaseEventInfo
 {
-	std::string channel;
-	std::string user;
+  std::string channel;
+  std::string user;
 }trJoinEventInfo;
 
 // mode type evetns, used for  eIRCUserModeSet,eIRCChannelModeSet,eIRCChannelUserModeSet
 typedef struct trModeEventInfo : public trBaseEventInfo
 {
-	std::string target;
-	std::string from;
-	std::string mode;
-	std::string message;
+  std::string target;
+  std::string from;
+  std::string mode;
+  std::string message;
 }trModeEventInfo;
 
 // nick change type evetns, used for  eIRCNickNameChange
 typedef struct trNickChangeEventInfo : public trBaseEventInfo
 {
-	std::string oldname;
-	std::string newName;
+  std::string oldname;
+  std::string newName;
 }trNickChangeEventInfo;
 
 // part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent, eIRCQuitEvetnt
 typedef struct trPartEventInfo : public trBaseEventInfo
 {
-	std::string channel;
-	std::string user;
-	std::string reason;
+  std::string channel;
+  std::string user;
+  std::string reason;
 }trPartEventInfo;
 
 // kick and ban type events , used for eIRCChannelKickEvent,eIRCChannelBanEvent, eIRCUserPartEvent
 typedef struct trKickBanEventInfo : public trBaseEventInfo
 {
-	std::string channel;
-	std::string user;
-	std::string reason;
-	std::string kicker;
+  std::string channel;
+  std::string user;
+  std::string reason;
+  std::string kicker;
 }trKickBanEventInfo;
 
 // message events, used for eIRCChannelMessageEvent, eIRCPrivateMessageEvent, eIRCNoticeEvent, eIRCWelcomeEvent, eIRCTopicChangeEvent
 typedef struct trMessageEventInfo : public trBaseEventInfo
 {
-	std::string	target;
-	std::string source;
-	std::string from;
-	std::string message;
-	std::vector<std::string> params;
+  std::string  target;
+  std::string source;
+  std::string from;
+  std::string message;
+  std::vector<std::string> params;
 
-	std::string getAsString ( int start = 0, int end = -1 ) {return string_util::getStringFromList(params," ",start,end);}
+  std::string getAsString ( int start = 0, int end = -1 ) {return string_util::getStringFromList(params," ",start,end);}
 }trMessageEventInfo;
 
 class IRCBasicEventCallback
 {
 public:
-	virtual ~IRCBasicEventCallback(){return;}
-	virtual bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info ) = 0;
+  virtual ~IRCBasicEventCallback(){return;}
+  virtual bool process ( IRCClient &ircClient, teIRCEventType  eventType, trBaseEventInfo &info ) = 0;
 };
 
-typedef std::vector<IRCBasicEventCallback*>	tvIRCEventList;
+typedef std::vector<IRCBasicEventCallback*>  tvIRCEventList;
 typedef std::map<teIRCEventType,tvIRCEventList> tmIRCEventListMap;
 typedef std::map<teIRCEventType,IRCBasicEventCallback*> tmIRCEventMap;
 

@@ -269,6 +269,9 @@ bool IRCServer::disconnect ( std::string reason )
     for (unsigned int i = 0; i < (unsigned int)clients.size(); i++ )
       deleteClient(clients[i]);
 
+    for (unsigned int i = 0; i < (unsigned int)channels.size(); i++ )
+      deleteClient(clients[i]);
+
     clients.clear();
     return true;
   }
@@ -384,11 +387,11 @@ void IRCServer::pending ( TCPServerConnection *connection, TCPServerConnectedPee
     for ( unsigned int i = 0; i < size; i++ )
     {
       if ( data[i] != 13 )
-	theLine += data[i];
+  theLine += data[i];
       else
       {
-	processIRCLine(theLine,client);
-	theLine = "";
+  processIRCLine(theLine,client);
+  theLine = "";
       }
     }
   }

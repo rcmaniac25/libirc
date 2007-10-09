@@ -85,73 +85,73 @@ namespace string_util
       currentChar = (pos < in.size()) ? in[pos] : -1;
       while ((currentChar != -1) && !tokenDone){
 
-	tokenDone = false;
+  tokenDone = false;
 
-	if (delims.find(currentChar) != std::string::npos && !inQuote) { // currentChar is a delim
-	  pos ++;
-	  break; // breaks out of while look
-	}
+  if (delims.find(currentChar) != std::string::npos && !inQuote) { // currentChar is a delim
+    pos ++;
+    break; // breaks out of while look
+  }
 
-	if (!useQuotes){
+  if (!useQuotes){
+    currentToken << char(currentChar);
+  } else {
+
+    switch (currentChar){
+      case '\\' : // found a backslash
+        if (foundSlash){
 	  currentToken << char(currentChar);
-	} else {
+	  foundSlash = false;
+        } else {
+	  foundSlash = true;
+        }
+        break;
+      case '\"' : // found a quote
+        if (foundSlash){ // found \"
+    currentToken << char(currentChar);
+    foundSlash = false;
+        } else { // found unescaped "
+    if (inQuote){ // exiting a quote
+      // finish off current token
+      tokenDone = true;
+      inQuote = false;
+      //slurp off one additional delimeter if possible
+      if (pos+1 < in.size() &&
+          delims.find(in[pos+1]) != std::string::npos) {
+        pos++;
+      }
 
-	  switch (currentChar){
-	    case '\\' : // found a backslash
-	      if (foundSlash){
-		currentToken << char(currentChar);
-		foundSlash = false;
-	      } else {
-		foundSlash = true;
-	      }
-	      break;
-	    case '\"' : // found a quote
-	      if (foundSlash){ // found \"
-		currentToken << char(currentChar);
-		foundSlash = false;
-	      } else { // found unescaped "
-		if (inQuote){ // exiting a quote
-		  // finish off current token
-		  tokenDone = true;
-		  inQuote = false;
-		  //slurp off one additional delimeter if possible
-		  if (pos+1 < in.size() &&
-		      delims.find(in[pos+1]) != std::string::npos) {
-		    pos++;
-		  }
+    } else { // entering a quote
+      // finish off current token
+      tokenDone = true;
+      inQuote = true;
+    }
+        }
+        break;
+      default:
+        if (foundSlash){ // don't care about slashes except for above cases
+    currentToken << '\\';
+    foundSlash = false;
+        }
+        currentToken << char(currentChar);
+        break;
+    }
+  }
 
-		} else { // entering a quote
-		  // finish off current token
-		  tokenDone = true;
-		  inQuote = true;
-		}
-	      }
-	      break;
-	    default:
-	      if (foundSlash){ // don't care about slashes except for above cases
-		currentToken << '\\';
-		foundSlash = false;
-	      }
-	      currentToken << char(currentChar);
-	      break;
-	  }
-	}
-
-	pos++;
-	currentChar = (pos < in.size()) ? in[pos] : -1;
+  pos++;
+  currentChar = (pos < in.size()) ? in[pos] : -1;
       } // end of getting a Token
 
       if (currentToken.str().size() > 0){ // if the token is something add to list
-	tokens.push_back(currentToken.str());
-	currentToken.str("");
-	numTokens ++;
+  tokens.push_back(currentToken.str());
+  currentToken.str("");
+  numTokens ++;
       }
 
       enoughTokens = (maxTokens && (numTokens >= (maxTokens-1)));
       if (enoughTokens){
-	break;
+  break;
       } else{
-	pos = in.find_first_not_of(delims,pos);
+  pos = in.find_first_not_of(delims,pos);
       }
 
     } // end of getting all tokens -- either EOL or max tokens reached
@@ -159,7 +159,7 @@ namespace string_util
     if (enoughTokens && pos != std::string::npos) {
       std::string lastToken = in.substr(pos);
       if (lastToken.size() > 0)
-	tokens.push_back(lastToken);
+  tokens.push_back(lastToken);
     }
 
     return tokens;
@@ -173,19 +173,19 @@ namespace string_util
     int len = (int)duration.length();
     for(int i=0; i < len; i++) {
       if (isdigit(duration[i])) {
-	t = t * 10 + (duration[i] - '0');
+  t = t * 10 + (duration[i] - '0');
       }
       else if(duration[i] == 'h' || duration[i] == 'H') {
-	durationInt += (t * 60);
-	t = 0;
+  durationInt += (t * 60);
+  t = 0;
       }
       else if(duration[i] == 'd' || duration[i] == 'D') {
-	durationInt += (t * 1440);
-	t = 0;
+  durationInt += (t * 1440);
+  t = 0;
       }
       else if(duration[i] == 'w' || duration[i] == 'w') {
-	durationInt += (t * 10080);
-	t = 0;
+  durationInt += (t * 10080);
+  t = 0;
       }
     }
     durationInt += t;

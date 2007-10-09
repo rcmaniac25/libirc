@@ -291,23 +291,23 @@ bool IRCClient::sendTextToServer ( std::string &text )
     switch (error)
     {
       case eTCPNotInit:
-	log("Send Data Error: TCP Not Initalised: data=" + text,0);
+  log("Send Data Error: TCP Not Initalised: data=" + text,0);
       break;
 
       case eTCPSocketNFG:
-	log("Send Data Error: Bad Socket: data=" + text,0);
+  log("Send Data Error: Bad Socket: data=" + text,0);
       break;
 
       case eTCPDataNFG:
-	log("Send Data Error: Bad Data",0);
+  log("Send Data Error: Bad Data",0);
       break;
 
       case eTCPConnectionFailed:
-	log("Send Data Error: TCP Connection failed",0);
+  log("Send Data Error: TCP Connection failed",0);
       break;
 
       default:
-	log("Send Data Error:Unknown Error",0);
+  log("Send Data Error:Unknown Error",0);
     }
     return false;
   }
