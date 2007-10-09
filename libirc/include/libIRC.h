@@ -1,5 +1,5 @@
 /* libIRC
- * Copyright (c) 2004 Christopher Sean Morrison
+ * Copyright (c) 2007 Christopher Sean Morrison
  *
  * This package is free software;  you can redistribute it and/or
  * modify it under the terms of the license found in the file
@@ -25,8 +25,8 @@ typedef std::vector<std::string> string_list;
 // IRC includes
 #include "ircCommands.h"
 #include "IRCEvents.h"
-#include "TCPConnection.h"
 #include "IRCUserManager.h"
+#include "TCPConnection.h"
 
 #endif
 
