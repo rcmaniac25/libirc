@@ -17,44 +17,45 @@
 #include "libIRC.h"
 #include "ircBasicCommands.h"
 #include "IRCTextUtils.h"
+#include <algorithm>
 
 #ifndef _WIN32
-	#include <unistd.h>
+  #include <unistd.h>
 #else
-	#include <windows.h>
-	#include <time.h>
-	#include <stdio.h>
+  #include <windows.h>
+  #include <time.h>
+  #include <stdio.h>
 #endif
 
 class DefaultServerIRCLogHandler : public IRCServerLogHandler
 {
 public:
-	virtual ~DefaultServerIRCLogHandler(){return;}
-	virtual void log ( IRCServer &client, int level, std::string line )
-	{
-		printf("log# %d:%s\n",level,line.c_str());
+  virtual ~DefaultServerIRCLogHandler(){return;}
+  virtual void log ( IRCServer &client, int level, std::string line )
+  {
+    printf("log# %d:%s\n",level,line.c_str());
 
-		if (client.getLogfile().size())
-		{
-			FILE *fp = fopen(client.getLogfile().c_str(),"at");
+    if (client.getLogfile().size())
+    {
+      FILE *fp = fopen(client.getLogfile().c_str(),"at");
 
-			if (fp)
-			{
-				fprintf(fp,"log# %d:%s\n",level,line.c_str());
-				fclose(fp);
-			}
-		}
-	}
+      if (fp)
+      {
+        fprintf(fp,"log# %d:%s\n",level,line.c_str());
+        fclose(fp);
+      }
+    }
+  }
 };
 
-static DefaultServerIRCLogHandler	defaultLogger;
+static DefaultServerIRCLogHandler  defaultLogger;
 
-
+//------------------------------------IRCServerConnectedClient-----------------------------------------
 IRCServerConnectedClient::IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer )
 {
-	peer = _peer;
-	clientID = peer->getUID();
-	server = _server;
+  peer = _peer;
+  clientID = peer->getUID();
+  server = _server;
 }
 
 IRCServerConnectedClient::~IRCServerConnectedClient()
@@ -63,134 +64,232 @@ IRCServerConnectedClient::~IRCServerConnectedClient()
 
 bool IRCServerConnectedClient::sendText ( const std::string &text )
 { 
-	if (!server)
-		return false;
+  if (!server)
+    return false;
 
-	return server->sendTextToPeer(text,peer);
+  return server->sendTextToPeer(text,peer);
+}
+
+bool IRCServerConnectedClient::sendText ( const char *text )
+{ 
+  if (!server || !text)
+    return false;
+
+  return server->sendTextToPeer(std::string(text),peer);
 }
 
 std::string IRCServerConnectedClient::getHostMask ( void )
 {
-	if (!peer)
-		return std::string();
+  if (!peer)
+    return std::string();
 
-	return peer->getHostMask();
+  return peer->getHostMask();
 }
 
 bool IRCServerConnectedClient::getIP ( unsigned char ip[4] )
 {
-	if (!peer)
-		return false;
+  if (!peer)
+    return false;
 
-	return peer->getIP(ip);
+  return peer->getIP(ip);
 }
 
+bool IRCServerConnectedClient::joinChannel ( const char* channel )
+{
+  if (!channel)
+    return false;
+
+  std::string chanName = string_util::toupper(std::string(channel));
+
+  if (std::find(channels.begin(),channels.end(),chanName) != channels.end())
+    return false;
+
+  channels.push_back(chanName);
+  return true;
+}
+
+bool IRCServerConnectedClient::partChannel ( const char* channel )
+{
+  if (!channel)
+    return false;
+
+  std::string chanName = string_util::toupper(std::string(channel));
+
+  std::vector<std::string>::iterator itr = std::find(channels.begin(),channels.end(),chanName);
+  if ( itr == channels.end())
+    return false;
+
+  channels.erase(itr);
+  return true;
+}
+
+//---------------------------IRCServerChannel--------------------------------------
+IRCServerChannel::IRCServerChannel( const char * _name )
+{
+  if (_name)
+    name = _name;
+
+  name = string_util::toupper(name);
+}
+
+IRCServerChannel::~IRCServerChannel()
+{
+  MemberDataMap::iterator itr = members.begin();
+  while (itr != members.end())
+    deleteUserData((itr++)->second);
+}
+
+void IRCServerChannel::addMember ( IRCServerConnectedClient *member )
+{
+  MemberDataMap::iterator itr = members.find(member);
+  if (itr != members.end())
+    return;
+
+  members[member] = newUserData();
+}
+
+void IRCServerChannel::removeMember ( IRCServerConnectedClient *member )
+{
+  MemberDataMap::iterator itr = members.find(member);
+  if (itr == members.end())
+    return;
+
+  deleteUserData(itr->second);
+  members.erase(itr);
+}
+
+bool IRCServerChannel::sendText ( const std::string &text )
+{
+  if (!text.size())
+    return false;
+
+  // format the command here so it's FROM the channel
+
+
+  MemberDataMap::iterator itr = members.begin();
+  while (itr != members.end())
+  {
+    itr->first->sendText(text);
+    itr++;
+  }
+  return true;
+}
+
+bool IRCServerChannel::sendText ( const char*text )
+{
+  if (!text)
+    return false;
+
+  return sendText(std::string(text));
+}
+
+
+//---------------------------IRCServer--------------------------------------
 IRCServer::IRCServer()
 :tcpConnection(TCPConnection::instance())
 {
-	tcpServer = NULL;
+  tcpServer = NULL;
 
-	debugLogLevel = 0;
-	logHandler = &defaultLogger;
+  debugLogLevel = 0;
+  logHandler = &defaultLogger;
 
-	ircMessageTerminator = "\r\n";
-	ircCommandDelimator	 = " ";
+  ircMessageTerminator = "\r\n";
+  ircCommandDelimator   = " ";
 
-	minCycleTime = 0.1f;
+  minCycleTime = 0.1f;
 }
 
 IRCServer::~IRCServer()
 {
+  disconnect(std::string("deconstruction"));
 }
 
-std::vector<IRCServerConnectedClient>::iterator IRCServer::getClientItr ( IRCServerConnectedClient *client )
+IRCServer::ClientList::iterator IRCServer::getClientItr ( IRCServerConnectedClient *client )
 {
-	std::vector<IRCServerConnectedClient>::iterator itr = clients.begin();
-	while ( itr != clients.end() )
-	{	if ( &(*itr) == client )
-			return itr;
-		itr++;
-	}
-
-	return clients.end();
+  return std::find(clients.begin(), clients.end(),client);
 }
 
 void IRCServer::setLogHandler ( IRCServerLogHandler * logger )
 {
-	if (!logger)
-		logHandler = &defaultLogger;
-	else
-		logHandler = logger;
+  if (!logger)
+    logHandler = &defaultLogger;
+  else
+    logHandler = logger;
 }
 
 void IRCServer::setLogfile ( std::string file )
 {
-	logfile = file;
+  logfile = file;
 }
 
 std::string  IRCServer::getLogfile ( void )
 {
-	return logfile;
+  return logfile;
 }
 
 void IRCServer::setDebugLevel ( int level )
 {
-	debugLogLevel = level;
+  debugLogLevel = level;
 }
 
 int IRCServer::getDebugLevel ( void )
 {
-	return debugLogLevel;
+  return debugLogLevel;
 }
 
 bool IRCServer::listen ( int maxConnections, int port )
 {
-	if (tcpServer)
-	{
-		tcpServer->disconnect();
-		tcpConnection.deleteServerConnection(tcpServer);
-	}
+  if (tcpServer)
+  {
+    tcpServer->disconnect();
+    tcpConnection.deleteServerConnection(tcpServer);
+  }
 
-	if (maxConnections < 0)
-		maxConnections = 128;
+  if (maxConnections < 0)
+    maxConnections = 128;
 
-	ircServerPort = _DEFAULT_IRC_PORT;
-	if ( port > 0 )
-		ircServerPort = (unsigned short)port;
+  ircServerPort = _DEFAULT_IRC_PORT;
+  if ( port > 0 )
+    ircServerPort = (unsigned short)port;
 
-	tcpServer = tcpConnection.newServerConnection(ircServerPort,maxConnections);
-	tcpServer->addListener(this);
+  tcpServer = tcpConnection.newServerConnection(ircServerPort,maxConnections);
+  tcpServer->addListener(this);
 
-	return tcpServer->getLastError() == eTCPNoError;
+  return tcpServer->getLastError() == eTCPNoError;
 }
 
 bool IRCServer::disconnect ( std::string reason )
 {
-	if (tcpServer)
-	{
-		tcpServer->disconnect();
-		tcpConnection.deleteServerConnection(tcpServer);
-		tcpServer = NULL;
-		return true;
-	}
+  if (tcpServer)
+  {
+    tcpServer->disconnect();
+    tcpConnection.deleteServerConnection(tcpServer);
+    tcpServer = NULL;
 
-	return false;
+    for (unsigned int i = 0; i < (unsigned int)clients.size(); i++ )
+      deleteClient(clients[i]);
+
+    clients.clear();
+    return true;
+  }
+
+  return false;
 }
 
 bool IRCServer::process ( void )
 {
-	return tcpConnection.update() == eTCPNoError;
+  return tcpConnection.update() == eTCPNoError;
 }
 
 void IRCServer::log ( std::string text, int level )
 {
-	if (level <= debugLogLevel && logHandler)
-		logHandler->log(*this,level,text);
+  if (level <= debugLogLevel && logHandler)
+    logHandler->log(*this,level,text);
 }
 
 void IRCServer::log ( const char *text, int level )
 {
-	log(std::string(text),level);
+  log(std::string(text),level);
 }
 
 void IRCServer::processIRCLine ( std::string line, IRCServerConnectedClient *client )
@@ -200,117 +299,121 @@ void IRCServer::processIRCLine ( std::string line, IRCServerConnectedClient *cli
 
 bool IRCServer::sendTextToPeer ( const std::string &text, TCPServerConnectedPeer *peer )
 {
-	if (!peer || !tcpServer->listening())
-		return false;
+  if (!peer || !tcpServer->listening())
+    return false;
 
-	std::string message = text;
-	if (text.size())
-	{
-		message += ircMessageTerminator;
-		teTCPError	error = peer->sendData(message);
-		if (error == eTCPNoError)
-			log("Send Data:" + text,2);
-		else
-		{
-			switch (error)
-			{
-			case eTCPNotInit:
-				log("Send Data Error: TCP Not Initalised: data=" + text,0);
-				break;
+  std::string message = text;
+  if (text.size())
+  {
+    message += ircMessageTerminator;
+    teTCPError  error = peer->sendData(message);
+    if (error == eTCPNoError)
+      log("Send Data:" + text,2);
+    else
+    {
+      switch (error)
+      {
+      case eTCPNotInit:
+        log("Send Data Error: TCP Not Initalised: data=" + text,0);
+        break;
 
-			case eTCPSocketNFG:
-				log("Send Data Error: Bad Socket: data=" + text,0);
-				break;
+      case eTCPSocketNFG:
+        log("Send Data Error: Bad Socket: data=" + text,0);
+        break;
 
-			case eTCPDataNFG:
-				log("Send Data Error: Bad Data",0);
-				break;
+      case eTCPDataNFG:
+        log("Send Data Error: Bad Data",0);
+        break;
 
-			case eTCPConnectionFailed:
-				log("Send Data Error: TCP Connection failed",0);
-				break;
+      case eTCPConnectionFailed:
+        log("Send Data Error: TCP Connection failed",0);
+        break;
 
-			default:
-				log("Send Data Error:Unknown Error",0);
-			}
-			return false;
-		}
-	}
-	else
-		return false;
+      default:
+        log("Send Data Error:Unknown Error",0);
+      }
+      return false;
+    }
+  }
+  else
+    return false;
 
-	// prevent that thar flooding
-	IRCOSSleep(minCycleTime);
-	return true;
+  // prevent that thar flooding
+  IRCOSSleep(minCycleTime);
+  return true;
 }
 
 bool IRCServer::connect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer )
 {
-	if (!connection || !peer)
-		return false;
-	unsigned char ip[4];
-	peer->getIP(ip);
+  if (!connection || !peer)
+    return false;
 
-	if (!allowConnection(peer->getHostMask().c_str(),ip))
-		return false;
+  unsigned char ip[4];
+  peer->getIP(ip);
 
-	unsigned int index = (unsigned int )clients.size();
-	IRCServerConnectedClient	client(this,peer);
+  if (!allowConnection(peer->getHostMask().c_str(),ip))
+    return false;
 
-	clients.push_back(client);
-	peer->setParam(&clients[index]);
+  unsigned int index = (unsigned int )clients.size();
+  IRCServerConnectedClient*  client = newClient(this,peer);
 
-	clientConnect(&clients[index]);
+  clients.push_back(client);
+  peer->setParam(clients[index]);
 
-	return true;
+  clientConnect(clients[index]);
+
+  return true;
 }
 
 void IRCServer::pending ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, unsigned int count )
 {
-	IRCServerConnectedClient* client = (IRCServerConnectedClient*)peer->getParam();
-		if (!client)	// somehow out of band connection, screw it
-			return;
+  IRCServerConnectedClient* client = (IRCServerConnectedClient*)peer->getParam();
+  if (!client)  // somehow out of band connection, screw it
+    return;
 
-	tvPacketList &packets = peer->getPackets();
-	std::string theLine = client->lastData;
+  tvPacketList &packets = peer->getPackets();
+  std::string theLine = client->lastData;
 
-	for ( unsigned int p = 0; p < packets.size(); p++ )
-	{
-		TCPPacket	&packet = packets[p];
+  for ( unsigned int p = 0; p < packets.size(); p++ )
+  {
+    TCPPacket  &packet = packets[p];
 
-		unsigned int size;
-		unsigned char*	data = packet.get(size);
+    unsigned int size;
+    unsigned char*  data = packet.get(size);
 
-		for ( unsigned int i = 0; i < size; i++ )
-		{
-			if ( data[i] != 13 )
-				theLine += data[i];
-			else
-			{
-				processIRCLine(theLine,client);
-				theLine = "";
-			}
-		}
-	}
+    for ( unsigned int i = 0; i < size; i++ )
+    {
+      if ( data[i] != 13 )
+	theLine += data[i];
+      else
+      {
+	processIRCLine(theLine,client);
+	theLine = "";
+      }
+    }
+  }
 
-	client->lastData = theLine;
-	peer->flushPackets();
+  client->lastData = theLine;
+  peer->flushPackets();
 }
 
 void IRCServer::disconnect ( TCPServerConnection *connection, TCPServerConnectedPeer *peer, bool forced )
 {
-	IRCServerConnectedClient* client = (IRCServerConnectedClient*)peer->getParam();
-	if (!client)	// somehow out of band connection, screw it
-		return;
+  IRCServerConnectedClient* client = (IRCServerConnectedClient*)peer->getParam();
+  if (!client)  // somehow out of band connection, screw it
+    return;
 
-	clientDisconnect(client);
+  clientDisconnect(client);
 
-	std::vector<IRCServerConnectedClient>::iterator clientItr = getClientItr(client);
-	if (clientItr != clients.end())
-		clients.erase(clientItr);
+  ClientList::iterator clientItr = getClientItr(client);
+  if (clientItr != clients.end())
+    clients.erase(clientItr);
+
+  deleteClient(client);
 }
 
 // base IRC event handlers
+
 void IRCServer::clientConnect ( IRCServerConnectedClient *client )
 {
 }
@@ -321,7 +424,7 @@ void IRCServer::clientDisconnect ( IRCServerConnectedClient *client )
 
 bool IRCServer::allowConnection ( const char* hostmask, unsigned char ip[4] )
 {
-	return true;
+  return true;
 }
 
 void IRCServer::clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client )

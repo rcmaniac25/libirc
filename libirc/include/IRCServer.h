@@ -44,19 +44,60 @@ class IRCServerConnectedClient
 {
 public:
 	IRCServerConnectedClient ( IRCServer *_server, TCPServerConnectedPeer* _peer );
-	~IRCServerConnectedClient();
+	virtual ~IRCServerConnectedClient();
 
 	unsigned int getClientID ( void ) { return clientID;}
-	bool sendText ( const std::string &text );
+	virtual bool sendText ( const std::string &text );
+	virtual bool sendText ( const  char*text );
 	std::string lastData;
 
 	std::string getHostMask ( void );
 	bool getIP ( unsigned char ip[4] );
 
+	virtual bool joinChannel ( const char* channel );
+	virtual bool partChannel ( const char* channel );
+
 protected:
 	unsigned int clientID;
+	bool localUser;
+	
+	// local user connection
 	TCPServerConnectedPeer	*peer;
 	IRCServer *server;
+
+	// remote user connection
+	std::string remoteServer;
+
+	std::vector<std::string> channels;
+};
+
+class IRCServerChannel
+{
+public:
+	IRCServerChannel( const char * _name );
+	virtual ~IRCServerChannel();
+
+	virtual void addMember ( IRCServerConnectedClient *member );
+	virtual void removeMember ( IRCServerConnectedClient *member );
+
+	virtual bool sendText ( const std::string &text );
+	virtual bool sendText ( const char*text );
+
+protected:
+	std::string name;
+	class ChannelUserData
+	{
+	public:
+		virtual ~ChannelUserData();
+		bool voice;
+		bool op;
+	};
+
+	virtual ChannelUserData* newUserData ( void ){ return new ChannelUserData;}
+	virtual void deleteUserData ( ChannelUserData *data ){ delete(data);}
+
+	typedef std::map <IRCServerConnectedClient*, ChannelUserData*> MemberDataMap;
+	MemberDataMap members;
 };
 
 class IRCServer : public TCPServerDataPendingListener
@@ -98,12 +139,23 @@ public:
 	virtual void clientDisconnect ( IRCServerConnectedClient *client );
 	virtual void clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client );
 
+	IRCServerChannel *getChannel ( const char *name );
+	IRCServerChannel *getChannel ( const std::string& name );
+
 protected:
 	friend class IRCServerConnectedClient;
 
+	// overide thsese if you want to derive your own classes
+	virtual IRCServerChannel* newChannel ( const char * name ){ return new IRCServerChannel(name); }
+	virtual void deleteChannel ( IRCServerChannel *channel ){ delete(channel); }
+
+	virtual IRCServerConnectedClient* newClient ( IRCServer *_server, TCPServerConnectedPeer* _peer  ){ return new IRCServerConnectedClient(_server,_peer); }
+	virtual void deleteClient ( IRCServerConnectedClient *client ){ delete(client); }
+
+	// common functions
 	bool sendTextToPeer ( const std::string &text, TCPServerConnectedPeer *peer );
 
-	void processIRCLine ( std::string line, IRCServerConnectedClient *client );
+	virtual void processIRCLine ( std::string line, IRCServerConnectedClient *client );
 
 	// networking
 	TCPServerConnection		*tcpServer;	
@@ -123,9 +175,13 @@ protected:
 	float							minCycleTime;
 
 	// users
-	std::vector<IRCServerConnectedClient>	clients;
+	typedef std::vector<IRCServerConnectedClient*> ClientList;
+	ClientList	clients;
 
-	std::vector<IRCServerConnectedClient>::iterator getClientItr ( IRCServerConnectedClient *client );
+	ClientList::iterator getClientItr ( IRCServerConnectedClient *client );
+
+	// channels
+	std::map<std::string, IRCServerChannel*>	chanels;
 };
 
 #endif //_IRC_SERVER_H_
