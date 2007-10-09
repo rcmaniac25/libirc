@@ -100,6 +100,29 @@ protected:
   MemberDataMap members;
 };
 
+// base command handler for any command
+class IRCServerCommandHandler
+{
+public:
+	IRCServerCommandHandler(){return;}
+	virtual ~IRCServerCommandHandler(){return;}
+
+	// called when the system wishes to know the name of this command
+	virtual std::string getCommandName ( void ){return name;}
+
+	// the send and receve methods return true if the default handler is to be called
+	// it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
+
+	// called when the client receves a command of this type
+	virtual bool receve ( IRCServer &server, IRCServerConnectedClient *client, std::string &command, BaseIRCCommandInfo  &info ){return true;}
+
+	// called when the user wishes to send a command of this type
+	virtual bool send ( IRCServer &server, IRCServerConnectedClient *client, std::string &command, BaseIRCCommandInfo  &info ){return true;}
+
+protected:
+	std::string name;
+};
+
 class IRCServer : public TCPServerDataPendingListener
 {
 public:
@@ -184,6 +207,27 @@ protected:
   // channels
   typedef std::map<std::string, IRCServerChannel*> ChannelMap;
   ChannelMap channels;
+
+  // command handlers
+
+  typedef std::map<std::string, IRCServerCommandHandler*>  tmCommandHandlerMap;
+  typedef std::map<std::string, std::vector<IRCServerCommandHandler*> >  tmCommandHandlerListMap;
+
+  tmCommandHandlerMap      defaultCommandHandlers;
+  tmCommandHandlerListMap  userCommandHandlers;
+
+  void addDefaultCommandHandlers ( IRCServerCommandHandler* handler );
+  void clearDefaultCommandHandlers ( void );
+  void registerDefaultCommandHandlers ( void );
+
 };
 
 #endif //_IRC_SERVER_H_
+
+// Local Variables: ***
+// mode:C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8

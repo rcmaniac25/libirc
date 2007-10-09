@@ -445,10 +445,29 @@ bool IRCServer::allowConnection ( const char* hostmask, unsigned char ip[4] )
 
 void IRCServer::clientIRCCommand ( const BaseIRCCommandInfo &command, IRCServerConnectedClient *client )
 {
-
 }
 
+void IRCServer::addDefaultCommandHandlers ( IRCServerCommandHandler* handler )
+{
+  defaultCommandHandlers[handler->getCommandName()] = handler;
+}
 
+void IRCServer::clearDefaultCommandHandlers ( void )
+{
+  tmCommandHandlerMap::iterator  itr = defaultCommandHandlers.begin();
+
+  while (itr != defaultCommandHandlers.end())
+  {
+    delete(itr->second);
+    itr++;
+  }
+  defaultCommandHandlers.clear();
+}
+
+void IRCServer::registerDefaultCommandHandlers ( void )
+{
+
+}
 
 
 // Local Variables: ***
