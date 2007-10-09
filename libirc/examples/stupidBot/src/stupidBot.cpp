@@ -395,6 +395,25 @@ void joinedChannel ( trJoinEventInfo *info )
 	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
 
+void  partedChannel (trPartEventInfo* info )
+{
+	IRCCommandINfo	commandInfo;
+
+	commandInfo.target = "JeffM";
+	commandInfo.params.push_back ("Got a channel part Message");
+	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+}
+
+void  userPartedChannel (trPartEventInfo* info )
+{
+	IRCCommandINfo	commandInfo;
+
+	commandInfo.target = info->channel;
+	commandInfo.params.push_back ("Got a user part Message");
+	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
+}
+
+
 bool isMaster ( std::string name )
 {
 	string_list::iterator itr = theBotInfo.masters.begin();
@@ -534,6 +553,14 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			joinedChannel((trJoinEventInfo*)&info);
 			break;
 
+		case eIRCChannelPartEvent:
+			partedChannel((trPartEventInfo*)&info);
+			break;
+
+		case eIRCUserPartEvent:
+			userPartedChannel((trPartEventInfo*)&info);
+			break;
+
 		case eIRCPrivateMessageEvent:
 			privateMessage ((trMessageEventInfo*)&info);
 			break;
@@ -571,6 +598,8 @@ void registerEventHandlers ( void )
 	client.registerEventHandler(eIRCNoticeEvent,&eventHandler);
 	client.registerEventHandler(eIRCEndMOTDEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelJoinEvent,&eventHandler);
+	client.registerEventHandler(eIRCUserPartEvent,&eventHandler);
+	client.registerEventHandler(eIRCChannelPartEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCNickNameError,&eventHandler);
 	client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
