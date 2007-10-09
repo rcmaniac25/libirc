@@ -174,11 +174,11 @@ public:
 
   // command sending and receving methods called by handlers
   virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
-  virtual bool sendIRCCommand ( teIRCCommands  command, IRCCommandINfo &info );
+  virtual bool sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
   virtual bool sendCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
 
   virtual bool receveCommand ( std::string &commandName, BaseIRCCommandInfo &info );
-  virtual bool receveIRCCommand ( teIRCCommands  command, IRCCommandINfo &info );
+  virtual bool receveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
   virtual bool receveCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
 
   // --------------------------------------------------------------------------------------
@@ -206,8 +206,8 @@ public:
   std::string getNick ( void ) {return nickname;}
 
   // used by the raw IRC command Handlers to update internal states and trigger events
-  void noticeMessage ( trMessageEventInfo  &info );
-  void welcomeMessage ( trMessageEventInfo  &info );
+  void noticeMessage ( trClientMessageEventInfo  &info );
+  void welcomeMessage ( trClientMessageEventInfo  &info );
   void beginMOTD ( void ){MOTD = "";}
   void addMOTD ( std::string line ) {MOTD += line + std::string("\n");}
   void endMOTD ( void );

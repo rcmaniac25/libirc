@@ -40,7 +40,7 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
 
   requestedNick = nick;
 
-  IRCCommandINfo  info;
+  IRCCommandInfo  info;
   info.params.push_back(nick);
 
   if (!sendIRCCommand(eCMD_NICK,info))
@@ -71,7 +71,7 @@ bool IRCClient::changeNick ( std::string &nick )
 {
   requestedNick = nick;
 
-  IRCCommandINfo  info;
+  IRCCommandInfo  info;
   info.params.push_back(nick);
 
   if (!sendIRCCommand(eCMD_NICK,info))
@@ -89,7 +89,7 @@ bool IRCClient::join ( std::string channel )
   if (getConnectionState() < eSentNickAndUSer)
     return false;
 
-  IRCCommandINfo  info;
+  IRCCommandInfo  info;
   info.target = channel;
   if (!sendIRCCommand(eCMD_JOIN,info))
   {
@@ -112,7 +112,7 @@ bool IRCClient::part ( std::string channel, std::string reason )
   if (getConnectionState() < eSentNickAndUSer)
     return false;
 
-  IRCCommandINfo  info;
+  IRCCommandInfo  info;
   info.target = channel;
   info.params.push_back(reason);
 
@@ -126,7 +126,7 @@ bool IRCClient::part ( std::string channel, std::string reason )
   std::string nick = getNick();
   userManager.userPartChannel(nick, channel);
 
-  trPartEventInfo  eventInfo;
+  trClientPartEventInfo  eventInfo;
 
   eventInfo.eventType = eIRCChannelPartEvent;
   eventInfo.reason = reason;
@@ -163,7 +163,7 @@ bool IRCClient::sendMessage ( std::string target, std::string message, bool isAc
     std::string message = messageHeader+*itr+messageFooter;
     int len = (int)message.size();
 
-    IRCCommandINfo  commandInfo;
+    IRCCommandInfo  commandInfo;
     commandInfo.target = target;
     commandInfo.params.clear();
     commandInfo.params.push_back(message);
@@ -175,24 +175,24 @@ bool IRCClient::sendMessage ( std::string target, std::string message, bool isAc
 
 bool IRCClient::sendCTCPRequest ( std::string target, teCTCPCommands command, std::string &data)
 {
-      std::string message = CMD_PRIVMSG;
-      message += " " + target + " :";
-      message += CTCP_DELIMITER + ctcpCommandParser.getCommandName(command);
-      if (data != "")
-      message += " " + data;
-      message += CTCP_DELIMITER;
-      return sendTextToServer(message);
+	std::string message = CMD_PRIVMSG;
+	message += " " + target + " :";
+	message += CTCP_DELIMITER + ctcpCommandParser.getCommandName(command);
+	if (data != "")
+	message += " " + data;
+	message += CTCP_DELIMITER;
+	return sendTextToServer(message);
 }
 
 bool IRCClient::sendCTCPReply ( std::string target, teCTCPCommands command, std::string &data)
 {
-      std::string message = CMD_NOTICE;
-      message += " " + target + " :";
-      message += CTCP_DELIMITER + ctcpCommandParser.getCommandName(command);
-      if (data != "")
-      message += " " + data;
-      message += CTCP_DELIMITER;
-      return sendTextToServer(message);
+	std::string message = CMD_NOTICE;
+	message += " " + target + " :";
+	message += CTCP_DELIMITER + ctcpCommandParser.getCommandName(command);
+	if (data != "")
+	message += " " + data;
+	message += CTCP_DELIMITER;
+	return sendTextToServer(message);
 }
 
 bool IRCClient::kick ( std::string user, std::string channel, std::string reason )
@@ -204,7 +204,7 @@ bool IRCClient::kick ( std::string user, std::string channel, std::string reason
   if (!userManager.userInChannel(user,channel))
     return false;
 
-  IRCCommandINfo  info;
+  IRCCommandInfo  info;
   info.target = channel;
   info.params.push_back(user);
   info.params.push_back(reason);
@@ -234,7 +234,7 @@ bool IRCClient::mode ( std::string theMode, std::string target, std::string opti
   if (getConnectionState() < eSentNickAndUSer)
     return false;
 
-  IRCCommandINfo  info;
+  IRCCommandInfo  info;
   info.target = target;
   info.params.push_back(theMode);
   if (option.size())

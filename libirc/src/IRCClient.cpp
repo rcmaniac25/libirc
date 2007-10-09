@@ -135,7 +135,7 @@ bool IRCClient::disconnect ( std::string reason )
     if (!reason.size())
       reason = "shuting down";
 
-    IRCCommandINfo  info;
+    IRCCommandInfo  info;
     info.params.push_back(reason);
 
     if (!sendIRCCommand(eCMD_QUIT,info))
@@ -390,7 +390,7 @@ bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info
   return false;
 }
 
-bool IRCClient::sendIRCCommand ( teIRCCommands  command, IRCCommandINfo &info )
+bool IRCClient::sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info )
 {
   info.type = eIRCCommand;
   info.ircCommand = command;
@@ -441,7 +441,7 @@ bool IRCClient::receveCommand ( std::string &commandName, BaseIRCCommandInfo &in
   return false;
 }
 
-bool IRCClient::receveIRCCommand ( teIRCCommands  command, IRCCommandINfo &info )
+bool IRCClient::receveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info )
 {
   info.type = eIRCCommand;
   info.ircCommand = command;
@@ -728,7 +728,7 @@ bool IRCClient::process ( IRCClient &ircClient, teIRCEventType  eventType, trBas
       // atempt to keep adding crap to the nick till it goes
       requestedNick += '_';
 
-      IRCCommandINfo  info;
+      IRCCommandInfo  info;
       info.params.push_back(requestedNick);
 
       if (!sendIRCCommand(eCMD_NICK,info))

@@ -137,7 +137,8 @@ public:
   virtual bool allowConnection ( const char* hostmask, unsigned char ip[4] );
   virtual void clientConnect ( IRCServerConnectedClient *client );
   virtual void clientDisconnect ( IRCServerConnectedClient *client );
-  virtual void clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client );
+
+  virtual void clientIRCCommand ( const BaseIRCCommandInfo &command, IRCServerConnectedClient *client );
 
   IRCServerChannel *getChannel ( const char *name );
   IRCServerChannel *getChannel ( const std::string& name );

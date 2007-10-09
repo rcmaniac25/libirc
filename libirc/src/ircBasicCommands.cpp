@@ -33,7 +33,7 @@ bool IRCNickCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 
 bool IRCNickCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  IRCCommandINfo  &ircInfo = (IRCCommandINfo&)info;
+  IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
   std::string commandLine;
 
@@ -58,7 +58,7 @@ bool IRCUserCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 
 bool IRCUserCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {  
-  IRCCommandINfo  &ircInfo = (IRCCommandINfo&)info;
+  IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
   std::string commandLine;
 
@@ -77,7 +77,7 @@ IRCPingCommand::IRCPingCommand()
 
 bool IRCPingCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  IRCCommandINfo  ircInfo;
+  IRCCommandInfo  ircInfo;
   ircInfo.command = eCMD_PONG;
   client.sendIRCCommand(eCMD_PONG,ircInfo);
   return true;
@@ -85,7 +85,7 @@ bool IRCPingCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 
 bool IRCPingCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  IRCCommandINfo  &ircInfo = (IRCCommandINfo&)info;
+  IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
   std::string commandLine;
   // PING
@@ -107,7 +107,7 @@ bool IRCPongCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 
 bool IRCPongCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  IRCCommandINfo  &ircInfo = (IRCCommandINfo&)info;
+  IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
   std::string commandLine;
   // PING
@@ -123,7 +123,7 @@ IRCNoticeCommand::IRCNoticeCommand()
 
 bool IRCNoticeCommand::receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  trMessageEventInfo  messageInfo;
+  trClientMessageEventInfo  messageInfo;
 
   messageInfo.eventType = eIRCNoticeEvent;
   messageInfo.source = info.source;
@@ -267,7 +267,7 @@ bool IRCPrivMsgCommand::receve ( IRCClient &client, std::string &command, BaseIR
 
 bool IRCPrivMsgCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  IRCCommandINfo  &ircInfo = (IRCCommandINfo&)info;
+  IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
   std::string commandLine;
   ircInfo.target = 
@@ -292,7 +292,7 @@ bool IRCKickCommand::receve ( IRCClient &client, std::string &command, BaseIRCCo
 
 bool IRCKickCommand::send ( IRCClient &client, std::string &command, BaseIRCCommandInfo  &info )
 {
-  IRCCommandINfo  &ircInfo = (IRCCommandINfo&)info;
+  IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
   std::string commandLine;
 
@@ -346,7 +346,7 @@ bool IRCNumericCommand::receve ( IRCClient &client, std::string &command, BaseIR
 
     case RPL_WELCOME:// "Welcome to the Internet Relay Network <nick>!<user>@<host>"
       {
-        trMessageEventInfo  messageInfo;
+        trClientMessageEventInfo  messageInfo;
 
         messageInfo.eventType = eIRCNoticeEvent;
         messageInfo.target = info.target;

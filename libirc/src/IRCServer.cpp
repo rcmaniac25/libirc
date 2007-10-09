@@ -297,7 +297,20 @@ void IRCServer::log ( const char *text, int level )
 
 void IRCServer::processIRCLine ( std::string line, IRCServerConnectedClient *client )
 {
+  // we have a single line of text, do something with it.
+  // see if it's a command, and or call any handlers that we have
+  // also check for error returns
 
+  // right now we don't know if it's an IRC or CTCP command so just go with the generic one
+  // let the command parse it out into paramaters and find the command
+  BaseIRCCommandInfo  commandInfo;
+  commandInfo.parse(line);
+  std::string handler;
+
+  //if (!commandInfo.prefixed)
+ //   commandInfo.source = getServerHost();
+
+  clientIRCCommand(commandInfo,client);
 }
 
 bool IRCServer::sendTextToPeer ( const std::string &text, TCPServerConnectedPeer *peer )
@@ -430,7 +443,7 @@ bool IRCServer::allowConnection ( const char* hostmask, unsigned char ip[4] )
   return true;
 }
 
-void IRCServer::clientIRCCommand ( const std::string &command, IRCServerConnectedClient *client )
+void IRCServer::clientIRCCommand ( const BaseIRCCommandInfo &command, IRCServerConnectedClient *client )
 {
 
 }

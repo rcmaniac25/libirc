@@ -21,7 +21,7 @@
 // event trigers from low level messages
 // this way the low level events don't need the logic for the high level events.
 
-void IRCClient::noticeMessage ( trMessageEventInfo  &info )
+void IRCClient::noticeMessage ( trClientMessageEventInfo  &info )
 {
   if (info.params[1] == "Looking")
   {
@@ -32,7 +32,7 @@ void IRCClient::noticeMessage ( trMessageEventInfo  &info )
   }
 }
 
-void IRCClient::welcomeMessage ( trMessageEventInfo  &info )
+void IRCClient::welcomeMessage ( trClientMessageEventInfo  &info )
 {
   setNick(info.target);
   requestedNick = info.target;
@@ -63,7 +63,7 @@ void IRCClient::joinMessage ( BaseIRCCommandInfo  &info )
 
   userManager.userJoinChannel(who,info.target);
 
-  trJoinEventInfo  joinInfo;
+  trClientJoinEventInfo  joinInfo;
   joinInfo.eventType = who == getNick() ? eIRCChannelJoinEvent : eIRCUserJoinEvent;
 
   joinInfo.channel = info.target;
@@ -77,7 +77,7 @@ void IRCClient::partMessage ( BaseIRCCommandInfo  &info )
 
   std::string who = goodies[0];
 
-  trPartEventInfo  partInfo;
+  trClientPartEventInfo  partInfo;
   
   userManager.userPartChannel(who,info.target);
   if (who == getNick())
@@ -94,7 +94,7 @@ void IRCClient::setChannelMode ( std::string channel, std::string mode )
 {
   userManager.modeReceved(channel,reportedServerHost,mode);
 
-  trModeEventInfo  info;
+  trClientModeEventInfo  info;
   info.eventType = eIRCChannelModeSet;
   info.target = channel;
   info.from = reportedServerHost;
@@ -106,7 +106,7 @@ void IRCClient::setChannelTopicMessage ( std::string channel, std::string topic,
 {
   userManager.topicReceved(channel,topic,true);
 
-  trMessageEventInfo  info;
+  trClientMessageEventInfo  info;
   info.eventType = eIRCTopicChangeEvent;
   info.target = channel;
   info.source = source;
@@ -118,10 +118,10 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
 {
   std::string who = info.target;
 
-  trModeEventInfo  modeInfo;
+  trClientModeEventInfo  modeInfo;
   modeInfo.eventType = eIRCNULLEvent;
 
-  trKickBanEventInfo  banInfo;
+  trClientKickBanEventInfo  banInfo;
   banInfo.eventType = eIRCNULLEvent;
 
   modeInfo.target = who;
@@ -196,7 +196,7 @@ void IRCClient::endChannelUsersList ( std::string channel )
 
 void IRCClient::privMessage ( BaseIRCCommandInfo  &info )
 {
-  trMessageEventInfo  msgInfo;
+  trClientMessageEventInfo  msgInfo;
   msgInfo.source = info.source;
   msgInfo.target = info.target;
   msgInfo.message = info.getAsString();
@@ -220,7 +220,7 @@ void IRCClient::privMessage ( BaseIRCCommandInfo  &info )
 
 void IRCClient::nickNameError ( int error, std::string message )
 {
-  trNickErrorEventInfo  info;
+  trClientNickErrorEventInfo  info;
   info.error = error;
 
   if (getConnectionState() < eLoggedIn)
@@ -239,7 +239,7 @@ void IRCClient::nickCommand ( BaseIRCCommandInfo  &info )
 
   userManager.nickChange(who,info.target);
 
-  trNickChangeEventInfo eventInfo;
+  trClientNickChangeEventInfo eventInfo;
   eventInfo.eventType = eIRCNickNameChange;
   eventInfo.oldname = who;
   eventInfo.newName = info.target;
@@ -248,7 +248,7 @@ void IRCClient::nickCommand ( BaseIRCCommandInfo  &info )
 
 void IRCClient::kickCommand ( BaseIRCCommandInfo  &info )
 {
-  trKickBanEventInfo  eventInfo;
+  trClientKickBanEventInfo  eventInfo;
 
   eventInfo.eventType = eIRCUserKickedEvent;
   eventInfo.channel = info.target;
@@ -269,7 +269,7 @@ void IRCClient::QuitMessage ( BaseIRCCommandInfo  &info )
 
   std::string who = goodies[0];
 
-  trPartEventInfo  partInfo;
+  trClientPartEventInfo  partInfo;
 
   userManager.userPartChannel(who,info.target);
   if (who == getNick())

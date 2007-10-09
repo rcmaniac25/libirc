@@ -21,15 +21,13 @@
 
 #ifndef string_list
 typedef std::vector<std::string> string_list;
+#endif
 
 // IRC includes
 #include "ircCommands.h"
 #include "IRCEvents.h"
 #include "IRCUserManager.h"
 #include "TCPConnection.h"
-
-#endif
-
 
 #define _DEFAULT_IRC_PORT  6667
 
@@ -74,7 +72,7 @@ public:
 };
 
 // a normal Internet Relay Chat command
-class IRCCommandINfo : public BaseIRCCommandInfo
+class IRCCommandInfo : public BaseIRCCommandInfo
 {
 public:
   teIRCCommands             ircCommand;
