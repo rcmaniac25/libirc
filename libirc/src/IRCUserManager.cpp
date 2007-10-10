@@ -582,16 +582,17 @@ void IRCUserManager::userPartChannel ( int user,  int channel )
   {
     channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
-    std::vector<int>::iterator  itr = userRecord.channels.begin();
-    while ( itr != userRecord.channels.end() )
-    {
-      if ( *itr == channelRecord.id)
-        itr = userRecord.channels.erase(itr);
-      else
-        itr++;
-    }
-    if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
-      removeUser(user);
+		// mm_202 - the problem area that causes the segfaults.
+		/*std::vector<int>::iterator	itr = userRecord.channels.begin();
+		while ( itr != userRecord.channels.end() )
+		{
+			if ( *itr == channelRecord.id)
+				itr = userRecord.channels.erase(itr);
+			else
+				itr++;
+		}*/
+	//	if (autoPurgeOnLastPart && userRecord.channels.size() == 0) 
+	//		removeUser(user);
   }
 }
 
