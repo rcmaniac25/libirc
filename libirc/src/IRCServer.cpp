@@ -686,20 +686,19 @@ bool IRCServer::process ( IRCServer *ircServer, teIRCEventType  eventType, trBas
   {
     case eIRCConnectedEvent:
       {
-	const char *text = getConnectionText(info.client);
-	if (!text)
-	  return false;
-
-	std::vector<std::string> lines = string_util::tokenize(std::string(text),std::string("\n"));
-	for (unsigned int i = 0; i < (unsigned int)lines.size(); i++)
-	{
-	  // send out each line as it's own message
-	}
+	ConnectionText record;
+	getConnectionText(info.client,record);
       }
     return true;
   }
   return false;
 }
+
+void IRCServer::sendLinesOutToClient ( int numeric, IRCServerConnectedClient *client, const std::string &text )
+{
+
+}
+
 
 
 // Local Variables: ***

@@ -139,6 +139,8 @@ public:
   virtual int getDebugLevel ( void );
 
   // general connection methods
+  virtual bool setHostName ( const char* host );
+
   virtual bool listen ( int maxConnections = 32, int port = -1 );
   virtual bool disconnect ( std::string reason );
 
@@ -185,7 +187,18 @@ public:
   virtual bool process ( IRCServer *ircServer, teIRCEventType  eventType, trBaseServerEventInfo &info );
 
   // super high level common overides
-  virtual const char * getConnectionText ( IRCServerConnectedClient *client ){return NULL;}
+  typedef struct 
+  {
+    std::string welome;
+    std::string host;
+    std::string created;
+    std::string info;
+    std::string bounce;
+
+    std::string motd;
+  }ConnectionText;
+
+  virtual void getConnectionText ( IRCServerConnectedClient *client, ConnectionText &text ){return;}
 
 protected:
   friend class IRCServerConnectedClient;
@@ -203,9 +216,11 @@ protected:
   virtual void processIRCLine ( std::string line, IRCServerConnectedClient *client );
 
   // networking
-  TCPServerConnection    *tcpServer;  
-  TCPConnection      &tcpConnection;
-  int            ircServerPort;
+  TCPServerConnection	  *tcpServer;  
+  TCPConnection		  &tcpConnection;
+  int			  ircServerPort;
+
+  std::string		  hostname;
 
   // loging
   IRCServerLogHandler        *logHandler;
@@ -249,6 +264,9 @@ protected:
   void clearDefaultEventHandlers ( void );
   void registerDefaultEventHandlers ( void );
 
+  // utilities
+
+  void sendLinesOutToClient ( int numeric, IRCServerConnectedClient *client, const std::string &text );
 
 };
 
