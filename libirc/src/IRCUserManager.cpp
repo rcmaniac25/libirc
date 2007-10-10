@@ -582,17 +582,14 @@ void IRCUserManager::userPartChannel ( int user,  int channel )
   {
     channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
-		// mm_202 - the problem area that causes the segfaults.
-		/*std::vector<int>::iterator	itr = userRecord.channels.begin();
-		while ( itr != userRecord.channels.end() )
-		{
-			if ( *itr == channelRecord.id)
-				itr = userRecord.channels.erase(itr);
-			else
-				itr++;
-		}*/
-	//	if (autoPurgeOnLastPart && userRecord.channels.size() == 0) 
-	//		removeUser(user);
+    for ( unsigned int i = (unsigned int)userRecord.channels.size()-1; i >= 0; i--)
+    {
+      if( userRecord.channels[i] == channelRecord.id )
+	userRecord.channels.erase(userRecord.channels.begin()+i);
+    }
+
+    if (autoPurgeOnLastPart && userRecord.channels.size() == 0) 
+      removeUser(user);
   }
 }
 
@@ -1064,5 +1061,10 @@ int IRCUserManager::findBan (trIRCBanListItem &ban, std::vector<trIRCBanListItem
   return -1;
 }
 
-
-
+// Local Variables: ***
+// mode: C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8
