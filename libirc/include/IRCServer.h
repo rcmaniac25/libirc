@@ -139,7 +139,7 @@ public:
   virtual int getDebugLevel ( void );
 
   // general connection methods
-  virtual bool setHostName ( const char* host );
+  virtual bool setHostName ( const char* host ){if(host)hostname = host;}
 
   virtual bool listen ( int maxConnections = 32, int port = -1 );
   virtual bool disconnect ( std::string reason );
