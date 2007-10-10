@@ -154,7 +154,7 @@ public:
 
   // IRC info operations
   virtual string_list listUsers ( std::string channel );
-  virtual string_list listChannels ( void );          // NOTE: was this listChanels for a reason??  mm_202.
+  virtual string_list listChannels ( void );
   virtual string_list listChanOps ( std::string channel );
 
   virtual trIRCChannelPermisions getChanPerms ( std::string channel );
