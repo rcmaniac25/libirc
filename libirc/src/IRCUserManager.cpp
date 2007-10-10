@@ -841,7 +841,8 @@ void IRCUserManager::purgeNonChannelUsers ( void )
   {
     if ( !userItr->second.channels.size() )
     {
-      userNameLookup.erase(userNameLookup.find(userItr->second.nick));
+      if (userNameLookup.find(userItr->second.nick) != userNameLookup.end())
+	userNameLookup.erase(userNameLookup.find(userItr->second.nick));
       std::map<int,trIRCUserRecord>::iterator nextItr = userItr++;
       users.erase(userItr);
       userItr = nextItr;
