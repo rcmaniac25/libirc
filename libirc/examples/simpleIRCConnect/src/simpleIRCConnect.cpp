@@ -19,20 +19,42 @@
 
 IRCClient	client;
 
-class myEndMOTDCallback : public IRCBasicEventCallback
+class myEndMOTDCallback : public IRCClientEventCallback
 {
 public:
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
 };
 
+class myAllCallback : public IRCClientCommandHandler
+{
+public:
+	myAllCallback()
+	{
+		name = "ALL";
+	}
+	virtual bool receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+	{
+		std::string line = info.raw;
+		FILE *fp = fopen("botlog.log","at");
+		if (fp)
+		{
+			fprintf(fp,"%s\n",info.raw.c_str());
+			fclose(fp);
+		}
+		return false;
+	}
+};
+
+
 bool myEndMOTDCallback::process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info )
 {
 	printf("********************** starting up ************************\n");
-	ircClient.join("#botpark");
+	ircClient.join("#libirc");
 	return true;
 }
 
 myEndMOTDCallback	startupCallback;
+myAllCallback		allCallback;
 
 int main ( int argc, char *argv[] )
 {
@@ -40,12 +62,14 @@ int main ( int argc, char *argv[] )
 
 	// clear the log
 	fclose(fopen("irc.log","wt"));
+	fclose(fopen("botlog.log","wt"));
 
 	// set the log
 	client.setLogfile("irc.log");
 	client.registerEventHandler(eIRCNoticeEvent,&startupCallback);
+	client.registerCommandHandler(&allCallback);
 
-	client.connect("irc.freenode.net",6667);
+	client.connect("irc.efnet.net",6667);
 	std::string name = std::string("billybot");
 	std::string username = std::string("billy");
 	std::string fullname = std::string("William Shatner");
