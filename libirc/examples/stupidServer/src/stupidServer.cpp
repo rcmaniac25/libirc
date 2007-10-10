@@ -33,6 +33,18 @@ public:
 	virtual bool process ( void );
 };
 
+class MyCommandHandler : public IRCServerCommandHandler
+{
+public:
+	MyCommandHandler()
+	{
+		name = "ALL";
+	}
+	virtual bool receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info );
+};
+
+MyCommandHandler allHandler;
+
 int main ( int argc, char *argv[] )
 {
 	std::string Config = "sample.cfg";
@@ -43,6 +55,8 @@ int main ( int argc, char *argv[] )
 	MyIRCServer	server;
 
 	printf("server startup\n");
+
+	server.registerCommandHandler(&allHandler);
 
 	server.listen();
 	while (server.process() &&!quit)
@@ -81,6 +95,16 @@ void MyIRCServer::clientIRCCommand ( const std::string &command, IRCServerConnec
 bool MyIRCServer::process ( void )
 {
 	return IRCServer::process();
+}
+
+
+bool MyCommandHandler::receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info )
+{
+	if ( info.raw.size() )
+	{
+
+	}
+	return false;
 }
 
 
