@@ -40,8 +40,12 @@ typedef enum
   eTCPUnknownError
 }teTCPError;
 
-// Packet data class
-// this class is realy just to hold data, and make sure it get deallocated.
+/**
+ * Packet data class
+ *
+ * this class is realy just to hold data, and make sure it get
+ * deallocated.
+ */
 class TCPPacket
 {
 public:
@@ -73,7 +77,9 @@ public:
 
 typedef std::vector<TCPClientDataPendingListener*> tvClientDataPendingListenerList;
 
-// TCP/IP client connection to some host on some port
+/**
+ * TCP/IP client connection to some host on some port
+ */
 class TCPClientConnection
 {
 public:
@@ -200,7 +206,10 @@ typedef struct
 
 }trServerConectedPeer;
 
-// TCP/IP server connection listening for some connections on some port
+/**
+ * TCP/IP server connection listening for some connections on some
+ * port
+ */
 class TCPServerConnection
 {
 public:
@@ -254,38 +263,55 @@ protected:
   tvServerDataPendingListenerList  dataPendingList;
 };
 
-// master TCP/IP connection manager
-// takes care of loading and clearing out the TCP stack if it needs it
-// gives out client and server connections
-// handles the non blocking updates of connections.
+/**
+ * master TCP/IP connection manager
+ *
+ * takes care of loading and clearing out the TCP stack if it needs
+ * it.  gives out client and server connections. handles the non
+ * blocking updates of connections.
+ */
 class TCPConnection : public Singleton<TCPConnection>
 {
 public:
-  // initalises the socket system, on windows inits WSA
-  // called automaticly by the constructor, but exposted
-  // in case the client needs to reinit the socket system
+  /**
+   * initalises the socket system, on windows inits WSA called
+   * automaticly by the constructor, but exposted in case the client
+   * needs to reinit the socket system
+   */
   teTCPError init ( void );
 
-  // kills the socket system, closes all connections,
-  // and on windows cleans up the WSA system
+  /**
+   * kills the socket system, closes all connections, and on windows
+   * cleans up the WSA system
+   */
   void kill ( void );
 
-  // has all connections check for new data
+  /**
+   * has all connections check for new data
+   */
   teTCPError update ( void );
   void setUpdateTimeout ( int timeout );
 
-  // returns a new client conenction to the specified host and port
+  /**
+   * returns a new client conenction to the specified host and port
+   */
   TCPClientConnection* newClientConnection ( std::string server, unsigned short port );
 
-  // returns a new server connection that will listen for the 
-  // specified number of connections on the specfied port
+  /**
+   * returns a new server connection that will listen for the
+   * specified number of connections on the specfied port
+   */
   TCPServerConnection* newServerConnection ( unsigned short port, int connections );
 
-  // disconnects and removes connections
+  /**
+   * disconnects and removes connections
+   */
   void deleteClientConnection ( TCPClientConnection* connection );
   void deleteServerConnection ( TCPServerConnection* connection );
 
-  // returns the lost host
+  /**
+   * returns the lost host
+   */
   std::string getLocalHost ( void );
 
 protected:

@@ -20,7 +20,7 @@
 
 #include "IRCNumerics.h"
 
-/* Commands used in the IRC protocol (RFC 1459) */
+/** Commands used in the IRC protocol (RFC 1459) */
 #define CMD_NICK  "NICK"
 #define CMD_USER  "USER"
 #define CMD_PING  "PING"
@@ -58,7 +58,7 @@
 #define CMD_USERHOST  "USERHOST"
 #define CMD_ISON  "ISON"
 
-// IRC command enumerations
+/** IRC command enumerations */
 typedef enum
 {
   eCMD_NULL = 0,
@@ -115,7 +115,7 @@ private:
 
 extern IRCCommandParser  ircCommandParser;
 
-/* Commands used in the CTCP protocol(http://www.invlogic.com/irc/ctcp.html)*/
+/** Commands used in the CTCP protocol(http://www.invlogic.com/irc/ctcp.html)*/
 #define CMD_CTCP_ACTION    "ACTION"
 #define CMD_CTCP_VERSION  "VERSION"
 #define CMD_CTCP_PING    "PING"

@@ -50,15 +50,19 @@ typedef enum
   eIRCLastEvent
 }teIRCEventType;
 
-// basic structiure that all events are based on
-// events with no data use this
+/**
+ * basic structiure that all events are based on events with no data
+ * use this.
+ */
 typedef struct trBaseEventInfo
 {
   teIRCEventType  eventType;
 }trBaseEventInfo;
 
-// basic structiure that all server events are based on
-// events with no data use this
+/**
+ * basic structiure that all server events are based on events with no
+ * data use this.
+ */
 typedef struct trBaseServerEventInfo : public trBaseEventInfo
 {
   trBaseServerEventInfo(IRCServerConnectedClient*c)
@@ -68,21 +72,28 @@ typedef struct trBaseServerEventInfo : public trBaseEventInfo
   IRCServerConnectedClient	*client;
 }trBaseServerEventInfo;
 
-// nickname error type events, used for eIRCNickNameError
+/**
+ * nickname error type events, used for eIRCNickNameError
+ */
 typedef struct trClientNickErrorEventInfo : public trBaseEventInfo
 {
   int  error;
   std::string message;
 }trClientNickErrorEventInfo;
 
-// join type evetns, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent
+/**
+ * join type evetns, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent
+ */
 typedef struct trClientJoinEventInfo : public trBaseEventInfo
 {
   std::string channel;
   std::string user;
 }trClientJoinEventInfo;
 
-// mode type evetns, used for  eIRCUserModeSet,eIRCChannelModeSet,eIRCChannelUserModeSet
+/**
+ * mode type evetns, used for
+ * eIRCUserModeSet,eIRCChannelModeSet,eIRCChannelUserModeSet
+ */
 typedef struct trClientModeEventInfo : public trBaseEventInfo
 {
   std::string target;
@@ -91,14 +102,19 @@ typedef struct trClientModeEventInfo : public trBaseEventInfo
   std::string message;
 }trClientModeEventInfo;
 
-// nick change type evetns, used for  eIRCNickNameChange
+/**
+ * nick change type evetns, used for  eIRCNickNameChange
+ */
 typedef struct trClientNickChangeEventInfo : public trBaseEventInfo
 {
   std::string oldname;
   std::string newName;
 }trClientNickChangeEventInfo;
 
-// part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent, eIRCQuitEvetnt
+/**
+ * part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent,
+ * eIRCQuitEvetnt
+ */
 typedef struct trClientPartEventInfo : public trBaseEventInfo
 {
   std::string channel;
@@ -106,7 +122,10 @@ typedef struct trClientPartEventInfo : public trBaseEventInfo
   std::string reason;
 }trClientPartEventInfo;
 
-// kick and ban type events , used for eIRCChannelKickEvent,eIRCChannelBanEvent, eIRCUserPartEvent
+/**
+ * kick and ban type events , used for
+ * eIRCChannelKickEvent,eIRCChannelBanEvent, eIRCUserPartEvent
+ */
 typedef struct trClientKickBanEventInfo : public trBaseEventInfo
 {
   std::string channel;
@@ -115,7 +134,11 @@ typedef struct trClientKickBanEventInfo : public trBaseEventInfo
   std::string kicker;
 }trClientKickBanEventInfo;
 
-// message events, used for eIRCChannelMessageEvent, eIRCPrivateMessageEvent, eIRCNoticeEvent, eIRCWelcomeEvent, eIRCTopicChangeEvent
+/**
+ * message events, used for eIRCChannelMessageEvent,
+ * eIRCPrivateMessageEvent, eIRCNoticeEvent, eIRCWelcomeEvent,
+ * eIRCTopicChangeEvent
+ */
 typedef struct trClientMessageEventInfo : public trBaseEventInfo
 {
   std::string  target;
@@ -150,6 +173,7 @@ typedef std::map<teIRCEventType,tvIRCServerEventList> tmIRCServerEventListMap;
 typedef std::map<teIRCEventType,IRCServerEventCallback*> tmIRCServerEventMap;
 
 #endif // __IRC_EVENTS_H__ 
+
 // Local Variables: ***
 // mode: C++ ***
 // tab-width: 8 ***

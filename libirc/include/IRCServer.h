@@ -30,9 +30,10 @@
 // need this later
 class IRCServer;
 
-// info that is passed to a command handler
-// handles standard commands and CTCP
-
+/**
+ * info that is passed to a command handler handles standard commands
+ * and CTCP
+ */
 class IRCServerLogHandler
 {
 public:
@@ -100,7 +101,9 @@ protected:
   MemberDataMap members;
 };
 
-// base command handler for any command
+/**
+ * base command handler for any command
+ */
 class IRCServerCommandHandler
 {
 public:

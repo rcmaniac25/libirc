@@ -28,8 +28,11 @@
 #include <vector>
 #include <map>
 
-// client network handler if they install one (TODO:: make a default one of these that runs our networking)
-
+/**
+ * client network handler if they install one.
+ *
+ * (TODO:: make a default one of these that runs our networking)
+ */
 class CIRCClientNetworkHandler
 {
 public:
@@ -53,7 +56,9 @@ public:
 // need this later
 class IRCClient;
 
-// base command handler for any command
+/**
+ * base command handler for any command
+ */
 class IRCClientCommandHandler
 {
 public:

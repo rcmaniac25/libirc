@@ -31,21 +31,21 @@ typedef std::vector<std::string> string_list;
 
 #define _DEFAULT_IRC_PORT  6667
 
-//! An OS independent sleep function
-/*!
-IRCOSSleep is used by a number of fucntions to 1) prevent 100% CPU usage,
-and 2) to prevent from flooding the server
-*/
+/** An OS independent sleep function
+ *
+ * IRCOSSleep is used by a number of fucntions to 1) prevent 100% CPU
+ * usage, and 2) to prevent from flooding the server
+ */
 void IRCOSSleep ( float fTime );
 
-//! Returns the local time in stamp format
-/*!
-On windows uses the format of DAY_OF_WEEK MONTH DATE HOUR:MINUTE:SECOND YEAR
-needs to be implemented on *nix
-*/
+/** Returns the local time in stamp format
+ *
+ * On windows uses the format of DAY_OF_WEEK MONTH DATE
+ * HOUR:MINUTE:SECOND YEAR needs to be implemented on *nix
+ */
 std::string getTimeStamp ( void );
 
-//! Returns the current library Version
+/** Returns the current library Version */
 
 std::string getLibVersion ( void );
 void getLibVersion ( int &major, int &minor, int &rev );
@@ -53,7 +53,7 @@ void getLibVersion ( int &major, int &minor, int &rev );
 // info that is passed to a command handler
 // handles standard commands and CTCP
 
-// the types of command info structures
+/** the types of command info structures */
 typedef enum
 {
   eUnknownCommand = 0,
@@ -62,7 +62,9 @@ typedef enum
   eDDECommand
 }commndInfoTypes;
 
-// base struct in witch all info structures are derived
+/**
+ * base struct in witch all info structures are derived
+ */
 class BaseIRCCommandInfo
 {
 public:
@@ -82,14 +84,18 @@ public:
   std::string target;
 };
 
-// a normal Internet Relay Chat command
+/**
+ * a normal Internet Relay Chat command
+ */
 class IRCCommandInfo : public BaseIRCCommandInfo
 {
 public:
   teIRCCommands             ircCommand;
 };
 
-// a Client To Client Protocol command
+/**
+ * a Client To Client Protocol command
+ */
 class CTCPCommandINfo : public BaseIRCCommandInfo
 {
 public:
@@ -99,7 +105,9 @@ public:
   bool        request;
 };
 
-// a Direct Client Connect command
+/**
+ * a Direct Client Connect command
+ */
 class DCCCommandINfo : public BaseIRCCommandInfo
 {
   std::string from;
