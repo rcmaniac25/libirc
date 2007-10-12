@@ -32,16 +32,20 @@ typedef std::vector<std::string> string_list;
 #define _DEFAULT_IRC_PORT  6667
 
 //! An OS independent sleep function
-/* IRCOSSleep is used by a number of fucntions to 1) prevent 100% CPU usage,
+/*!
+IRCOSSleep is used by a number of fucntions to 1) prevent 100% CPU usage,
 and 2) to prevent from flooding the server
 */
 void IRCOSSleep ( float fTime );
 
 //! Returns the local time in stamp format
-/* On windows uses the format of DAY_OF_WEEK MONTH DATE HOUR:MINUTE:SECOND YEAR
-  needs to be implemented on *nix
+/*!
+On windows uses the format of DAY_OF_WEEK MONTH DATE HOUR:MINUTE:SECOND YEAR
+needs to be implemented on *nix
 */
 std::string getTimeStamp ( void );
+
+//! Returns the current library Version
 
 std::string getLibVersion ( void );
 void getLibVersion ( int &major, int &minor, int &rev );
