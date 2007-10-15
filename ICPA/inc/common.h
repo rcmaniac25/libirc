@@ -1,4 +1,4 @@
-/* 
+/* ICPA
 * Copyright (c) 2007 Christopher Sean Morrison
 *
 * This package is free software;  you can redistribute it and/or
@@ -10,15 +10,12 @@
 * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 */
 
-// defines the main implemenation of the engine application
+#ifndef _ICPA_COMMON_H_
+#define _ICPA_COMMON_H_
 
-#include <stdio.h>
+int DUMMY_FUNCTION ( void );
 
-int main(int argc, char* argv[])
-{
-	return 0;
-}
-
+#endif //_ICPA_COMMON_H_
 // Local Variables: ***
 // mode:C++ ***
 // tab-width: 8 ***
@@ -26,5 +23,3 @@ int main(int argc, char* argv[])
 // indent-tabs-mode: t ***
 // End: ***
 // ex: shiftwidth=2 tabstop=8
-
- 

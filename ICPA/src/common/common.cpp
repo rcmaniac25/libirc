@@ -1,4 +1,4 @@
-/* 
+/* ICPA
 * Copyright (c) 2007 Christopher Sean Morrison
 *
 * This package is free software;  you can redistribute it and/or
@@ -10,14 +10,13 @@
 * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 */
 
-// defines the main implemenation of the engine application
+#include "common.h"
 
-#include <stdio.h>
-
-int main(int argc, char* argv[])
-{
-	return 0;
+int DUMMY_FUNCTION ( void )
+{ 
+  return 0;
 }
+
 
 // Local Variables: ***
 // mode:C++ ***
@@ -26,5 +25,3 @@ int main(int argc, char* argv[])
 // indent-tabs-mode: t ***
 // End: ***
 // ex: shiftwidth=2 tabstop=8
-
- 
