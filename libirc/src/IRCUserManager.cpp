@@ -1036,7 +1036,8 @@ void IRCUserManager::removeUser ( int user )
     if (userNameLookup.find(userItr->second.nick) != userNameLookup.end())
       userNameLookup.erase(userNameLookup.find(userItr->second.nick));
 
-    std::map<int,trIRCUserRecord>::iterator nextItr = userItr++;
+    std::map<int,trIRCUserRecord>::iterator nextItr = userItr;
+    nextItr++;
     users.erase(userItr);
     userItr = nextItr;
   }
