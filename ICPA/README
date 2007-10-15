@@ -1,0 +1,42 @@
+======================================================================== 
+ICPA ( IRC Client of Penultimate Awesomeness )
+========================================================================
+
+ICPA is a cross-platform IRC client framework for connecting to and
+interacting with Internet Relay Chat (IRC) networks. It uses libIRC
+and is intended to be a real world test app for it.
+
+
+PROJECT OVERVIEW
+
+ICPA is envisioned as a multi part IRC client. It will consist of 2 core
+compoents. The first is a small headless IRC connection application 
+that handles the connections to IRC servers. The second is the acctual
+client application that presents the IRC information to the user and 
+receives the input to be passed to the IRC servers. The headless app
+does not have to be running on the same computer as the user client. This
+can allow the headless application to maintain a permenant connection
+to the IRC servers, and continue to collect and log channel information
+when the user client is disconecnted. There can also be any number of
+user clients, ranging from full graphical clients, like x-chat and pidgin
+to command line clients like irssi.
+
+A user can connect user clients from anywhere on the internet and still
+maintain channels, settings, and logs regardless of the user client chosen.
+
+
+DISTRIBUTION DETAILS
+
+ICPA andlibIRC library is provided under the terms of the LGPL.  See the
+COPYING file for more information.
+
+
+COMMUNICATION AND GETTING HELP
+
+There are forums, mailing lists, bug tracking, patches, feature
+requests, task tracking, news, and support available on the project
+website at http://sourceforge.net/projects/libirc/.
+
+For more immediate and interactive communication, please visit the
+developers on the Freenode IRC network (irc.freenode.net, port 6667)
+in #brlcad.  See http://irchelp.org/ if you're new to IRC.
