@@ -627,13 +627,11 @@ bool IRCServer::removeEventHandler ( teIRCEventType eventType, IRCServerEventCal
     return false;
   else
   {
-    tvIRCServerEventList::iterator  itr = eventListItr->second.begin();
-    while ( itr != eventListItr->second.end())
+    tvIRCServerEventList &vec = eventListItr->second;
+    for ( int i = (int)vec.size()-1; i >= 0; i-- )
     {
-      if ((*itr)== handler)
-	eventListItr->second.erase(itr++);
-      else
-	itr++;
+      if (vec[i]== handler)
+	vec.erase(vec.begin()+i);
     }
   }
   return true;
