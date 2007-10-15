@@ -487,7 +487,7 @@ bool IRCClient::removeCommandHandler ( IRCClientCommandHandler *handler )
     while ( itr != commandListItr->second.end())
     {
       if (*itr == handler)
-        itr = commandListItr->second.erase(itr);
+        commandListItr->second.erase(itr++);
       else
         itr++;
     }
@@ -629,7 +629,7 @@ bool IRCClient::removeEventHandler ( teIRCEventType eventType, IRCClientEventCal
     while ( itr != eventListItr->second.end())
     {
       if ((*itr)== handler)
-        itr = eventListItr->second.erase(itr);
+        eventListItr->second.erase(itr++);
       else
         itr++;
     }

@@ -260,7 +260,7 @@ void TCPClientConnection::removeListener ( TCPClientDataPendingListener* listene
   while( itr != dataPendingList.end() )
   {
     if (*itr == listener)
-      itr = dataPendingList.erase(itr);
+      dataPendingList.erase(itr++);
     else
       itr++;
   }
@@ -727,7 +727,7 @@ void TCPServerConnection::removeListener ( TCPServerDataPendingListener* listene
   while( itr != dataPendingList.end() )
   {
     if (*itr == listener)
-      itr = dataPendingList.erase(itr);
+      dataPendingList.erase(itr++);
     else
       itr++;
   }
@@ -826,7 +826,7 @@ void TCPConnection::deleteClientConnection ( TCPClientConnection* connection )
   while( itr!=clientConnections.end() )
   {
     if (*itr == connection)
-      itr = clientConnections.erase(itr);
+      clientConnections.erase(itr++);
     else
       itr++;
   }
@@ -839,7 +839,7 @@ void TCPConnection::deleteServerConnection ( TCPServerConnection* connection )
   while( itr!=serverConnections.end() )
   {
     if (*itr == connection)
-      itr = serverConnections.erase(itr);
+      serverConnections.erase(itr++);
     else
       itr++;
   }

@@ -536,7 +536,7 @@ bool IRCServer::removeCommandHandler ( IRCServerCommandHandler *handler )
     while ( itr != commandListItr->second.end())
     {
       if (*itr == handler)
-	itr = commandListItr->second.erase(itr);
+	commandListItr->second.erase(itr++);
       else
 	itr++;
     }
@@ -631,7 +631,7 @@ bool IRCServer::removeEventHandler ( teIRCEventType eventType, IRCServerEventCal
     while ( itr != eventListItr->second.end())
     {
       if ((*itr)== handler)
-	itr = eventListItr->second.erase(itr);
+	eventListItr->second.erase(itr++);
       else
 	itr++;
     }

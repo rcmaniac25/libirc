@@ -606,7 +606,7 @@ void IRCUserManager::userPartChannel ( int user, std::string &channel )
     while ( itr != userRecord.channels.end() )
     {
       if ( *itr == channelRecord.id)
-        itr = userRecord.channels.erase(itr);
+	userRecord.channels.erase(itr++);
       else
         itr++;
     }
@@ -628,7 +628,7 @@ void IRCUserManager::userPartChannel ( std::string &user, int channel )
     while ( itr != userRecord.channels.end() )
     {
       if ( *itr == channelRecord.id)
-        itr = userRecord.channels.erase(itr);
+        userRecord.channels.erase(itr++);
       else
         itr++;
     }
@@ -650,7 +650,7 @@ void IRCUserManager::userPartChannel ( std::string &user, std::string &channel )
     while ( itr != userRecord.channels.end() )
     {
       if ( *itr == channelRecord.id)
-        itr = userRecord.channels.erase(itr);
+        userRecord.channels.erase(itr++);
       else
         itr++;
     }
@@ -832,7 +832,6 @@ void IRCUserManager::clearBans ( std::string channel )
   channelRecord.banList.clear();
 }
 
-
 // utilitys
 void IRCUserManager::purgeNonChannelUsers ( void )
 {
@@ -843,10 +842,7 @@ void IRCUserManager::purgeNonChannelUsers ( void )
     {
       if (userNameLookup.find(userItr->second.nick) != userNameLookup.end())
 	userNameLookup.erase(userNameLookup.find(userItr->second.nick));
-      std::map<int,trIRCUserRecord>::iterator nextItr = userItr;
-      nextItr++;
-      users.erase(userItr);
-      userItr = nextItr;
+      users.erase(userItr++);
     }
     else
       userItr++;
@@ -1000,7 +996,6 @@ void IRCUserManager::parseChannelUserPerms ( std::string mode, trIRCChannelUserP
   perms.chanOp = string_util::charExists(mode,'o');
   perms.voice = string_util::charExists(mode,'v');
   perms.quieted = string_util::charExists(mode,'q');
-
 }
 
 void IRCUserManager::removeChannelFromUser ( int user, int channel )
@@ -1012,7 +1007,7 @@ void IRCUserManager::removeChannelFromUser ( int user, int channel )
   while ( chanItr != userRecord.channels.begin() )
   {
     if ( *chanItr == channel)
-      chanItr = userRecord.channels.erase(chanItr);
+     userRecord.channels.erase(chanItr++);
     else
       chanItr++;
   }
@@ -1036,10 +1031,7 @@ void IRCUserManager::removeUser ( int user )
     if (userNameLookup.find(userItr->second.nick) != userNameLookup.end())
       userNameLookup.erase(userNameLookup.find(userItr->second.nick));
 
-    std::map<int,trIRCUserRecord>::iterator nextItr = userItr;
-    nextItr++;
-    users.erase(userItr);
-    userItr = nextItr;
+    users.erase(userItr++);
   }
 }
 
