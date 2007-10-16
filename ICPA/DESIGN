@@ -1,0 +1,33 @@
+This is the idea file.
+
+The overall design is to break the IRC client into 2 parts.
+The idea is similar to how many people use irssi, screen, and 
+ssh, but extends that into a more universal protocoll that can
+allow for any type of IRC client to be used.
+
+The first is the Agent Engine. This is an application/daemon/service
+that runs on some internet connected computer. It connectes to a number
+of IRC servers, and handles all IRC communication.
+
+The second is the actual user client. The user client conencts
+to an Agent Engine over sockets, and displays the collected IRC
+conversation information to the user. The user client also sends
+input from the user to the Agent to be sent out to the IRC server
+network.
+
+The Agent engine will allow for multiple user client connections, so that
+end users can have the same IRC information active on a number
+of places, as well as to allow for specialised clients, such as off
+site logers and stat generaors. The agent engine will also handle the
+loging of all IRC conversations, so that if a user changes clients,
+they can still get all the information from conversations they would
+have normaly "missed".
+
+The end Agent Engine and the User Clients will comunicate using a
+standardised TCP protocoll that will be contained in libCommon. libCommon
+will not have it's own TCP networking, but will use installed callbacks
+to send and receive data, to ease bindings to other applications/languages.
+The goal is to allow a number of difrent types of User clients so that people
+can pick the client that fits them best ( graphical, command line, web interface ).
+
+interfaces would have the same information, logs, and settings.
