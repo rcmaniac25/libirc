@@ -56,9 +56,12 @@ public:
 
 	bool connected ( void );
 
+	void addHost ( ServerHost &host, bool prefered );
+
 protected:
 	ServerHostList			hostnames;			// the list of entry point addresses to connect to the network
 	ServerHost				*currentHost;		// the current host that we connected to
+	ServerHost				*preferedHost;		// the  host to always try first
 
 	ServerChannelMap			channels;			// the list of active channels that we are listening to.
 	ServerPrivateMessageMap	privateMessages;	// the list of active private message converations that we are listenting too.
@@ -66,7 +69,7 @@ protected:
 	std::vector<std::string>	ircNicks;			// the list of nicknames to use on this network
 	std::string					currentNick;		// the current nick of the agent on this network.
 };
-typedef std::vector<AgentConnectedServer> AgentConnectedServersList;
+typedef std::map<std::string, AgentConnectedServer> AgentConnectedServersMap;
 
 // An IRC listen agent.
 // Agents connect to a number of IRC networks, and listen for data on a number of channels.
@@ -93,7 +96,7 @@ protected:
 	std::string					dirName;
 	std::string					agentName;
 
-	AgentConnectedServersList	servers;			// the list of connected IRC networks
+	AgentConnectedServersMap	servers;			// the list of connected IRC networks
 };
 typedef std::map<std::string,Agent*>	AgentMap;
 

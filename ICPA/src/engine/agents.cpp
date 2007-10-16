@@ -40,6 +40,10 @@ bool AgentConnectedServer::connected ( void )
 	return false;
 }
 
+void AgentConnectedServer::addHost ( ServerHost &host, bool prefered )
+{
+}
+
 
 //--------------------Agent------------------------------
 
@@ -109,6 +113,35 @@ bool Agent::loadFromDir ( const char* dir )
 			std::string command = TextUtils::tolower(chunks[0]);
 			if ( command == "name" )
 				agentName = chunks[1];
+			else if ( command == "server" )
+			{
+				// server name host port prefered
+				if ( chunks.size() >= 4 )
+				{
+					std::string networkName = TextUtils::tolower(chunks[1]);
+					ServerHost host;
+					host.host = chunks[2];
+					host.port = atoi(chunks[3].c_str());
+
+					bool prefered = false;
+					if ( chunks.size() > 4 )
+						prefered = TextUtils::tolower(chunks[4]) == "prefered";
+
+					AgentConnectedServersMap::iterator itr = servers.find(networkName);
+					AgentConnectedServer	*server;
+
+					if (itr == servers.end())
+					{
+						AgentConnectedServer s;
+						servers[networkName] = s;
+						server = &servers[networkName];
+					}
+					else
+						server = &itr->second;
+
+					server->addHost(host, prefered);
+				}
+			}
 		}
 	}
 
