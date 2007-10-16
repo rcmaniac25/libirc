@@ -627,12 +627,11 @@ bool IRCServer::removeEventHandler ( teIRCEventType eventType, IRCServerEventCal
     return false;
   else
   {
-    tvIRCServerEventList &vec = eventListItr->second;
-    for ( int i = (int)vec.size()-1; i >= 0; i-- )
-    {
-      if (vec[i]== handler)
-	vec.erase(vec.begin()+i);
-    }
+
+    // don't delete anything here, as we didn't allocate the handlers
+    tvIRCServerEventList::iterator itr = std::find(eventListItr->second.begin(),eventListItr->second.end(),handler);
+    if (itr != eventListItr->second.end())
+      eventListItr->second.erase(itr);
   }
   return true;
 }

@@ -12,6 +12,7 @@
 
 // TCP/IP connection classes
 
+#include <algorithm>
 #include "TCPConnection.h"
 //#include "sdl_net/SDLnetsys.h"
 
@@ -256,14 +257,10 @@ void TCPClientConnection::removeListener ( TCPClientDataPendingListener* listene
   if (!listener)
     return;
 
-  tvClientDataPendingListenerList::iterator  itr = dataPendingList.begin();
-  while( itr != dataPendingList.end() )
-  {
-    if (*itr == listener)
-      dataPendingList.erase(itr++);
-    else
-      itr++;
-  }
+  tvClientDataPendingListenerList::iterator  itr = std::find(dataPendingList.begin(),dataPendingList.end(),listener);
+
+  if( itr != dataPendingList.end() )
+      dataPendingList.erase(itr);
 }
 
 void TCPClientConnection::callDataPendingListeners ( int count )
@@ -723,14 +720,10 @@ void TCPServerConnection::removeListener ( TCPServerDataPendingListener* listene
   if (!listener)
     return;
 
-  tvServerDataPendingListenerList::iterator  itr = dataPendingList.begin();
-  while( itr != dataPendingList.end() )
-  {
-    if (*itr == listener)
-      dataPendingList.erase(itr++);
-    else
-      itr++;
-  }
+  tvServerDataPendingListenerList::iterator  itr = std::find(dataPendingList.begin(),dataPendingList.end(),listener);
+
+  if( itr != dataPendingList.end() )
+      dataPendingList.erase(itr);
 }
 
 // master connections class
@@ -822,27 +815,19 @@ TCPServerConnection* TCPConnection::newServerConnection ( unsigned short port, i
 
 void TCPConnection::deleteClientConnection ( TCPClientConnection* connection )
 {
-  tvClientConnectionList::iterator itr = clientConnections.begin();
-  while( itr!=clientConnections.end() )
-  {
-    if (*itr == connection)
-      clientConnections.erase(itr++);
-    else
-      itr++;
-  }
+  tvClientConnectionList::iterator itr = std::find(clientConnections.begin(),clientConnections.end(),connection);
+  if( itr!=clientConnections.end() )
+      clientConnections.erase(itr);
+
   delete(connection);
 }
 
 void TCPConnection::deleteServerConnection ( TCPServerConnection* connection )
 {
-  tvServerConnectionList::iterator itr = serverConnections.begin();
-  while( itr!=serverConnections.end() )
-  {
-    if (*itr == connection)
-      serverConnections.erase(itr++);
-    else
-      itr++;
-  }
+  tvServerConnectionList::iterator itr = std::find(serverConnections.begin(),serverConnections.end(),connection);
+  if( itr!=serverConnections.end() )
+      serverConnections.erase(itr);
+
   connection->disconnect();
   delete(connection);
 }

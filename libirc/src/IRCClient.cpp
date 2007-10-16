@@ -484,12 +484,9 @@ bool IRCClient::removeCommandHandler ( IRCClientCommandHandler *handler )
   else
   {
     // don't delete anything here, as we didn't allocate the handlers
-    std::vector<IRCClientCommandHandler*> &vec = commandListItr->second;
-    for ( int i = (int)vec.size()-1; i >= 0; i--)
-    {
-      if ( vec[i] == handler)
-	vec.erase(vec.begin()+i);
-    }
+    std::vector<IRCClientCommandHandler*>::iterator itr = std::find(commandListItr->second.begin(),commandListItr->second.end(),handler);
+    if (itr != commandListItr->second.end())
+      commandListItr->second.erase(itr);
   }
   return true;
 }
