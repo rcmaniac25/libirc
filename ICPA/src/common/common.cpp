@@ -12,10 +12,23 @@
 
 #include "common.h"
 
-int DUMMY_FUNCTION ( void )
-{ 
-  return 0;
+#ifndef _WIN32
+  #include <unistd.h>
+#else
+  #include <windows.h>
+  #include <time.h>
+  #include <stdio.h>
+#endif
+
+void OSSleep ( float fTime )
+{
+#ifdef _WIN32
+  Sleep((DWORD)(1000.0f * fTime));
+#else
+  usleep((unsigned int )(100000 * fTime));
+#endif
 }
+
 
 
 // Local Variables: ***

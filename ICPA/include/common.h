@@ -13,7 +13,7 @@
 #ifndef _ICPA_COMMON_H_
 #define _ICPA_COMMON_H_
 
-int DUMMY_FUNCTION ( void );
+void OSSleep ( float fTime );
 
 #endif //_ICPA_COMMON_H_
 // Local Variables: ***
