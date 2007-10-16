@@ -16,7 +16,7 @@
 
 int main(int argc, char* argv[])
 {
-	return 0;
+  return 0;
 }
 
 // Local Variables: ***
@@ -26,4 +26,3 @@ int main(int argc, char* argv[])
 // indent-tabs-mode: t ***
 // End: ***
 // ex: shiftwidth=2 tabstop=8
- 

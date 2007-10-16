@@ -21,7 +21,7 @@ int WINAPI		WinMain(HINSTANCE instance, HINSTANCE, LPSTR _cmdLine, int)
 int main(int argc, char* argv[])
 {
 #endif // _WIN32
-	return 0;
+  return 0;
 }
 
 // Local Variables: ***
@@ -31,4 +31,3 @@ int main(int argc, char* argv[])
 // indent-tabs-mode: t ***
 // End: ***
 // ex: shiftwidth=2 tabstop=8
- 

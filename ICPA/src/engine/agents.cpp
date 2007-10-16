@@ -37,7 +37,7 @@ AgentConnectedServer::~AgentConnectedServer()
 
 bool AgentConnectedServer::connected ( void )
 {
-	return false;
+  return false;
 }
 
 void AgentConnectedServer::addHost ( ServerHost &host, bool prefered )
@@ -61,102 +61,100 @@ Agent::~Agent()
 
 bool Agent::valid ( void )
 {
-	return false;
+  return false;
 }
 
 bool Agent::init ( void )
 {
-	return valid();
+  return valid();
 }
 
 bool Agent::connected ( void )
 {
-	return valid();
+  return valid();
 }
 
 bool Agent::update ( void )
 {
-	return valid();
+  return valid();
 }
+
 
 bool Agent::loadFromDir ( const char* dir )
 {
-	if (dirName.size() || !dir)
-		return false;
+  if (dirName.size() || !dir)
+    return false;
 
-	COSFile	file;
-	file.OSName(dir);
-	std::string fileName = file.GetStdName();
-	fileName += "/config.cfg";
-	file.StdName(fileName.c_str());
+  COSFile	file;
+  file.OSName(dir);
+  std::string fileName = file.GetStdName();
+  fileName += "/config.cfg";
+  file.StdName(fileName.c_str());
 
-	if (!file.Open("rt"))
-		return false;
+  if (!file.Open("rt"))
+    return false;
 
-	agentName = "";
+  agentName = "";
 
-	std::string configText;
-	if(!file.GetFileText(configText))
-		return false;
+  std::string configText;
+  if(!file.GetFileText(configText))
+    return false;
 
-	file.Close();
+  file.Close();
 
-	configText = TextUtils::replace_all(configText,std::string("\r"),std::string(""));
-	std::vector<std::string> lines = TextUtils::tokenize(configText,std::string("\n"));
-
-	for ( int i = 0; i < (int)lines.size(); i++ )
+  configText = TextUtils::replace_all(configText,std::string("\r"),std::string(""));
+  std::vector<std::string> lines = TextUtils::tokenize(configText,std::string("\n"));
+	
+  for ( int i = 0; i < (int)lines.size(); i++ )
+  {
+    const std::string &line = lines[i];
+    std::vector<std::string> chunks = TextUtils::tokenize(line,std::string(" "),0,true);
+    if ( chunks.size() > 1 )
+    {
+      std::string command = TextUtils::tolower(chunks[0]);
+      if ( command == "name" )
+	agentName = chunks[1];
+      else if ( command == "server" )
+      {
+	// server name host port prefered
+	if ( chunks.size() >= 4 )
 	{
-		const std::string &line = lines[i];
-		std::vector<std::string> chunks = TextUtils::tokenize(line,std::string(" "),0,true);
-		if ( chunks.size() > 1 )
-		{
-			std::string command = TextUtils::tolower(chunks[0]);
-			if ( command == "name" )
-				agentName = chunks[1];
-			else if ( command == "server" )
-			{
-				// server name host port prefered
-				if ( chunks.size() >= 4 )
-				{
-					std::string networkName = TextUtils::tolower(chunks[1]);
-					ServerHost host;
-					host.host = chunks[2];
-					host.port = atoi(chunks[3].c_str());
+	  std::string networkName = TextUtils::tolower(chunks[1]);
+	  ServerHost host;
+	  host.host = chunks[2];
+	  host.port = atoi(chunks[3].c_str());
 
-					bool prefered = false;
-					if ( chunks.size() > 4 )
-						prefered = TextUtils::tolower(chunks[4]) == "prefered";
+	  bool prefered = false;
+	  if ( chunks.size() > 4 )
+	    prefered = TextUtils::tolower(chunks[4]) == "prefered";
 
-					AgentConnectedServersMap::iterator itr = servers.find(networkName);
-					AgentConnectedServer	*server;
+	  AgentConnectedServersMap::iterator itr = servers.find(networkName);
+	  AgentConnectedServer	*server;
 
-					if (itr == servers.end())
-					{
-						AgentConnectedServer s;
-						servers[networkName] = s;
-						server = &servers[networkName];
-					}
-					else
-						server = &itr->second;
+	  if (itr == servers.end())
+	  {
+	    AgentConnectedServer s;
+	    servers[networkName] = s;
+	    server = &servers[networkName];
+	  }
+	  else
+	    server = &itr->second;
 
-					server->addHost(host, prefered);
-				}
-			}
-		}
+	  server->addHost(host, prefered);
 	}
+      }
+    }
+  }
 
-	return agentName.size() > 0;
+  return agentName.size() > 0;
 }
-
 bool Agent::saveToDir ( void )
 {
-	if (!dirName.size())
-		return false;
+  if (!dirName.size())
+    return false;
 
-	return false;
+  return false;
 }
-
-
 
 // Local Variables: ***
 // mode:C++ ***
@@ -165,4 +163,3 @@ bool Agent::saveToDir ( void )
 // indent-tabs-mode: t ***
 // End: ***
 // ex: shiftwidth=2 tabstop=8
-

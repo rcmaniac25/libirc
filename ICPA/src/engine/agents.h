@@ -20,8 +20,8 @@
 //The specific hostname/port of an IRC server
 typedef struct
 {
-	std::string host;
-	int			port;
+  std::string host;
+  int	      port;
 }ServerHost;
 typedef std::vector<ServerHost>	ServerHostList;
 
@@ -29,10 +29,10 @@ typedef std::vector<ServerHost>	ServerHostList;
 class ServerChannel
 {
 public:
-	virtual ~ServerChannel();
+  virtual ~ServerChannel();
 protected:
-	std::string name;				// channel name
-	bool		autoConnect;		// true if the channel is to be automaticly conencted on startup
+  std::string	name;		      // channel name
+  bool		autoConnect;	      // true if the channel is to be automaticly conencted on startup
 };
 typedef std::map<std::string,ServerChannel> ServerChannelMap;
 
@@ -40,10 +40,10 @@ typedef std::map<std::string,ServerChannel> ServerChannelMap;
 class ServerPrivateMessage
 {
 public:
-	virtual ~ServerPrivateMessage();
+  virtual ~ServerPrivateMessage();
 
 protected:
-	std::string name;
+  std::string name;
 };
 typedef std::map<std::string,ServerPrivateMessage> ServerPrivateMessageMap;
 
@@ -51,23 +51,23 @@ typedef std::map<std::string,ServerPrivateMessage> ServerPrivateMessageMap;
 class AgentConnectedServer
 {
 public:
-	AgentConnectedServer();
-	virtual ~AgentConnectedServer();
+  AgentConnectedServer();
+  virtual ~AgentConnectedServer();
 
-	bool connected ( void );
+  bool connected ( void );
 
-	void addHost ( ServerHost &host, bool prefered );
+  void addHost ( ServerHost &host, bool prefered );
 
 protected:
-	ServerHostList			hostnames;			// the list of entry point addresses to connect to the network
-	ServerHost				*currentHost;		// the current host that we connected to
-	ServerHost				*preferedHost;		// the  host to always try first
+  ServerHostList		  hostnames;		// the list of entry point addresses to connect to the network
+  ServerHost			  *currentHost;		// the current host that we connected to
+  ServerHost			  *preferedHost;	// the  host to always try first
 
-	ServerChannelMap			channels;			// the list of active channels that we are listening to.
-	ServerPrivateMessageMap	privateMessages;	// the list of active private message converations that we are listenting too.
-	
-	std::vector<std::string>	ircNicks;			// the list of nicknames to use on this network
-	std::string					currentNick;		// the current nick of the agent on this network.
+  ServerChannelMap		  channels;		// the list of active channels that we are listening to.
+  ServerPrivateMessageMap	  privateMessages;	// the list of active private message converations that we are listenting too.
+
+  std::vector<std::string>	  ircNicks;		// the list of nicknames to use on this network
+  std::string			  currentNick;		// the current nick of the agent on this network.
 };
 typedef std::map<std::string, AgentConnectedServer> AgentConnectedServersMap;
 
@@ -78,25 +78,25 @@ typedef std::map<std::string, AgentConnectedServer> AgentConnectedServersMap;
 class Agent
 {
 public:
-	Agent();
-	Agent( const char* dir );	// this implies a new agent with out a dir that needs to be saved when save is called
-								// we'll auto save after first connect
-	virtual ~Agent();
+  Agent();
+  Agent( const char* dir );			  // this implies a new agent with out a dir that needs to be saved when save is called
+						  // we'll auto save after first connect
+  virtual ~Agent();
 
-	virtual bool loadFromDir ( const char* dir );	// this is called for existing agents that are restarting, they will auto connect
-	virtual bool saveToDir ( void );				// called by all agents to save data out to some form of perma storage
+  virtual bool loadFromDir ( const char* dir );	  // this is called for existing agents that are restarting, they will auto connect
+  virtual bool saveToDir ( void );		  // called by all agents to save data out to some form of perma storage
 
-	virtual bool valid ( void );
-	virtual bool init ( void );
-	virtual bool connected ( void );
-	virtual bool update ( void );
+  virtual bool valid ( void );
+  virtual bool init ( void );
+  virtual bool connected ( void );
+  virtual bool update ( void );
 
-	const std::string &getName ( void ) { return agentName; }
+  const std::string &getName ( void ) { return agentName; }
 protected:
-	std::string					dirName;
-	std::string					agentName;
+  std::string			dirName;
+  std::string			agentName;
 
-	AgentConnectedServersMap	servers;			// the list of connected IRC networks
+  AgentConnectedServersMap	servers;	  // the list of connected IRC networks
 };
 typedef std::map<std::string,Agent*>	AgentMap;
 
@@ -109,4 +109,3 @@ typedef std::map<std::string,Agent*>	AgentMap;
 // indent-tabs-mode: t ***
 // End: ***
 // ex: shiftwidth=2 tabstop=8
-
