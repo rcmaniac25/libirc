@@ -29,8 +29,6 @@ void OSSleep ( float fTime )
 #endif
 }
 
-
-
 // Local Variables: ***
 // mode:C++ ***
 // tab-width: 8 ***

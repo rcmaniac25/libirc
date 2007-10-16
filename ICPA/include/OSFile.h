@@ -36,9 +36,9 @@
 
 typedef enum 
 {
-	eFileStart,
-	eCurentPos,
-	eFileEnd
+  eFileStart,
+  eCurentPos,
+  eFileEnd
 }teFilePos;
 
 void SetOSFileBaseDir ( const char *szDir );
@@ -46,91 +46,98 @@ void SetOSFileBaseDir ( const char *szDir );
 class COSFile
 {
 public:
-	COSFile ();
-	COSFile ( const COSFile &r);
-	COSFile& operator = (const COSFile &r);
+  COSFile ();
+  COSFile ( const COSFile &r);
+  COSFile& operator = (const COSFile &r);
 
-	COSFile ( const char *szName );
-	COSFile ( const char *szName, const char *szMode );
-	~COSFile();
+  COSFile ( const char *szName );
+  COSFile ( const char *szName, const char *szMode );
+  ~COSFile();
 
-	bool Open ( const char *szName, const char *szMode );
-	bool Open ( const char *szMode );
-	bool Close ( void );
+  bool Open ( const char *szName, const char *szMode );
+  bool Open ( const char *szMode );
+  bool Close ( void );
 
-	void StdName ( const char *szName );
-	void OSName ( const char *szName );
+  void StdName ( const char *szName );
+  void OSName ( const char *szName );
 
-	FILE* GetFile ( void );
+  FILE* GetFile ( void );
 
-	const char* GetStdName ( void );
-	const char* GetOSName ( void );
+  const char* GetStdName ( void );
+  const char* GetOSName ( void );
 
-	const char* GetFileTitle ( void );
+  const char* GetFileTitle ( void );
 
-	const char* GetExtension ( void );
-	
-	const char* GetFullOSPath ( void );
+  const char* GetExtension ( void );
 
-	bool IsOpen ( void );
+  const char* GetFullOSPath ( void );
 
-	int Read ( void* data, int size, int count = 1 );
-	unsigned char ReadChar ( void );
-	int ScanChar ( unsigned char *pChar );
-	const char* ScanStr ( void );
-	const char* ReadLine ( void );
-	int Write ( const void* data, int size );
-	void Write ( const char* data );
-	void Write ( std::string data );
-	void Flush ( void );
+  bool IsOpen ( void );
 
-	std::vector<std::string> ParseFile ( std::string delim );
+  int Read ( void* data, int size, int count = 1 );
+  unsigned char ReadChar ( void );
+  int ScanChar ( unsigned char *pChar );
+  const char* ScanStr ( void );
+  const char* ReadLine ( void );
+  int Write ( const void* data, int size );
+  void Write ( const char* data );
+  void Write ( std::string data );
+  void Flush ( void );
 
-	int Seek ( teFilePos ePos, int iOffset );
-	unsigned int Size ( void );
-	unsigned int Tell ( void );
+  std::vector<std::string> ParseFile ( std::string delim );
 
-	bool GetFileText ( std::string &text );
+  int Seek ( teFilePos ePos, int iOffset );
+  unsigned int Size ( void );
+  unsigned int Tell ( void );
 
-	void SetUseGlobalPath ( bool use = false );
+  bool GetFileText ( std::string &text );
+
+  void SetUseGlobalPath ( bool use = false );
 protected:
-	class COSFileInfo;
-	COSFileInfo		*info;
+  class COSFileInfo;
+  COSFileInfo		*info;
 };
 
 
 class COSDir
 {
 public:
-	COSDir();
-	COSDir( const COSDir &r);
-	COSDir& operator = (const COSDir &r);
-	COSDir( const char* szDirName );
-	~COSDir();
+  COSDir();
+  COSDir( const COSDir &r);
+  COSDir& operator = (const COSDir &r);
+  COSDir( const char* szDirName );
+  ~COSDir();
 
-	void SetStdDir ( const char* szDirName );
-	void SetOSDir ( const char* szDirName );
+  void SetStdDir ( const char* szDirName );
+  void SetOSDir ( const char* szDirName );
 
-	void MakeStdDir ( const char* szDirName );
-	void MakeOSDir ( const char* szDirName );
+  void MakeStdDir ( const char* szDirName );
+  void MakeOSDir ( const char* szDirName );
 
-	bool GetNextFile ( COSFile &oFile, bool bRecursive );
-	bool GetNextFile ( COSFile &oFile, const char* fileMask, bool bRecursive );
+  bool GetNextFile ( COSFile &oFile, bool bRecursive );
+  bool GetNextFile ( COSFile &oFile, const char* fileMask, bool bRecursive );
 
-	bool GetNextDir ( COSDir &oDir, bool bRecursive );
+  bool GetNextDir ( COSDir &oDir, bool bRecursive );
 
-	const char* GetStdName ( void );
-	const char* GetOSName ( void );
-	const char* GetFullOSPath ( void );
+  const char* GetStdName ( void );
+  const char* GetOSName ( void );
+  const char* GetFullOSPath ( void );
 
 protected:
-	class COSDirInfo;
-	COSDirInfo		*info;
+  class COSDirInfo;
+  COSDirInfo		*info;
 
-	bool WindowsAddFileStack ( const char *szPathName, const char* fileMask , bool bRecursive, bool dirOnly = false );
-	bool LinuxAddFileStack( const char *szPathName, const char* fileMask , bool bRecursive, bool dirOnly = false);
+  bool WindowsAddFileStack ( const char *szPathName, const char* fileMask , bool bRecursive, bool dirOnly = false );
+  bool LinuxAddFileStack( const char *szPathName, const char* fileMask , bool bRecursive, bool dirOnly = false);
 };
 
 
 #endif//_OSFILE_H_
 
+// Local Variables: ***
+// mode:C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8

@@ -38,28 +38,35 @@
 class CCommandLineArgs
 {
 public:
-	CCommandLineArgs();
-	~CCommandLineArgs();
-	CCommandLineArgs( int argc, char *argv[] );
-	CCommandLineArgs( const char* szCommandLine );
-	CCommandLineArgs( COSFile &file );
+  CCommandLineArgs();
+  ~CCommandLineArgs();
+  CCommandLineArgs( int argc, char *argv[] );
+  CCommandLineArgs( const char* szCommandLine );
+  CCommandLineArgs( COSFile &file );
 
-	void Set ( int argc, char *argv[] );
-	void Set ( const char* szCommandLine );
-	void Set ( COSFile &file );
+  void Set ( int argc, char *argv[] );
+  void Set ( const char* szCommandLine );
+  void Set ( COSFile &file );
 
-	void Clear ( void );
+  void Clear ( void );
 
-	bool Exists ( const char* szKey );
-	
-	const char* GetDataS ( const char* szKey );
-	int GetDataI ( const char* szKey );
-	bool GetDataB ( const char* szKey );
-	float GetDataF ( const char* szKey );
+  bool Exists ( const char* szKey );
+
+  const char* GetDataS ( const char* szKey );
+  int GetDataI ( const char* szKey );
+  bool GetDataB ( const char* szKey );
+  float GetDataF ( const char* szKey );
 
 private:
-	typedef std::map<std::string,std::string> tmCommandMap;
-	tmCommandMap		commands;
+  typedef std::map<std::string,std::string> tmCommandMap;
+  tmCommandMap		commands;
 };
 #endif//_COMMAND_ARGS_H_
 
+// Local Variables: ***
+// mode:C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8

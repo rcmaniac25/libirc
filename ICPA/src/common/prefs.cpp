@@ -28,407 +28,412 @@
 // prefs class
 CPrefsManager::CPrefsManager()
 {
-	items.clear();
+  items.clear();
 }
 
 CPrefsManager::~CPrefsManager()
 {
-	Update();
+  Update();
 }
 
 const char* CPrefsManager::GetPrefsPath ( void )
 {
-	std::string	filePathName;
+  std::string	filePathName;
 #ifdef _WIN32
 
-	char	szSysDir[MAX_PATH] = {0};
-	char	buffer[MAX_PATH] = {0};
+  char	szSysDir[MAX_PATH] = {0};
+  char	buffer[MAX_PATH] = {0};
 
-	// do the old way
-	GetWindowsDirectory(szSysDir,MAX_PATH);
-	filePathName = szSysDir;
-	filePathName += "\\";
+  // do the old way
+  GetWindowsDirectory(szSysDir,MAX_PATH);
+  filePathName = szSysDir;
+  filePathName += "\\";
 
-	// see if we can get it the new way
-	HRESULT hr;
-	if (SUCCEEDED (hr = SHGetSpecialFolderPath(NULL, buffer,  CSIDL_APPDATA, FALSE)))
-	{
-		strcpy(szSysDir, buffer);
-		strcat(szSysDir, "\\");
-		filePathName = szSysDir;
-	}
+  // see if we can get it the new way
+  HRESULT hr;
+  if (SUCCEEDED (hr = SHGetSpecialFolderPath(NULL, buffer,  CSIDL_APPDATA, FALSE)))
+  {
+    strcpy(szSysDir, buffer);
+    strcat(szSysDir, "\\");
+    filePathName = szSysDir;
+  }
 
 #else
-	// do some sort of home dir thing here
-	filePathName =  getenv("HOME");
+  // do some sort of home dir thing here
+  filePathName =  getenv("HOME");
 #endif
 
-	static COSFile	temp;
-	temp.OSName(filePathName.c_str());
+  static COSFile	temp;
+  temp.OSName(filePathName.c_str());
 
-	return temp.GetStdName();
+  return temp.GetStdName();
 }
 
 const char* CPrefsManager::GetPrefsFileName ( const char *pathName )
 {
-	std::string	filePathName;
-	static COSFile temp(pathName);
+  std::string	filePathName;
+  static COSFile temp(pathName);
 #ifdef _WIN32
-	filePathName += temp.GetOSName();	
-	filePathName += ".cfg";
+  filePathName += temp.GetOSName();	
+  filePathName += ".cfg";
 #else
-	// do some sort of home dir thing here
-	filePathName += "/.";
-	filePathName += temp.GetOSName();
+  // do some sort of home dir thing here
+  filePathName += "/.";
+  filePathName += temp.GetOSName();
 #endif
-	temp.OSName(filePathName.c_str());
-	return temp.GetStdName();
+  temp.OSName(filePathName.c_str());
+  return temp.GetStdName();
 }
 
 void CPrefsManager::Init ( std::string fileName )
 {
-	Init(fileName.c_str());
+  Init(fileName.c_str());
 }
 
 void CPrefsManager::Init ( const char *pathName )
 {
-	if (!pathName)
-		return;
+  if (!pathName)
+    return;
 
-	std::string	filePathName = GetPrefsPath();
-	filePathName += GetPrefsFileName(pathName);	
-	file.SetUseGlobalPath(false);
-	file.StdName(filePathName.c_str());
+  std::string	filePathName = GetPrefsPath();
+  filePathName += GetPrefsFileName(pathName);	
+  file.SetUseGlobalPath(false);
+  file.StdName(filePathName.c_str());
 
-	readFile(false);
+  readFile(false);
 }
 
 void CPrefsManager::Update ( void )
 {
-	writeFile();
+  writeFile();
 }
 
 bool CPrefsManager::ItemExists ( const char* group, const char* szName )
 {
-	if (!szName)
-		return false;
+  if (!szName)
+    return false;
 
-	std::string name = szName;
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string name = szName;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
-	
-	if (groupItr == items.end())
-		return false;
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
 
-	PrefsItemList::iterator itemItr = groupItr->second.find(name);
+  if (groupItr == items.end())
+    return false;
 
-	if ( itemItr == groupItr->second.end() )
-		return false;
+  PrefsItemList::iterator itemItr = groupItr->second.find(name);
 
-	return itemItr->second.size() > 0;
+  if ( itemItr == groupItr->second.end() )
+    return false;
+
+  return itemItr->second.size() > 0;
 }
 
 void CPrefsManager::SetItem ( const char* group, const char* szName, int iData, bool push )
 {
-	if (!szName)
-		return;
+  if (!szName)
+    return;
 
-	char	szData[256];
-	sprintf(szData,"%d",iData);
+  char	szData[256];
+  sprintf(szData,"%d",iData);
 
-	SetItem(group,szName,szData,push);
+  SetItem(group,szName,szData,push);
 }
 
 void CPrefsManager::SetItem ( const char* group, const char* szName, float fData, bool push )
 {
-	if (!szName)
-		return;
+  if (!szName)
+    return;
 
-	char	szData[256];
-	sprintf(szData,"%f",fData);
+  char	szData[256];
+  sprintf(szData,"%f",fData);
 
-	SetItem(group,szName,szData,push);
+  SetItem(group,szName,szData,push);
 }
 
 void CPrefsManager::SetItem ( const char* group, const char* szName, const char* pData, bool push )
 {
-	if (!szName || !pData)
-		return;
+  if (!szName || !pData)
+    return;
 
-	std::string	name = szName;
-	std::string data = pData;
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string	name = szName;
+  std::string data = pData;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	// find the group
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
-	if ( groupItr == items.end() )
-	{
-		// she got no group so add one
-		std::vector<std::string> itemList;
-		itemList.push_back(data);
-		PrefsItemList itemGroup;
-		itemGroup[name] = itemList;
-		items[TextUtils::toupper(groupToUse)] = itemGroup;
-		return;
-	}
+  // find the group
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
+  if ( groupItr == items.end() )
+  {
+    // she got no group so add one
+    std::vector<std::string> itemList;
+    itemList.push_back(data);
+    PrefsItemList itemGroup;
+    itemGroup[name] = itemList;
+    items[TextUtils::toupper(groupToUse)] = itemGroup;
+    return;
+  }
 
-	// we have the group, see if we have the item
-	PrefsItemList::iterator itemItr = groupItr->second.find(name);
-	if ( itemItr == groupItr->second.end() )
-	{
-		std::vector<std::string> itemList;
-		itemList.push_back(data);
-		groupItr->second[name] = itemList;
-		return;
-	}
-	// just another entry for the existing items
-	if (!push)
-		itemItr->second.clear();
-	itemItr->second.push_back(data);
+  // we have the group, see if we have the item
+  PrefsItemList::iterator itemItr = groupItr->second.find(name);
+  if ( itemItr == groupItr->second.end() )
+  {
+    std::vector<std::string> itemList;
+    itemList.push_back(data);
+    groupItr->second[name] = itemList;
+    return;
+  }
+  // just another entry for the existing items
+  if (!push)
+    itemItr->second.clear();
+  itemItr->second.push_back(data);
 }
 
 int CPrefsManager::GetItemI ( const char* group, const char* szName )
 {
-	const char *item = GetItemS(group,szName);
-	if (!item)
-		return 0;
+  const char *item = GetItemS(group,szName);
+  if (!item)
+    return 0;
 
-	return atoi(item);
+  return atoi(item);
 }
 
 float CPrefsManager::GetItemF ( const char* group, const char* szName )
 {
-	const char *item = GetItemS(group,szName);
-	if (!item)
-		return 0;
+  const char *item = GetItemS(group,szName);
+  if (!item)
+    return 0;
 
-	return (float)atof(item);
+  return (float)atof(item);
 }
 
 const char* CPrefsManager::GetItemS ( const char* group, const char* szName )
 {
-	if (!szName)
-		return NULL;
+  if (!szName)
+    return NULL;
 
-	std::string name = szName;
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string name = szName;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
 
-	if (groupItr == items.end())
-		return NULL;
+  if (groupItr == items.end())
+    return NULL;
 
-	PrefsItemList::iterator itemItr = groupItr->second.find(name);
+  PrefsItemList::iterator itemItr = groupItr->second.find(name);
 
-	if ( itemItr == groupItr->second.end() )
-		return NULL;
+  if ( itemItr == groupItr->second.end() )
+    return NULL;
 
-	if (itemItr->second.size() < 1 )
-		return NULL;
+  if (itemItr->second.size() < 1 )
+    return NULL;
 
-	return itemItr->second[0].c_str();
+  return itemItr->second[0].c_str();
 }
 
 std::vector<std::string> CPrefsManager::GetItemV ( const char* group, const char* szName )
 {
-	std::vector<std::string> temp;
+  std::vector<std::string> temp;
 
-	if (!szName)
-		return temp;
+  if (!szName)
+    return temp;
 
-	std::string name = szName;
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string name = szName;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
 
-	if (groupItr == items.end())
-		return temp;
+  if (groupItr == items.end())
+    return temp;
 
-	PrefsItemList::iterator itemItr = groupItr->second.find(name);
+  PrefsItemList::iterator itemItr = groupItr->second.find(name);
 
-	if ( itemItr == groupItr->second.end() )
-		return temp;
+  if ( itemItr == groupItr->second.end() )
+    return temp;
 
-	return itemItr->second;
+  return itemItr->second;
 }
 
 void CPrefsManager::clearItem ( const char* group, const char* szName )
 {
-	if (!szName)
-		return;
+  if (!szName)
+    return;
 
-	std::string name = szName;
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string name = szName;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
 
-	if (groupItr == items.end())
-		return;
+  if (groupItr == items.end())
+    return;
 
-	PrefsItemList::iterator itemItr = groupItr->second.find(name);
+  PrefsItemList::iterator itemItr = groupItr->second.find(name);
 
-	if ( itemItr == groupItr->second.end() )
-		return;
+  if ( itemItr == groupItr->second.end() )
+    return;
 
-	groupItr->second.erase(itemItr);
+  groupItr->second.erase(itemItr);
 }
 
 void CPrefsManager::readFile ( bool merge )
 {
-	if (!merge)
-		items.clear();
+  if (!merge)
+    items.clear();
 
-	file.Open("rt");
-	if (!file.IsOpen())
-		return;
+  file.Open("rt");
+  if (!file.IsOpen())
+    return;
 
-	std::string group;
-	std::string item;
-	std::string value;
+  std::string group;
+  std::string item;
+  std::string value;
 
-	char szName[256] = {0};
-	char szData[256];
+  char szName[256] = {0};
+  char szData[256];
 
-	std::vector<std::string> fileLines = file.ParseFile(std::string("\n"));
+  std::vector<std::string> fileLines = file.ParseFile(std::string("\n"));
 
-	for ( unsigned int i = 0; i < fileLines.size(); i++)
+  for ( unsigned int i = 0; i < fileLines.size(); i++)
+  {
+    szName[0] = 0;
+    szData[0] = 0;
+
+    std::string line = TextUtils::trim_whitespace(fileLines[i]);
+    if (line.size())
+    {
+      if (line[0] == '[')
+      {
+	line = TextUtils::toupper(TextUtils::replace_all(std::string(line.c_str()+1),std::string("]"),std::string("")));
+	if ( line == "END" )
+	  group = "";
+	else
+	  group = line;
+      }
+      else
+      {
+	szName[0] = 0;
+	sscanf(line.c_str(),"%s",szName);
+	item = szName;
+	if ( item.size() && (line.size() > item.size()+1) )
 	{
-		szName[0] = 0;
-		szData[0] = 0;
+	  value = line.c_str()+item.size()+1;
 
-		std::string line = TextUtils::trim_whitespace(fileLines[i]);
-		if (line.size())
-		{
-			if (line[0] == '[')	// it's a group tag
-			{
-				line = TextUtils::toupper(TextUtils::replace_all(std::string(line.c_str()+1),std::string("]"),std::string("")));
-				if ( line == "END" )
-					group = "";
-				else
-					group = line;
-			}
-			else	// it's a line item
-			{
-				szName[0] = 0;
-				sscanf(line.c_str(),"%s",szName);
-				item = szName;
-				if ( item.size() && (line.size() > item.size()+1) )
-				{
-					value = line.c_str()+item.size()+1;
+	  std::string groupToUse = "ROOT";
+	  if ( group.size() )
+	    groupToUse = group;	
 
-					std::string groupToUse = "ROOT";
-					if ( group.size() )
-						groupToUse = group;	
-					
-					SetItem(groupToUse.c_str(),item.c_str(),value.c_str(),true);
-				}
-			}
-		}
+	  SetItem(groupToUse.c_str(),item.c_str(),value.c_str(),true);
 	}
-	file.Close();
+      }
+    }
+  }
+  file.Close();			
 }
 
 void CPrefsManager::writeFile ( void )
 {
-	file.Open("wt");
-	if (!file.IsOpen())
-		return;
-	
-	std::string line;
+  file.Open("wt");
+  if (!file.IsOpen())
+    return;
 
-	PrefsGroups::iterator groupItr = items.begin();
+  std::string line;
 
-	while ( groupItr != items.end() )
+  PrefsGroups::iterator groupItr = items.begin();
+
+  while ( groupItr != items.end() )
+  {
+    line = "[" + groupItr->first +  "]\n";
+    file.Write(line);
+
+    PrefsItemList::iterator itemItr = groupItr->second.begin();
+    while ( itemItr != groupItr->second.end() )
+    {
+      if ( itemItr->second.size() )
+      {
+	for ( unsigned int i = 0; i < itemItr->second.size(); i++ )
 	{
-		line = "[" + groupItr->first +  "]\n";
-		file.Write(line);
-		
-		PrefsItemList::iterator itemItr = groupItr->second.begin();
-		while ( itemItr != groupItr->second.end() )
-		{
-			if ( itemItr->second.size() )
-			{
-				for ( unsigned int i = 0; i < itemItr->second.size(); i++ )
-				{
-					line = itemItr->first + "\t" + itemItr->second[i] + "\n";
-					file.Write(line);
-				}
-			}
-			itemItr++;
-		}
-		file.Write(std::string("[end]\n\n"));
-		groupItr++;
+	  line = itemItr->first + "\t" + itemItr->second[i] + "\n";
+	  file.Write(line);
 	}
-	file.Close();
+      }
+      itemItr++;
+    }
+    file.Write(std::string("[end]\n\n"));
+    groupItr++;
+  }
+  file.Close();
 }
 
 int CPrefsManager::CountGroups ( void )
 {
-	return (int)items.size();
+  return (int)items.size();
 }
 std::vector<std::string> CPrefsManager::GetGroups ( void )
 {
-	std::vector<std::string>	list;
+  std::vector<std::string>	list;
 
-	PrefsGroups::iterator itr = items.begin();
+  PrefsGroups::iterator itr = items.begin();
 
-	while ( itr != items.end() )
-	{
-		list.push_back(itr->first);
-		itr++;
-	}
-	return list;
+  while ( itr != items.end() )
+  {
+    list.push_back(itr->first);
+    itr++;
+  }
+  return list;
 }
 
 std::vector<std::string> CPrefsManager::ListGroupItems ( const char* group )
 {
-	std::vector<std::string>	list;
+  std::vector<std::string>	list;
 
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
 
-	if (groupItr == items.end())
-		return list;
+  if (groupItr == items.end())
+    return list;
 
-	PrefsItemList &groupList = groupItr->second;
+  PrefsItemList &groupList = groupItr->second;
 
-	PrefsItemList::iterator itr = groupList.begin();
-	while ( itr != groupList.end() )
-	{
-		list.push_back(itr->first);
-		itr++;
-	}
-	return list;
+  PrefsItemList::iterator itr = groupList.begin();
+  while ( itr != groupList.end() )
+  {
+    list.push_back(itr->first);
+    itr++;
+  }
+  return list;
 }
 
 int CPrefsManager::CountGroupItems ( const char* group )
 {
-	std::string groupToUse = "ROOT";
-	if (group)
-		groupToUse = group;
+  std::string groupToUse = "ROOT";
+  if (group)
+    groupToUse = group;
 
-	PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
+  PrefsGroups::iterator groupItr = items.find(TextUtils::toupper(groupToUse));
 
-	if (groupItr == items.end())
-		return 0;
+  if (groupItr == items.end())
+    return 0;
 
-	return (int)groupItr->second.size();
+  return (int)groupItr->second.size();
 }
 
 
-
-
+// Local Variables: ***
+// mode:C++ ***
+// tab-width: 8 ***
+// c-basic-offset: 2 ***
+// indent-tabs-mode: t ***
+// End: ***
+// ex: shiftwidth=2 tabstop=8
