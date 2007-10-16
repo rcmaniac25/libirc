@@ -48,7 +48,7 @@ protected:
 typedef std::map<std::string,ServerPrivateMessage> ServerPrivateMessageMap;
 
 // An IRC network that an Agent connects to.
-class AgentConnectedServer
+class AgentConnectedServer : public IRCClientEventCallback
 {
 public:
   AgentConnectedServer();
@@ -56,20 +56,54 @@ public:
 
   bool connected ( void );
 
+  bool init ( const std::string &name, const std::string &rootDir );
+  bool update ( void );
+
   void addHost ( ServerHost &host, bool prefered );
+  void addNick ( const std::string &nick );
+
+  void setUserInfo ( const std::string &r, const std::string &u );
+
+  bool valid ( void ) { return validNickList()&& hostnames.size();}
+  bool validNickList ( void ){return ircNicks.size()>0;}
+
+  virtual bool process ( IRCClient &ircClient, teIRCEventType  eventType, trBaseEventInfo &info );
 
 protected:
   ServerHostList		  hostnames;		// the list of entry point addresses to connect to the network
-  ServerHost			  *currentHost;		// the current host that we connected to
-  ServerHost			  *preferedHost;	// the  host to always try first
-
+  int				  currentHost;		// index of the current host we are trying to use
+  
   ServerChannelMap		  channels;		// the list of active channels that we are listening to.
   ServerPrivateMessageMap	  privateMessages;	// the list of active private message converations that we are listenting too.
 
   std::vector<std::string>	  ircNicks;		// the list of nicknames to use on this network
+  int				  lastAtemptedNick;	// the last name in the list we tried to use
   std::string			  currentNick;		// the current nick of the agent on this network.
+  std::string			  username;
+  std::string			  fullname;
+
+private:
+  IRCClient			  ircConenction;
+  std::string			  networkName;
+  std::string			  dataDir;
+
+  typedef enum
+  {
+    eIdle,
+    eConnecting,
+    eConnected,
+    eDisconected,
+    eErrored
+  }Status;
+
+  Status			   connectionStatus;
+
+  void connectToServer ( void );
+  void joinChannels ( void );
+  void tryNextNick ( void );
+
 };
-typedef std::map<std::string, AgentConnectedServer> AgentConnectedServersMap;
+typedef std::map<std::string, AgentConnectedServer*> AgentConnectedServersMap;
 
 // An IRC listen agent.
 // Agents connect to a number of IRC networks, and listen for data on a number of channels.
@@ -87,7 +121,9 @@ public:
   virtual bool saveToDir ( void );		  // called by all agents to save data out to some form of perma storage
 
   virtual bool valid ( void );
+ 
   virtual bool init ( void );
+
   virtual bool connected ( void );
   virtual bool update ( void );
 
@@ -97,6 +133,9 @@ protected:
   std::string			agentName;
 
   AgentConnectedServersMap	servers;	  // the list of connected IRC networks
+
+private:
+    AgentConnectedServer* getServer ( const std::string &name );
 };
 typedef std::map<std::string,Agent*>	AgentMap;
 

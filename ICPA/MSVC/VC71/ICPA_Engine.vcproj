@@ -32,8 +32,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libirc.lib Ws2_32.lib"
 				OutputFile="$(OutDir)/ICPA_Engine.exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="$(LIBIRC_DIR)\VC7.1\debug\"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/ICPA_Engine.pdb"
 				SubSystem="1"
@@ -78,7 +80,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libirc.lib"
+				AdditionalDependencies="libirc.lib Ws2_32.lib"
 				OutputFile="$(OutDir)/ICPA_Engine.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(LIBIRC_DIR)\vc7.1\release"
