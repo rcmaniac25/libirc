@@ -704,7 +704,7 @@ string_list IRCClient::listChannels ( void )
   return userManager.listChannelNames();
 }
 
-trIRCChannelPermisions IRCClient::getChanPerms ( std::string channel )
+trIRCChannelPermissions IRCClient::getChanPerms ( std::string channel )
 {
   return userManager.getChannelPerms(channel);
 }

@@ -39,7 +39,7 @@ typedef struct
   bool        ctcpReceipt;
   bool        away;
   bool        idle;
-}trIRCUserPermisions;
+}trIRCUserPermissions;
 
 typedef struct 
 {
@@ -47,7 +47,7 @@ typedef struct
   bool        chanOp;
   bool        voice;
   bool        quieted;
-}trIRCChannelUserPermisions;
+}trIRCChannelUserPermissions;
 
 typedef struct 
 {
@@ -65,14 +65,14 @@ typedef struct
   bool  regOnly;
   bool  secret;
   bool  reducedModeraton;
-}trIRCChannelPermisions;
+}trIRCChannelPermissions;
 
 typedef struct 
 {
   int                id;
   std::string            name;
-  trIRCChannelPermisions      perms;
-  std::map<int,trIRCChannelUserPermisions>userPerms;
+  trIRCChannelPermissions      perms;
+  std::map<int,trIRCChannelUserPermissions>userPerms;
   std::string            lastMessage;
   int                lastMessageUser;
   std::string            topic;
@@ -88,7 +88,7 @@ typedef struct
   int            lastMessageChannel;
   std::string        lastMessage;
 
-  trIRCUserPermisions    perms;
+  trIRCUserPermissions    perms;
   std::vector<int>    channels;
 }trIRCUserRecord;
 
@@ -116,8 +116,8 @@ public:
     std::string getUserLastMessageChannelName ( int id );
     std::string getUserLastMessageChannelName ( std::string &name );
 
-    trIRCUserPermisions getUserPerms ( int id );
-    trIRCUserPermisions getUserPerms ( std::string &name );
+    trIRCUserPermissions getUserPerms ( int id );
+    trIRCUserPermissions getUserPerms ( std::string &name );
 
     std::vector<int> listUsers ( void );
     std::vector<std::string> listUserNames ( void );
@@ -131,10 +131,10 @@ public:
     bool userInChannel ( std::string &name, int channel );
     bool userInChannel ( std::string &name, std::string& channel );
 
-    trIRCChannelUserPermisions getUserChannelPerms ( int id, int channel );
-    trIRCChannelUserPermisions getUserChannelPerms ( int id, std::string& channel );
-    trIRCChannelUserPermisions getUserChannelPerms ( std::string &name, int channel );
-    trIRCChannelUserPermisions getUserChannelPerms ( std::string &name, std::string& channel );
+    trIRCChannelUserPermissions getUserChannelPerms ( int id, int channel );
+    trIRCChannelUserPermissions getUserChannelPerms ( int id, std::string& channel );
+    trIRCChannelUserPermissions getUserChannelPerms ( std::string &name, int channel );
+    trIRCChannelUserPermissions getUserChannelPerms ( std::string &name, std::string& channel );
 
     bool userIsIdentified ( int id );
     bool userIsIdentified ( std::string &name );
@@ -161,8 +161,8 @@ public:
     int getChannelID ( std::string &channel );
     std::string getChannelName ( int id );
 
-    trIRCChannelPermisions getChannelPerms ( int id );
-    trIRCChannelPermisions getChannelPerms ( std::string &channel );
+    trIRCChannelPermissions getChannelPerms ( int id );
+    trIRCChannelPermissions getChannelPerms ( std::string &channel );
 
     std::string getChannelTopic ( int id );
     std::string getChannelTopic( std::string &channel );
@@ -231,13 +231,13 @@ protected:
   std::string getCleanNick ( std::string &nick );
   std::string getCleanChanName ( std::string &name );
 
-  void setDefaultUserPerms ( trIRCUserPermisions &perms );
-  void setDefaultChannelPerms ( trIRCChannelPermisions &perms );
-  void setDefaultChannelUserPerms ( trIRCChannelUserPermisions &perms );
+  void setDefaultUserPerms ( trIRCUserPermissions &perms );
+  void setDefaultChannelPerms ( trIRCChannelPermissions &perms );
+  void setDefaultChannelUserPerms ( trIRCChannelUserPermissions &perms );
 
-  void parseUserPerms ( std::string mode, trIRCUserPermisions &perms );
-  void parseChannelPerms ( std::string mode, trIRCChannelPermisions &perms );
-  void parseChannelUserPerms ( std::string mode, trIRCChannelUserPermisions &perms );
+  void parseUserPerms ( std::string mode, trIRCUserPermissions &perms );
+  void parseChannelPerms ( std::string mode, trIRCChannelPermissions &perms );
+  void parseChannelUserPerms ( std::string mode, trIRCChannelUserPermissions &perms );
 
   void removeChannelFromUser ( int user, int channel );
 

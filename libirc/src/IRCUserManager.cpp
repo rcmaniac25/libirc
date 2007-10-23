@@ -142,9 +142,9 @@ std::string IRCUserManager::getUserLastMessageChannelName ( std::string &name )
   return std::string("");
 }
 
-trIRCUserPermisions IRCUserManager::getUserPerms ( int id )
+trIRCUserPermissions IRCUserManager::getUserPerms ( int id )
 {
-  trIRCUserPermisions  perms;
+  trIRCUserPermissions  perms;
 
   trIRCUserRecord  &info = getUserInfo(id);
   if (info.lastMessage.size())
@@ -153,9 +153,9 @@ trIRCUserPermisions IRCUserManager::getUserPerms ( int id )
   return perms;
 }
 
-trIRCUserPermisions IRCUserManager::getUserPerms ( std::string &name )
+trIRCUserPermissions IRCUserManager::getUserPerms ( std::string &name )
 {
-  trIRCUserPermisions  perms;
+  trIRCUserPermissions  perms;
 
   trIRCUserRecord  &info = getUserInfo(name);
   if (info.lastMessage.size())
@@ -229,25 +229,25 @@ bool IRCUserManager::userInChannel ( std::string &name, std::string& channel )
   return channelRecord.userPerms.find(getUserID(name)) != channelRecord.userPerms.end();
 }
 
-trIRCChannelUserPermisions IRCUserManager::getUserChannelPerms ( int id, int channel )
+trIRCChannelUserPermissions IRCUserManager::getUserChannelPerms ( int id, int channel )
 {
   trIRCChannelRecord  &channelRecord = getChannelInfo(channel);
   return channelRecord.userPerms.find(id)->second;
 }
 
-trIRCChannelUserPermisions IRCUserManager::getUserChannelPerms ( int id, std::string& channel )
+trIRCChannelUserPermissions IRCUserManager::getUserChannelPerms ( int id, std::string& channel )
 {
   trIRCChannelRecord  &channelRecord = getChannelInfo(channel);
   return channelRecord.userPerms.find(id)->second;
 }
 
-trIRCChannelUserPermisions IRCUserManager::getUserChannelPerms ( std::string &name, int channel )
+trIRCChannelUserPermissions IRCUserManager::getUserChannelPerms ( std::string &name, int channel )
 {
   trIRCChannelRecord  &channelRecord = getChannelInfo(channel);
   return channelRecord.userPerms.find(getUserID(name))->second;
 }
 
-trIRCChannelUserPermisions IRCUserManager::getUserChannelPerms ( std::string &name, std::string& channel )
+trIRCChannelUserPermissions IRCUserManager::getUserChannelPerms ( std::string &name, std::string& channel )
 {
   trIRCChannelRecord  &channelRecord = getChannelInfo(channel);
   return channelRecord.userPerms.find(getUserID(name))->second;
@@ -395,12 +395,12 @@ std::string IRCUserManager::getChannelName ( int id )
   return getChannelInfo(id).name;
 }
 
-trIRCChannelPermisions IRCUserManager::getChannelPerms ( int id )
+trIRCChannelPermissions IRCUserManager::getChannelPerms ( int id )
 {
   return getChannelInfo(id).perms;
 }
 
-trIRCChannelPermisions IRCUserManager::getChannelPerms ( std::string &channel )
+trIRCChannelPermissions IRCUserManager::getChannelPerms ( std::string &channel )
 {
   return getChannelInfo(channel).perms;
 }
@@ -450,7 +450,7 @@ std::vector<int> IRCUserManager::listChannelUsers ( int id )
   trIRCChannelRecord  &channel = getChannelInfo(id);
 
   std::vector<int> userList;
-  std::map<int,trIRCChannelUserPermisions>::iterator itr = channel.userPerms.begin();
+  std::map<int,trIRCChannelUserPermissions>::iterator itr = channel.userPerms.begin();
   while ( itr != channel.userPerms.end() )
     userList.push_back((itr++)->first);
 
@@ -462,7 +462,7 @@ std::vector<int> IRCUserManager::listChannelUsers ( std::string &name )
   trIRCChannelRecord  &channel = getChannelInfo(name);
 
   std::vector<int> userList;
-  std::map<int,trIRCChannelUserPermisions>::iterator itr = channel.userPerms.begin();
+  std::map<int,trIRCChannelUserPermissions>::iterator itr = channel.userPerms.begin();
   while ( itr != channel.userPerms.end() )
     userList.push_back((itr++)->first);
 
@@ -474,7 +474,7 @@ std::vector<std::string> IRCUserManager::listChannelUserNames ( int id )
   trIRCChannelRecord  &channel = getChannelInfo(id);
 
   std::vector<std::string> userList;
-  std::map<int,trIRCChannelUserPermisions>::iterator itr = channel.userPerms.begin();
+  std::map<int,trIRCChannelUserPermissions>::iterator itr = channel.userPerms.begin();
   while ( itr != channel.userPerms.end() )
     userList.push_back(getUserNick((itr++)->first));
 
@@ -486,7 +486,7 @@ std::vector<std::string> IRCUserManager::listChannelUserNames ( std::string &nam
   trIRCChannelRecord  &channel = getChannelInfo(name);
 
   std::vector<std::string> userList;
-  std::map<int,trIRCChannelUserPermisions>::iterator itr = channel.userPerms.begin();
+  std::map<int,trIRCChannelUserPermissions>::iterator itr = channel.userPerms.begin();
   while ( itr != channel.userPerms.end() )
     userList.push_back(getUserNick((itr++)->first));
 
@@ -510,7 +510,7 @@ void IRCUserManager::userJoinChannel ( int user,  int channel )
   trIRCChannelRecord  &channelRecord = getChannelInfo(channel);
   trIRCUserRecord  &userRecord = getUserInfo(user);
 
-  trIRCChannelUserPermisions  perms;
+  trIRCChannelUserPermissions  perms;
   setDefaultChannelUserPerms(perms);
 
   channelRecord.userPerms[userRecord.id] = perms;
@@ -524,7 +524,7 @@ void IRCUserManager::userJoinChannel ( int user, std::string &channel )
   std::string nick = getUserNick(user);
   trIRCUserRecord  &userRecord = getUserInfo(nick);
 
-  trIRCChannelUserPermisions  perms;
+  trIRCChannelUserPermissions  perms;
   setDefaultChannelUserPerms(perms);
 
   channelRecord.userPerms[userRecord.id] = perms;
@@ -538,7 +538,7 @@ void IRCUserManager::userJoinChannel ( std::string &user, int channel )
   std::string nick = getCleanNick(user);
   trIRCUserRecord  &userRecord = getUserInfo(nick);
 
-  trIRCChannelUserPermisions  perms;
+  trIRCChannelUserPermissions  perms;
   setDefaultChannelUserPerms(perms);
 
   if ( user[0] == '@')
@@ -558,7 +558,7 @@ void IRCUserManager::userJoinChannel ( std::string &user, std::string &channel )
   std::string nick = getCleanNick(user);
   trIRCUserRecord  &userRecord = getUserInfo(nick);
 
-  trIRCChannelUserPermisions  perms;
+  trIRCChannelUserPermissions  perms;
   setDefaultChannelUserPerms(perms);
 
   if ( user[0] == '@' )
@@ -923,7 +923,7 @@ std::string IRCUserManager::getCleanChanName ( std::string &name )
   return string_util::tolower(name);
 }
 
-void IRCUserManager::setDefaultUserPerms ( trIRCUserPermisions &perms )
+void IRCUserManager::setDefaultUserPerms ( trIRCUserPermissions &perms )
 {
   perms.mode = "";
   perms.ircOp = false;
@@ -937,7 +937,7 @@ void IRCUserManager::setDefaultUserPerms ( trIRCUserPermisions &perms )
   perms.idle = false;
 }
 
-void IRCUserManager::setDefaultChannelPerms ( trIRCChannelPermisions &perms )
+void IRCUserManager::setDefaultChannelPerms ( trIRCChannelPermissions &perms )
 {
   perms.mode = "";
   perms.allowColors = true;
@@ -955,7 +955,7 @@ void IRCUserManager::setDefaultChannelPerms ( trIRCChannelPermisions &perms )
   perms.reducedModeraton = false;
 }
 
-void IRCUserManager::setDefaultChannelUserPerms ( trIRCChannelUserPermisions &perms )
+void IRCUserManager::setDefaultChannelUserPerms ( trIRCChannelUserPermissions &perms )
 {
   perms.mode = "";
   perms.chanOp = false;
@@ -963,7 +963,7 @@ void IRCUserManager::setDefaultChannelUserPerms ( trIRCChannelUserPermisions &pe
   perms.quieted= false;
 }
 
-void IRCUserManager::parseUserPerms ( std::string mode, trIRCUserPermisions &perms )
+void IRCUserManager::parseUserPerms ( std::string mode, trIRCUserPermissions &perms )
 {
   perms.mode = mode;
   perms.ircOp = false;
@@ -973,7 +973,7 @@ void IRCUserManager::parseUserPerms ( std::string mode, trIRCUserPermisions &per
   perms.inviteable = !string_util::charExists(mode,'I');
 }
 
-void IRCUserManager::parseChannelPerms ( std::string mode, trIRCChannelPermisions &perms )
+void IRCUserManager::parseChannelPerms ( std::string mode, trIRCChannelPermissions &perms )
 {
   perms.mode = mode;
   perms.allowColors = string_util::charExists(mode,'c');
@@ -990,7 +990,7 @@ void IRCUserManager::parseChannelPerms ( std::string mode, trIRCChannelPermision
   perms.reducedModeraton = string_util::charExists(mode,'z');
 }
 
-void IRCUserManager::parseChannelUserPerms ( std::string mode, trIRCChannelUserPermisions &perms )
+void IRCUserManager::parseChannelUserPerms ( std::string mode, trIRCChannelUserPermissions &perms )
 {
   perms.mode = mode;
   perms.chanOp = string_util::charExists(mode,'o');

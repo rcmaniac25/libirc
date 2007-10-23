@@ -162,7 +162,7 @@ public:
   virtual string_list listChannels ( void );
   virtual string_list listChanOps ( std::string channel );
 
-  virtual trIRCChannelPermisions getChanPerms ( std::string channel );
+  virtual trIRCChannelPermissions getChanPerms ( std::string channel );
 
   IRCUserManager& getUserManager ( void ){return userManager;}
 

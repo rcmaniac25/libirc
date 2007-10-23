@@ -1145,7 +1145,7 @@ bool chanPermsCommand::command ( std::string command, std::string source, std::s
 
 	if (channel.size())
 	{
-		trIRCChannelPermisions perms = client.getChanPerms(channel);
+		trIRCChannelPermissions perms = client.getChanPerms(channel);
 
 		std::string message = from + ", " +channel + " mode is " + perms.mode;
 		client.sendMessage(respondTo,message);
@@ -1211,7 +1211,7 @@ bool userInfoCommand::command ( std::string command, std::string source, std::st
 		if ( userManager.userIsIdentified(userID) )
 			client.sendMessage(respondTo,"and is identified");
 
-		trIRCUserPermisions	perms = userManager.getUserPerms(userID);
+		trIRCUserPermissions	perms = userManager.getUserPerms(userID);
 
 		if (perms.mode.size())
 			client.sendMessage(respondTo,std::string("MODE is set to \"") + perms.mode + "\"");
@@ -1276,7 +1276,7 @@ bool chanInfoCommand::command ( std::string command, std::string source, std::st
 			message += std::string(" ") + *(itr++);
 		client.sendMessage(respondTo,message);
 
-		trIRCChannelPermisions	perms = userManager.getChannelPerms(chanID);
+		trIRCChannelPermissions	perms = userManager.getChannelPerms(chanID);
 
 		if (perms.mode.size())
 			client.sendMessage(respondTo,std::string("MODE is set to \"") + perms.mode + "\"");
