@@ -1007,7 +1007,7 @@ void IRCUserManager::removeChannelFromUser ( int user, int channel )
   while ( chanItr != userRecord.channels.begin() )
   {
     if ( *chanItr == channel)
-     userRecord.channels.erase(chanItr++);			// JeffM another bug here?
+      chanItr = userRecord.channels.erase(chanItr);
     else
       chanItr++;
   }
