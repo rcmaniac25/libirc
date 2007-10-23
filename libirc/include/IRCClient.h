@@ -130,7 +130,7 @@ public:
   virtual bool kick ( std::string user, std::string channel, std::string reason );
 
   virtual bool mode ( std::string theMode, std::string target, std::string option );
-  // user modes in chanel
+  // user modes in channel
   virtual bool ban ( std::string mask, std::string channel );
   virtual bool unban ( std::string mask, std::string channel );
   virtual bool voice ( std::string user, std::string channel );

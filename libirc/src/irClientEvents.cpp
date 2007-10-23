@@ -129,7 +129,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
 
   std::string mode = info.params[1];
 
-  // figure out who the message is from, is it form a channel or from a dude
+  // figure out who the message is from, is it form a channel or from a user
   if (who[0] == '#' )
   {
     if (string_util::charExists(mode,'b'))  // it's a ban!
@@ -156,7 +156,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
       modeInfo.from = info.source;
       modeInfo.mode = mode;
 
-      if (info.params.size() > 1)  // if there is mor then one param then it's a mode change for a user
+      if (info.params.size() > 1)  // if there is more than one param then it's a mode change for a user
       {
         modeInfo.eventType = eIRCChannelUserModeSet;
         modeInfo.message = info.getAsString(2);
@@ -165,7 +165,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
         modeInfo.eventType = eIRCChannelModeSet;
     }
   }
-  else  // it's amode for a user ( like US )
+  else  // it's a mode for a user (like us)
   {
     modeInfo.eventType = eIRCUserModeSet;
     modeInfo.mode = info.params[1];
