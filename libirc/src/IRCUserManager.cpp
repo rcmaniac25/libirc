@@ -605,10 +605,10 @@ void IRCUserManager::userPartChannel ( int user, std::string &channel )
     std::vector<int>::iterator  itr = userRecord.channels.begin();
     while ( itr != userRecord.channels.end() )
     {
-      if ( *itr == channelRecord.id)
-	userRecord.channels.erase(itr++);
-      else
-        itr++;
+      std::vector<int>::iterator thisItr = itr;
+      itr++;
+      if ( *thisItr == channelRecord.id)
+	userRecord.channels.erase(thisItr);
     }
     if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
       removeUser(user);
@@ -627,10 +627,10 @@ void IRCUserManager::userPartChannel ( std::string &user, int channel )
     std::vector<int>::iterator  itr = userRecord.channels.begin();
     while ( itr != userRecord.channels.end() )
     {
-      if ( *itr == channelRecord.id)
-        userRecord.channels.erase(itr++);
-      else
-        itr++;
+      std::vector<int>::iterator thisItr = itr;
+      itr++;
+      if ( *thisItr == channelRecord.id)
+        userRecord.channels.erase(thisItr);
     }
     if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
       removeUser(user);
@@ -649,10 +649,10 @@ void IRCUserManager::userPartChannel ( std::string &user, std::string &channel )
     std::vector<int>::iterator  itr = userRecord.channels.begin();
     while ( itr != userRecord.channels.end() )
     {
-      if ( *itr == channelRecord.id)
-        userRecord.channels.erase(itr++);
-      else
-        itr++;
+      std::vector<int>::iterator thisItr = itr;
+      itr++;
+      if (*thisItr == channelRecord.id)
+        userRecord.channels.erase(thisItr);
     }
     if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
       removeUser(user);
