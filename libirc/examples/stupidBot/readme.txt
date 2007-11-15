@@ -1,3 +1,3 @@
 stupidBot
 
-The stupidest of IRC bots
+The stupidest of IRC bots, but it does CIA echos
