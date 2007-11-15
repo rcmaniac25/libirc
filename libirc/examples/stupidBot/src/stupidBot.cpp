@@ -501,7 +501,8 @@ void channelMessage ( trClientMessageEventInfo *info )
 		std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]).c_str()+1;
 		if ( project.size() && ciaProjectList.find(project) != ciaProjectList.end() )
 		{
-			client.sendMessage(ciaProjectList[project],info->message);
+			std::string targetChannel = ciaProjectList[project];
+			client.sendMessage(targetChannel,info->message);
 			parseIt = false;
 		}
 	}
