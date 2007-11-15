@@ -482,8 +482,6 @@ void channelMessage ( trClientMessageEventInfo *info )
 
 	firstWord = string_util::tolower(firstWord);
 
-	bool master = isMaster(info->from);
-
 	// first check for echos
 	// we don't do commands on echoes
 
@@ -510,6 +508,8 @@ void channelMessage ( trClientMessageEventInfo *info )
 
 	if (parseIt)
 	{
+		bool master = isMaster(info->from);
+
 		if ( isForMe(firstWord) )
 		{
 			std::string command = string_util::tolower(info->params[1]);
