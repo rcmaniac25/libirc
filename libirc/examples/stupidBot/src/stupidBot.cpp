@@ -514,15 +514,18 @@ void channelMessage ( trClientMessageEventInfo *info )
 	{
 		trCIAChannelEchos &chanEchos = theBotInfo.CIAEchos[channel];
 
-		std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]).c_str()+1;
-
-		if (chanEchos.projects.find(project) != chanEchos.projects.end() )
+		if (strchr(info->message.c_str(),':'))
 		{
-			trCIAEcho	&echo = chanEchos.projects[project];
+			std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]).c_str()+1;
 
-			for ( int i = 0; i < (int)echo.targets.size(); i++ )
-				client.sendMessage(echo.targets[i],info->message);
-			parseIt = false;	
+			if (chanEchos.projects.find(project) != chanEchos.projects.end() )
+			{
+				trCIAEcho	&echo = chanEchos.projects[project];
+
+				for ( int i = 0; i < (int)echo.targets.size(); i++ )
+					client.sendMessage(echo.targets[i],info->message);
+				parseIt = false;	
+			}
 		}
 	}
 
