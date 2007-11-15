@@ -600,16 +600,15 @@ void IRCUserManager::userPartChannel ( int user, std::string &channel )
 
   if ( userInChannel(userRecord.id,channelRecord.id) )
   {
-    channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
+    if (channelRecord.userPerms.find(userRecord.id) != channelRecord.userPerms.end())
+      channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
-    std::vector<int>::iterator  itr = userRecord.channels.begin();
-    while ( itr != userRecord.channels.end() )
+    for ( int i = (int)userRecord.channels.size()-1; i >= 0; i++)
     {
-      std::vector<int>::iterator thisItr = itr;
-      itr++;
-      if ( *thisItr == channelRecord.id)
-	userRecord.channels.erase(thisItr);
+      if (userRecord.channels[i] == channelRecord.id)
+	userRecord.channels.erase(userRecord.channels.begin()+i);
     }
+
     if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
       removeUser(user);
   }
@@ -622,16 +621,15 @@ void IRCUserManager::userPartChannel ( std::string &user, int channel )
 
   if ( userInChannel(userRecord.id,channelRecord.id) )
   {
+    if (channelRecord.userPerms.find(userRecord.id) != channelRecord.userPerms.end())
     channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
-    std::vector<int>::iterator  itr = userRecord.channels.begin();
-    while ( itr != userRecord.channels.end() )
+    for ( int i = (int)userRecord.channels.size()-1; i >= 0; i++)
     {
-      std::vector<int>::iterator thisItr = itr;
-      itr++;
-      if ( *thisItr == channelRecord.id)
-        userRecord.channels.erase(thisItr);
+      if (userRecord.channels[i] == channelRecord.id)
+	userRecord.channels.erase(userRecord.channels.begin()+i);
     }
+
     if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
       removeUser(user);
   }
@@ -644,15 +642,14 @@ void IRCUserManager::userPartChannel ( std::string &user, std::string &channel )
 
   if ( userInChannel(userRecord.id,channelRecord.id) )
   {
-    channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
-    std::vector<int>::iterator  itr = userRecord.channels.begin();
-    while ( itr != userRecord.channels.end() )
+    if(channelRecord.userPerms.find(userRecord.id) != channelRecord.userPerms.end() )
+      channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
+
+    for ( int i = (int)userRecord.channels.size()-1; i >= 0; i++)
     {
-      std::vector<int>::iterator thisItr = itr;
-      itr++;
-      if (*thisItr == channelRecord.id)
-        userRecord.channels.erase(thisItr);
+      if (userRecord.channels[i] == channelRecord.id)
+        userRecord.channels.erase(userRecord.channels.begin()+i);
     }
     if (autoPurgeOnLastPart && userRecord.channels.size() == 0)
       removeUser(user);
