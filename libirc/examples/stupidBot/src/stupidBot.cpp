@@ -400,6 +400,36 @@ void saveConfig ( void )
 		}
 		factoidItr++;
 	}
+
+	// echoes
+	channelEcho::iterator chanEchItr = theBotInfo.chanEchos.begin();
+	while ( chanEchItr != theBotInfo.chanEchos.end() )
+	{
+		fprintf(fp,"chanecho:%s %s",chanEchItr->first.c_str(),chanEchItr->second.c_str());
+		fprintf(fp,"%s",lineEnd.c_str());
+		chanEchItr++;
+	}
+
+	channelCIAEcho::iterator	CIAChanItr = theBotInfo.CIAEchos.begin();
+	while (CIAChanItr != theBotInfo.CIAEchos.end())
+	{
+		std::string channel = CIAChanItr->first;
+
+		std::map<std::string, trCIAEcho>::iterator echoItr = CIAChanItr->second.projects.begin();
+		while ( echoItr !=  CIAChanItr->second.projects.end() )
+		{
+			std::string project = echoItr->second.project;
+			for ( int i = 0; i < (int)echoItr->second.targets.size(); i++ )
+			{
+				std::string target = echoItr->second.targets[i];
+
+				fprintf(fp,"ciaecho:%s %s %s",channel.c_str(),project.c_str(),target.c_str());
+				fprintf(fp,"%s",lineEnd.c_str());
+			}
+			echoItr++;
+		}
+		CIAChanItr++;
+	}
 	fclose(fp);
 }
 
@@ -1470,6 +1500,72 @@ bool kickCommand::command ( std::string command, std::string source, std::string
 	return true;
 }
 
+class ciaRelayCommand : public botCommandHandaler
+{
+public:
+	ciaRelayCommand() {name = "ciarellay";}
+	bool command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg = false );
+};
+
+bool ciaRelayCommand::command ( std::string command, std::string source, std::string from, trClientMessageEventInfo *info, std::string respondTo , bool privMsg )
+{
+	if (!isMaster(from))
+	{
+		client.sendMessage(respondTo,"You're not the boss of me");
+		return true;
+	}
+
+	std::string channel, project, target;
+
+	if (privMsg)
+	{
+		if ( info->params.size()<4)
+			client.sendMessage(respondTo,"Usage: ciarellay SOME_CHANNEL SOME_PROJECT SOME_TARGET_CHANNEL");
+		else
+		{
+			channel = info->params[1];
+			project = info->params[2];
+			target = info->getAsString(3);
+		}
+	}
+	else
+	{
+		if ( info->params.size()<5)
+			client.sendMessage(respondTo,"Usage: ciarellay SOME_CHANNEL SOME_PROJECT SOME_TARGET_CHANNEL");
+		else{
+			channel = info->params[2];
+			project = info->params[3];
+			target = info->getAsString(4);
+		}
+	}
+
+	if (channel.size() && project.size() && target.size())
+	{
+		channel = string_util::tolower(channel);
+		project = string_util::tolower(project);
+		target = string_util::tolower(target);
+
+		if (theBotInfo.CIAEchos.find(channel) == theBotInfo.CIAEchos.end())
+		{
+			trCIAChannelEchos	chanTemp;
+			theBotInfo.CIAEchos[channel] = chanTemp;
+		}
+
+		trCIAChannelEchos &cTemp = theBotInfo.CIAEchos[channel];
+		if ( cTemp.projects.find(project) == cTemp.projects.end())
+		{
+			trCIAEcho temp;
+			temp.project = project;
+			cTemp.projects[project] = temp;
+		}
+
+		cTemp.projects[project].targets.push_back(target);
+
+		client.sendMessage(respondTo,std::string("OK ") + from);
+	}
+	return true;
+}
+
 void registerBotCommands ( void )
 {
 	installBotCommand(new quitCommand);
@@ -1492,6 +1588,7 @@ void registerBotCommands ( void )
 	installBotCommand(new chanInfoCommand);
 	installBotCommand(new helpCommand);
 	installBotCommand(new factoidListCommand);
+	installBotCommand(new ciaRelayCommand);
 	installBotCommand(new kickCommand);
 }
 
