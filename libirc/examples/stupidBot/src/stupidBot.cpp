@@ -31,7 +31,18 @@ typedef struct
 
 typedef std::map<std::string,std::string> channelEcho;
 
-typedef std::map <std::string, std::map<std::string,std::string> > channelCIAEcho;
+typedef struct 
+{
+	std::string project;
+	std::vector<std::string> targets;
+}trCIAEcho;
+
+typedef struct 
+{
+	std::map<std::string, trCIAEcho> projects;
+}trCIAChannelEchos;
+
+typedef std::map <std::string, trCIAChannelEchos> channelCIAEcho;
 
 typedef std::map<std::string,trFactoid>	factoidMap;
 typedef std::map<std::string,std::string> string_map;
@@ -254,11 +265,19 @@ void readConfig ( std::string file )
 
 				if (theBotInfo.CIAEchos.find(channel) == theBotInfo.CIAEchos.end())
 				{
-					std::map<std::string, std::string> temp;
-					theBotInfo.CIAEchos[channel] = temp;
+					trCIAChannelEchos	chanTemp;
+					theBotInfo.CIAEchos[channel] = chanTemp;
 				}
-				std::map<std::string, std::string> &t = theBotInfo.CIAEchos[channel];
-				t[project] = target;
+
+				trCIAChannelEchos &cTemp = theBotInfo.CIAEchos[channel];
+				if ( cTemp.projects.find(project) == cTemp.projects.end())
+				{
+					trCIAEcho temp;
+					temp.project = project;
+					cTemp.projects[project] = temp;
+				}
+
+				cTemp.projects[project].targets.push_back(target);
 			}
 		}
 		itr++;
@@ -496,14 +515,17 @@ void channelMessage ( trClientMessageEventInfo *info )
 
 	if (theBotInfo.CIAEchos.find(channel) != theBotInfo.CIAEchos.end())
 	{
-		std::map<std::string,std::string> &ciaProjectList = theBotInfo.CIAEchos[channel];
+		trCIAChannelEchos &chanEchos = theBotInfo.CIAEchos[channel];
 
 		std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]).c_str()+1;
-		if ( project.size() && ciaProjectList.find(project) != ciaProjectList.end() )
+
+		if (chanEchos.projects.find(project) != chanEchos.projects.end() )
 		{
-			std::string targetChannel = ciaProjectList[project];
-			client.sendMessage(targetChannel,info->message);
-			parseIt = false;
+			trCIAEcho	&echo = chanEchos.projects[project];
+
+			for ( int i = 0; i < (int)echo.targets.size(); i++ )
+				client.sendMessage(echo.targets[i],info->message);
+			parseIt = false;	
 		}
 	}
 
