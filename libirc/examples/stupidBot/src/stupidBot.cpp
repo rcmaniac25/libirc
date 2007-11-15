@@ -485,6 +485,16 @@ bool isForMe ( std::string word )
 	return false;
 }
 
+bool printableCharacter ( const char c )
+{
+	if (string_util::isAlphabetic(c))
+		return true;
+	if (string_util::isNumeric(c))
+		return true;
+
+	return false;
+}
+
 void channelMessage ( trClientMessageEventInfo *info )
 {
 	std::string myNick = string_util::tolower(client.getNick());
@@ -500,7 +510,6 @@ void channelMessage ( trClientMessageEventInfo *info )
 
 	// first check for echos
 	// we don't do commands on echoes
-
 	bool parseIt = true;
 
 	std::string channel = string_util::tolower(info->target);
@@ -510,13 +519,15 @@ void channelMessage ( trClientMessageEventInfo *info )
 		parseIt = false;
 	}
 
-	if (theBotInfo.CIAEchos.find(channel) != theBotInfo.CIAEchos.end())
+	if ( (strstr(string_util::tolower(info->source).c_str(),"cia") != NULL) && (theBotInfo.CIAEchos.find(channel) != theBotInfo.CIAEchos.end()) )
 	{
 		trCIAChannelEchos &chanEchos = theBotInfo.CIAEchos[channel];
 
 		if (strchr(info->message.c_str(),':'))
 		{
-			std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]).c_str()+1;
+			std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]);
+			while( project.size() && !printableCharacter(project[0]) )
+				project = project.c_str()+1;
 
 			if (chanEchos.projects.find(project) != chanEchos.projects.end() )
 			{
