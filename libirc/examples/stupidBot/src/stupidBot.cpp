@@ -133,12 +133,9 @@ void readConfig ( std::string file )
 	config = data;
 	free(data);
 
-	std::string lineEnd;
-#ifdef _WIN32
-	lineEnd = "\r\n";
-#else
-	lineEnd = "\n";
-#endif
+	std::string lineEnd = "\n";
+
+	config = string_util::replace_all(config,std::string("\r"),std::string(""));
 
 	string_list lines = string_util::tokenize(config,lineEnd);
 
