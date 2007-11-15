@@ -29,6 +29,8 @@ typedef struct
 	bool				response;
 }trFactoid;
 
+typedef std::map<std::string,std::string> echoMap;
+
 typedef std::map<std::string,trFactoid>	factoidMap;
 typedef std::map<std::string,std::string> string_map;
 
@@ -50,6 +52,7 @@ typedef struct
 	factoidMap	factoids;
 	string_map	joinMessages;
 	std::string config;
+	echoMap		echos;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -238,6 +241,8 @@ void readConfig ( std::string file )
 				factoid.message = params[1];
 				theBotInfo.factoids[string_util::tolower(factoid.name)] = factoid;
 			}
+			else if (command == "echo")
+				theBotInfo.echos[params[0]] = params[1];
 		}
 		itr++;
 	}
@@ -462,24 +467,31 @@ void channelMessage ( trClientMessageEventInfo *info )
 
 	bool master = isMaster(info->from);
 
-	if ( isForMe(firstWord) )
+	// first check for echos
+	// we don't do commands on echoes
+	if (theBotInfo.echos.find(info->target) != theBotInfo.echos.end())
+		client.sendMessage(theBotInfo.echos.find(info->target)->second,info->message);
+	else
 	{
-		std::string command = string_util::tolower(info->params[1]);
-		// its for me
-		// see if there is a command handaler for it
-		if (command == "factoid" || !callBotCommand(command,info->source,info->from,info))
+		if ( isForMe(firstWord) )
 		{
-			// see if it's a factoid
-			if (!callBotCommand("factoid",info->source,info->from,info))
+			std::string command = string_util::tolower(info->params[1]);
+			// its for me
+			// see if there is a command handaler for it
+			if (command == "factoid" || !callBotCommand(command,info->source,info->from,info))
 			{
-				// it's not, we dono what it is, but it was addressed to us
-				std::string	dono = getRandomString(theBotInfo.unknownResponces);
+				// see if it's a factoid
+				if (!callBotCommand("factoid",info->source,info->from,info))
+				{
+					// it's not, we dono what it is, but it was addressed to us
+					std::string	dono = getRandomString(theBotInfo.unknownResponces);
 
-				dono = string_util::replace_all(dono,"%u",info->from);
-				dono = string_util::replace_all(dono,"%c",info->target);
-				dono = string_util::replace_all(dono,"%b",client.getNick());
+					dono = string_util::replace_all(dono,"%u",info->from);
+					dono = string_util::replace_all(dono,"%c",info->target);
+					dono = string_util::replace_all(dono,"%b",client.getNick());
 
-				client.sendMessage(info->target,dono);
+					client.sendMessage(info->target,dono);
+				}
 			}
 		}
 	}
@@ -531,7 +543,7 @@ void userKicked (trClientKickBanEventInfo *info)
 	client.sendMessage(info->channel,message);
 }
 
-class myEventCaller : public IRCBasicEventCallback
+class myEventCaller : public IRCClientEventCallback
 {
 public:
 	bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
