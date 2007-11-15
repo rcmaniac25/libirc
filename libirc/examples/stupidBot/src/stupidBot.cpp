@@ -29,7 +29,9 @@ typedef struct
 	bool				response;
 }trFactoid;
 
-typedef std::map<std::string,std::string> echoMap;
+typedef std::map<std::string,std::string> channelEcho;
+
+typedef std::map <std::string, std::map<std::string,std::string> > channelCIAEcho;
 
 typedef std::map<std::string,trFactoid>	factoidMap;
 typedef std::map<std::string,std::string> string_map;
@@ -52,7 +54,8 @@ typedef struct
 	factoidMap	factoids;
 	string_map	joinMessages;
 	std::string config;
-	echoMap		echos;
+	channelEcho		chanEchos;
+	channelCIAEcho	CIAEchos;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -241,8 +244,22 @@ void readConfig ( std::string file )
 				factoid.message = params[1];
 				theBotInfo.factoids[string_util::tolower(factoid.name)] = factoid;
 			}
-			else if (command == "echo")
-				theBotInfo.echos[params[0]] = params[1];
+			else if (command == "chanecho")
+				theBotInfo.chanEchos[string_util::tolower(params[0])] = params[1];
+			else if ( command == "ciaecho" )
+			{
+				std::string channel = string_util::tolower(params[0]);
+				std::string project = string_util::tolower(params[1]);
+				std::string target = string_util::tolower(params[2]);
+
+				if (theBotInfo.CIAEchos.find(channel) == theBotInfo.CIAEchos.end())
+				{
+					std::map<std::string, std::string> temp;
+					theBotInfo.CIAEchos[channel] = temp;
+				}
+				std::map<std::string, std::string> &t = theBotInfo.CIAEchos[channel];
+				t[project] = target;
+			}
 		}
 		itr++;
 	}
@@ -469,9 +486,29 @@ void channelMessage ( trClientMessageEventInfo *info )
 
 	// first check for echos
 	// we don't do commands on echoes
-	if (theBotInfo.echos.find(info->target) != theBotInfo.echos.end())
-		client.sendMessage(theBotInfo.echos.find(info->target)->second,info->message);
-	else
+
+	bool parseIt = true;
+
+	std::string channel = string_util::tolower(info->target);
+	if (theBotInfo.chanEchos.find(channel) != theBotInfo.chanEchos.end())
+	{
+		client.sendMessage(theBotInfo.chanEchos.find(channel)->second,info->message);
+		parseIt = false;
+	}
+
+	if (theBotInfo.CIAEchos.find(channel) != theBotInfo.CIAEchos.end())
+	{
+		std::map<std::string,std::string> &ciaProjectList = theBotInfo.CIAEchos[channel];
+
+		std::string project = string_util::tolower(string_util::tokenize(info->message,std::string(":"))[0]).c_str()+1;
+		if ( project.size() && ciaProjectList.find(project) != ciaProjectList.end() )
+		{
+			client.sendMessage(ciaProjectList[project],info->message);
+			parseIt = false;
+		}
+	}
+
+	if (parseIt)
 	{
 		if ( isForMe(firstWord) )
 		{
