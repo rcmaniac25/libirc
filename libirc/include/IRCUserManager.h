@@ -260,7 +260,6 @@ protected:
 #endif//_IRC_USER_MANAGER_
 
 
-
 // Local Variables: ***
 // mode: C++ ***
 // tab-width: 8 ***
