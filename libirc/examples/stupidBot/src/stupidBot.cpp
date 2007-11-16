@@ -279,7 +279,7 @@ void readConfig ( std::string file )
 				cTemp.projects[project].targets.push_back(target);
 			}
 			else if ( command == "ignorepm" )
-				ignorePMs = true;
+				theBotInfo.ignorePMs = true;
 		}
 		itr++;
 	}
