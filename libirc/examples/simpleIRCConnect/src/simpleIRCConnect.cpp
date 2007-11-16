@@ -32,7 +32,7 @@ public:
 	{
 		name = "ALL";
 	}
-	virtual bool receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+	virtual bool receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 	{
 		std::string line = info.raw;
 		FILE *fp = fopen("botlog.log","at");

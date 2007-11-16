@@ -25,7 +25,7 @@ IRCClientNickCommand::IRCClientNickCommand()
   name = "NICK";
 }
 
-bool IRCClientNickCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientNickCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   client.nickCommand(info);
   return true;
@@ -51,7 +51,7 @@ IRCClientUserCommand::IRCClientUserCommand()
   name = "USER";
 }
 
-bool IRCClientUserCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientUserCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   return true;
 }
@@ -75,7 +75,7 @@ IRCClientPingCommand::IRCClientPingCommand()
   name = "PING";
 }
 
-bool IRCClientPingCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientPingCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   IRCCommandInfo  ircInfo;
   ircInfo.command = eCMD_PONG;
@@ -99,7 +99,7 @@ IRCClientPongCommand::IRCClientPongCommand()
   name = "PONG";
 }
 
-bool IRCClientPongCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientPongCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   // we do nothing on a pong
   return true;
@@ -121,7 +121,7 @@ IRCClientNoticeCommand::IRCClientNoticeCommand()
   name = "NOTICE";
 }
 
-bool IRCClientNoticeCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientNoticeCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   trClientMessageEventInfo  messageInfo;
 
@@ -145,7 +145,7 @@ IRCClientJoinCommand::IRCClientJoinCommand()
   name = "JOIN";
 }
 
-bool IRCClientJoinCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientJoinCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   client.joinMessage(info);
   return true;  
@@ -182,7 +182,7 @@ IRCClientPartCommand::IRCClientPartCommand()
   name = "PART";
 }
 
-bool IRCClientPartCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientPartCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   client.partMessage(info);
   return true;  
@@ -206,7 +206,7 @@ IRCClientQuitCommand::IRCClientQuitCommand()
   name = "QUIT";
 }
 
-bool IRCClientQuitCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientQuitCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   client.QuitMessage(info);
   return true;
@@ -230,7 +230,7 @@ IRCClientModeCommand::IRCClientModeCommand()
   name = "MODE";
 }
 
-bool IRCClientModeCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientModeCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   // we got a mode message, see what the deal is
   client.modeCommand(info);
@@ -259,7 +259,7 @@ IRCClientPrivMsgCommand::IRCClientPrivMsgCommand()
   name = "PRIVMSG";
 }
 
-bool IRCClientPrivMsgCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientPrivMsgCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   client.privMessage(info);
   return true;
@@ -284,7 +284,7 @@ IRCClientKickCommand::IRCClientKickCommand()
   name = "KICK";
 }
 
-bool IRCClientKickCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientKickCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   client.kickCommand(info);
   return true;
@@ -311,7 +311,7 @@ IRCClientALLCommand::IRCClientALLCommand()
   name = "ALL";
 }
 
-bool IRCClientALLCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientALLCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   // just log it out
   client.log(string_util::format("ALL::command %s from %s for %s containing %s",info.command.c_str(),info.source.c_str(),info.target.c_str(),info.getAsString().c_str()),4);
@@ -334,7 +334,7 @@ IRCClientNumericCommand::IRCClientNumericCommand()
   name = "NUMERIC";
 }
 
-bool IRCClientNumericCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+bool IRCClientNumericCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
   int numeric = atoi(info.command.c_str());
 

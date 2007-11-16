@@ -261,13 +261,13 @@ void IRCClient::processIRCLine ( std::string line )
     commandInfo.source = getServerHost();
 
   // call the "ALL" handler special if there is one
-  receveCommand(std::string("ALL"),commandInfo);
+  receiveCommand(std::string("ALL"),commandInfo);
 
   if (atoi(commandInfo.command.c_str()) != 0) 
-    receveCommand(std::string("NUMERIC"),commandInfo);
+    receiveCommand(std::string("NUMERIC"),commandInfo);
 
   // notify any handlers for this specific command
-  receveCommand(commandInfo.command,commandInfo);
+  receiveCommand(commandInfo.command,commandInfo);
 }
 
 bool IRCClient::sendIRCCommandToServer ( teIRCCommands  command, std::string &data)
@@ -418,7 +418,7 @@ bool IRCClient::sendCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info
   return sendCommand(info.command,info);
 }
 
-bool IRCClient::receveCommand ( const std::string &commandName, BaseIRCCommandInfo &info )
+bool IRCClient::receiveCommand ( const std::string &commandName, BaseIRCCommandInfo &info )
 {
   tmUserCommandHandlersMap::iterator    commandListItr = userCommandHandlers.find(commandName);
 
@@ -433,7 +433,7 @@ bool IRCClient::receveCommand ( const std::string &commandName, BaseIRCCommandIn
     std::vector<IRCClientCommandHandler*>::iterator  itr = commandListItr->second.begin();
     while (itr != commandListItr->second.end())
     {
-      if ( (*itr)->receve(*this,commandName,info))
+      if ( (*itr)->receive(*this,commandName,info))
         callDefault = true;
       itr++;
     }
@@ -446,25 +446,25 @@ bool IRCClient::receveCommand ( const std::string &commandName, BaseIRCCommandIn
     tmCommandHandlerMap::iterator itr = defaultCommandHandlers.find(commandName);
     if (itr != defaultCommandHandlers.end())
     {
-      itr->second->receve(*this,commandName,info);
+      itr->second->receive(*this,commandName,info);
       return true;
     }
   }
   return false;
 }
 
-bool IRCClient::receveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info )
+bool IRCClient::receiveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info )
 {
   info.type = eIRCCommand;
   info.ircCommand = command;
-  return receveCommand(info.command,info);
+  return receiveCommand(info.command,info);
 }
 
-bool IRCClient::receveCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info )
+bool IRCClient::receiveCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info )
 {
   info.type = eCTCPCommand;
   info.ctcpCommand = command;
-  return receveCommand(info.command,info);
+  return receiveCommand(info.command,info);
 }
 
 bool IRCClient::registerCommandHandler ( IRCClientCommandHandler *handler )

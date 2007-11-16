@@ -68,11 +68,11 @@ public:
   // called when the system wishes to know the name of this command
   virtual std::string getCommandName ( void ){return name;}
 
-  // the send and receve methods return true if the default handler is to be called
+  // the send and receive methods return true if the default handler is to be called
   // it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
 
-  // called when the client receves a command of this type
-  virtual bool receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info ){return true;}
+  // called when the client receives a command of this type
+  virtual bool receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info ){return true;}
 
   // called when the user wishes to send a command of this type
   virtual bool send ( IRCClient &client,  const std::string &command, BaseIRCCommandInfo  &info ){return true;}
@@ -183,9 +183,9 @@ public:
   virtual bool sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
   virtual bool sendCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
 
-  virtual bool receveCommand ( const std::string &commandName, BaseIRCCommandInfo &info );
-  virtual bool receveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
-  virtual bool receveCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
+  virtual bool receiveCommand ( const std::string &commandName, BaseIRCCommandInfo &info );
+  virtual bool receiveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
+  virtual bool receiveCTMPCommand ( teCTCPCommands  command, CTCPCommandINfo &info );
 
   // --------------------------------------------------------------------------------------
   // generaly not called by the client app
@@ -274,7 +274,7 @@ protected:
   virtual teIRCConnectionState getConnectionState ( void ){return ircConnectionState;}
   virtual void setConnectionState ( teIRCConnectionState state ){ircConnectionState = state;}
 
-  // receved data processing
+  // received data processing
   void processIRCLine ( std::string line );
 
   void addDataToLine ( std::string &line, unsigned int len, const char *data );

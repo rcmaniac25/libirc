@@ -93,7 +93,7 @@ class BotNumericsHandler : public IRCClientCommandHandler
 {
 public:
 	BotNumericsHandler();
-	virtual bool receve ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
+	virtual bool receive ( IRCClient &client, std::string &command, BaseIRCCommandInfo	&info );
 };
 
 typedef struct 

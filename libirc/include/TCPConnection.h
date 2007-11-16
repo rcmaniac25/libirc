@@ -113,7 +113,7 @@ public:
   unsigned int getReadChunkSize ( void );
 
   // data pending listeners
-  // let the people register a callback class to be called when data is receved
+  // let the people register a callback class to be called when data is received
   void addListener ( TCPClientDataPendingListener* listener );
   void removeListener ( TCPClientDataPendingListener* listener );
 
@@ -232,7 +232,7 @@ public:
   teTCPError setError ( teTCPError error );
 
   // data pending listeners
-  // let the people register a callback class to be called when data is receved
+  // let the people register a callback class to be called when data is received
   void addListener ( TCPServerDataPendingListener* listener );
   void removeListener ( TCPServerDataPendingListener* listener );
 

@@ -113,11 +113,11 @@ public:
   // called when the system wishes to know the name of this command
   virtual std::string getCommandName ( void ){return name;}
 
-  // the send and receve methods return true if the default handler is to be called
+  // the send and receive methods return true if the default handler is to be called
   // it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
 
-  // called when the client receves a command of this type
-  virtual bool receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
+  // called when the client receives a command of this type
+  virtual bool receive ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
 
   // called when the user wishes to send a command of this type
   virtual bool send ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info ){return true;}
@@ -172,7 +172,7 @@ public:
   IRCServerChannel *getChannel ( const std::string& name );
 
   // commands
-  virtual bool receveCommand ( const std::string &commandName, IRCServerConnectedClient *client, const BaseIRCCommandInfo &info );
+  virtual bool receiveCommand ( const std::string &commandName, IRCServerConnectedClient *client, const BaseIRCCommandInfo &info );
 
   //command handler methods... for lower level API
   virtual bool registerCommandHandler ( IRCServerCommandHandler *handler );

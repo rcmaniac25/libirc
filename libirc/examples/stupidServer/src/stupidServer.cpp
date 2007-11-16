@@ -40,7 +40,7 @@ public:
 	{
 		name = "ALL";
 	}
-	virtual bool receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info );
+	virtual bool receive ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info );
 };
 
 MyCommandHandler allHandler;
@@ -98,7 +98,7 @@ bool MyIRCServer::process ( void )
 }
 
 
-bool MyCommandHandler::receve ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info )
+bool MyCommandHandler::receive ( IRCServer *server, IRCServerConnectedClient *client, const std::string &command, const BaseIRCCommandInfo  &info )
 {
 	if ( info.raw.size() )
 	{
