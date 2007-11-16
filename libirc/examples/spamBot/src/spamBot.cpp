@@ -1700,7 +1700,7 @@ bool setOptCommand::command ( std::string command, std::string source, std::stri
 
 	std::string option;
 	std::string value;
-	bool		valueB = false;
+	bool valueB = false;
 
 	if (privMsg)
 	{
