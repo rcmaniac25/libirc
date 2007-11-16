@@ -580,7 +580,8 @@ void IRCUserManager::userPartChannel ( int user,  int channel )
 
   if ( userInChannel(userRecord.id,channelRecord.id) )
   {
-    channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
+    if(channelRecord.userPerms.find(userRecord.id) != channelRecord.userPerms.end())
+      channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
     for ( unsigned int i = (unsigned int)userRecord.channels.size()-1; i >= 0; i--)
     {
@@ -622,7 +623,7 @@ void IRCUserManager::userPartChannel ( std::string &user, int channel )
   if ( userInChannel(userRecord.id,channelRecord.id) )
   {
     if (channelRecord.userPerms.find(userRecord.id) != channelRecord.userPerms.end())
-    channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
+      channelRecord.userPerms.erase(channelRecord.userPerms.find(userRecord.id));
 
     for ( int i = (int)userRecord.channels.size()-1; i >= 0; i++)
     {
