@@ -261,7 +261,7 @@ IRCClientPrivMsgCommand::IRCClientPrivMsgCommand()
 
 bool IRCClientPrivMsgCommand::receve ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
-  client.privMessage(info);
+  //  client.privMessage(info);
   return true;
 }
 

@@ -3,9 +3,11 @@
 SUBDIRS = \
 	simpleIRCConnect \
 	simpleTCPConnect \
-	spamBot \
 	stupidBot \
 	stupidServer
+
+EXTRA_DIST = \
+	spamBot
 
 MAINTAINERCLEANFILES = Makefile.in
 
