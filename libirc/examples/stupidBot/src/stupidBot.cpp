@@ -75,6 +75,8 @@ trStupidBotInfo	theBotInfo;
 IRCClient	client;
 bool part = false;
 
+int pendingJoins = -1;
+
 class botCommandHandaler
 {
 public:
@@ -451,12 +453,10 @@ void login ( void )
 
 void joinChannels ( void )
 {
-	string_list::iterator itr = theBotInfo.channels.begin();
-
-	while ( itr != theBotInfo.channels.end() )
+	if (client.getNick().size() &&  pendingJoins > 0)
 	{
-		client.join(*itr);
-		itr++;
+		client.join(theBotInfo.channels[pendingJoins-1]);
+		pendingJoins--;
 	}
 }
 
@@ -654,11 +654,12 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 {
 	switch (eventType)
 	{
-		case eIRCNoticeEvent:
+		case eIRCConnectedEvent:
 			login();
 			break;
 
 		case eIRCEndMOTDEvent:
+			pendingJoins = (int)theBotInfo.channels.size();
 			joinChannels();
 			break;
 
@@ -708,6 +709,7 @@ myEventCaller	eventHandler;
 
 void registerEventHandlers ( void )
 {
+	client.registerEventHandler(eIRCConnectedEvent,&eventHandler);
 	client.registerEventHandler(eIRCNoticeEvent,&eventHandler);
 	client.registerEventHandler(eIRCEndMOTDEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelJoinEvent,&eventHandler);
@@ -715,6 +717,7 @@ void registerEventHandlers ( void )
 	client.registerEventHandler(eIRCChannelPartEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCNickNameError,&eventHandler);
+	client.registerEventHandler(eIRCNickNameChange,&eventHandler);
 	if (!theBotInfo.ignorePMs)
 		client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCUserKickedEvent,&eventHandler);
@@ -752,6 +755,8 @@ int main ( int argc, char *argv[] )
 	while (client.process() && !part)
 	{
 		IRCOSSleep(1);
+		if (pendingJoins > 0)
+			joinChannels();
 	}
 
 	if (part)
