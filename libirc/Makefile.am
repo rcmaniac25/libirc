@@ -9,15 +9,18 @@ else
 EXAMPLES=
 endif
 
+
 SUBDIRS = \
 	include \
 	m4 \
 	misc \
 	src \
+	botlib	\
 	$(EXAMPLES)
 
 DIST_SUBDIRS = \
 	examples \
+	botlib \
 	include \
 	m4 \
 	misc \
