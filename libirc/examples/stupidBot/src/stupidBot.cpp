@@ -634,7 +634,7 @@ void privateMessage ( trClientMessageEventInfo *info )
 				dono = string_util::replace_all(dono,"%c",info->target);
 				dono = string_util::replace_all(dono,"%b",client.getNick());
 
-				client.sendMessage(info->target,dono);
+				client.sendMessage(info->from,dono);
 			}
 		}
 	}
@@ -658,7 +658,7 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			login();
 			break;
 
-		case eIRCEndMOTDEvent:
+		case eIRCWelcomeEvent:
 			pendingJoins = (int)theBotInfo.channels.size();
 			joinChannels();
 			break;
@@ -711,7 +711,7 @@ void registerEventHandlers ( void )
 {
 	client.registerEventHandler(eIRCConnectedEvent,&eventHandler);
 	client.registerEventHandler(eIRCNoticeEvent,&eventHandler);
-	client.registerEventHandler(eIRCEndMOTDEvent,&eventHandler);
+	client.registerEventHandler(eIRCWelcomeEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelJoinEvent,&eventHandler);
 	client.registerEventHandler(eIRCUserPartEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelPartEvent,&eventHandler);
