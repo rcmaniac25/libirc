@@ -642,9 +642,6 @@ void privateMessage ( trClientMessageEventInfo *info )
 
 void userKicked (trClientKickBanEventInfo *info)
 {
-	std::string	message = "whoa, ";
-	message += info->user + " got kicked by " + info->kicker + " for " + info->reason + " that has to suck!";
-	client.sendMessage(info->channel,message);
 }
 
 class myEventCaller : public IRCClientEventCallback
