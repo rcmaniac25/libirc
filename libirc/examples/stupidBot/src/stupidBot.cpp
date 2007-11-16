@@ -476,22 +476,11 @@ void joinedChannel ( trClientJoinEventInfo *info )
 
 void  partedChannel (trClientPartEventInfo* info )
 {
-	IRCCommandInfo	commandInfo;
-
-	commandInfo.target = "JeffM";
-	commandInfo.params.push_back ("Got a channel part Message");
-	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
 
 void  userPartedChannel (trClientPartEventInfo* info )
 {
-	IRCCommandInfo	commandInfo;
-
-	commandInfo.target = info->channel;
-	commandInfo.params.push_back ("Got a user part Message");
-	client.sendIRCCommand(eCMD_PRIVMSG,commandInfo);
 }
-
 
 bool isMaster ( std::string name )
 {
