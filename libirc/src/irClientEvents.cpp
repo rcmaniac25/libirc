@@ -46,13 +46,8 @@ void IRCClient::welcomeMessage ( trClientMessageEventInfo  &info )
 
 void IRCClient::endMOTD ( void )
 {
-  // we know we are conencted here
-  if (getConnectionState() < eTCPConenct)
-    setConnectionState(eTCPConenct);
-
   trBaseEventInfo  info;  // no info
   callEventHandler(eIRCEndMOTDEvent,info);
-  callEventHandler(eIRCConnectedEvent,info);
 }  
 
 void IRCClient::joinMessage ( BaseIRCCommandInfo  &info )

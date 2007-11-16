@@ -269,6 +269,7 @@ protected:
   teIRCConnectionState  ircConnectionState;
 
   bool          registered;
+  bool		connected;
 
   virtual teIRCConnectionState getConnectionState ( void ){return ircConnectionState;}
   virtual void setConnectionState ( teIRCConnectionState state ){ircConnectionState = state;}

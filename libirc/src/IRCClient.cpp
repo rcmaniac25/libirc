@@ -65,6 +65,7 @@ IRCClient::IRCClient(CIRCClientNetworkHandler *h)
   ircServerPort = _DEFAULT_IRC_PORT;
   ircConnectionState = eNotConnected;
   logHandler = &defaultLogger;
+  connected = false;
 }
 
 // irc client
@@ -85,6 +86,7 @@ bool IRCClient::init ( void )
 {
   minCycleTime = 0.1f;
   registered = false;
+  connected = false;
   nickname = "";
   // if any old conenctions are around, kill em
   if (netHandler)
@@ -112,6 +114,7 @@ bool IRCClient::connect ( std::string server, int port )
   if (!netHandler && (!tcpClient || !server.size()))
     return false;
 
+  connected = false;
   reportedServerHost = ircServerName = server;
   ircServerPort = _DEFAULT_IRC_PORT;
   if ( port > 0 )
@@ -130,6 +133,7 @@ bool IRCClient::connect ( std::string server, int port )
 
 bool IRCClient::disconnect ( std::string reason )
 {
+  connected = false;
   if (ircConnectionState >= eLoggedIn)
   {
     if (!reason.size())
@@ -213,6 +217,18 @@ void IRCClient::pending ( TCPClientConnection *connection, int count )
   // ok we have to parse this tuff into "lines"
   std::string  theLine = lastRecevedData;
   tvPacketList  &packets = connection->getPackets();
+
+  if (!connected)
+  {
+    // we know we are connected here cus we have data pending
+    if (getConnectionState() < eTCPConenct)
+      setConnectionState(eTCPConenct);
+
+    trBaseEventInfo  info;  // no info
+    callEventHandler(eIRCConnectedEvent,info);
+
+    connected = false;
+  }
 
   while(packets.size())
   {
