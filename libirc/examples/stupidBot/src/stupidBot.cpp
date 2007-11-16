@@ -67,6 +67,7 @@ typedef struct
 	std::string config;
 	channelEcho		chanEchos;
 	channelCIAEcho	CIAEchos;
+	bool			ignorePMs;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -115,6 +116,7 @@ std::string getRandomString ( string_list &source )
 void readConfig ( std::string file )
 {
 	theBotInfo.config = file;
+	theBotInfo.ignorePMs = false;
 	std::string config;
 
 	// read the file data
@@ -276,6 +278,8 @@ void readConfig ( std::string file )
 
 				cTemp.projects[project].targets.push_back(target);
 			}
+			else if ( command == "ignorepm" )
+				ignorePMs = true;
 		}
 		itr++;
 	}
@@ -430,6 +434,13 @@ void saveConfig ( void )
 		}
 		CIAChanItr++;
 	}
+
+	if (theBotInfo.ignorePMs)
+	{
+		fprintf(fp,"ignorepm:1");
+		fprintf(fp,"%s",lineEnd.c_str());
+	}
+
 	fclose(fp);
 }
 
@@ -715,7 +726,8 @@ void registerEventHandlers ( void )
 	client.registerEventHandler(eIRCChannelPartEvent,&eventHandler);
 	client.registerEventHandler(eIRCChannelMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCNickNameError,&eventHandler);
-	client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
+	if (!theBotInfo.ignorePMs)
+		client.registerEventHandler(eIRCPrivateMessageEvent,&eventHandler);
 	client.registerEventHandler(eIRCUserKickedEvent,&eventHandler);
 }
 
