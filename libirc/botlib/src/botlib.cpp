@@ -22,7 +22,9 @@ LibIRCBot::LibIRCBot()
   theBot = this;
 #endif
 
+  disconnect = false;
   sleepTime = 1;
+  commandsRegistered = false;
 }
 
 LibIRCBot::~LibIRCBot()
@@ -32,25 +34,130 @@ LibIRCBot::~LibIRCBot()
 #endif
 }
 
-
 int LibIRCBot::run ( void )
 {
+  connectionRecord.port = 6667;
+
   init(connectionRecord);
-  if (!connect())
+  if (!verifyConRec() || !connect())
     return -1;
 
   while (!runOneLoop())
-    IRCOSSleep(sleepTime)
+    IRCOSSleep(sleepTime);
+
+  client.disconnect("quiting");
+  return 0;
 }
 
 bool LibIRCBot::runOneLoop ( void )
 {
+  if (disconnect)
+    return false;
+
+  client.process();
+  processPendingActions();
   return true;
 }
 
 bool LibIRCBot::connect ( void )
 {
+  currentNicIndex = 0;
+  disconnect = false;
+  pendingJoins = -1;
+  registerStandardEventHandlers();
+  bool connected = client.connect(connectionRecord.server,connectionRecord.port);
+
+  return connected;
+}
+
+bool LibIRCBot::process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info )
+{
+  switch (eventType)
+  {
+    case eIRCConnectedEvent:
+      serverLogin();
+      return true;
+
+    case eIRCWelcomeEvent:
+      welcomeMessage();
+      return true;
+  }
+  return unhandledEvent(info);
+}
+
+void LibIRCBot::processPendingActions ( void )
+{
+  if (client.getNick().size() && pendingJoins > 0)
+  {
+    client.join(connectionRecord.channels[pendingJoins-1]);
+    pendingJoins--;
+  }
+}
+
+bool LibIRCBot::verifyConRec ( void )
+{
+  if (!connectionRecord.server.size())
+    return false;
+  
+  if (connectionRecord.port <  1)
+    connectionRecord.port = 6667;
+
+  if (!connectionRecord.nicks.size() || !connectionRecord.nicks[0].size())
+    return false;
+
   return true;
+}
+
+void  LibIRCBot::registerStandardEventHandlers ( void )
+{
+  if (commandsRegistered)
+    return;
+
+  client.registerEventHandler(eIRCConnectedEvent,this);
+  client.registerEventHandler(eIRCWelcomeEvent,this);
+
+  client.registerEventHandler(eIRCChannelJoinEvent,this);
+  client.registerEventHandler(eIRCNickNameError,this);
+  client.registerEventHandler(eIRCNickNameChange,this);
+
+  client.registerEventHandler(eIRCChannelMessageEvent,this);
+  client.registerEventHandler(eIRCPrivateMessageEvent,this);
+}
+
+void LibIRCBot::serverLogin ( void )
+{
+  client.login(connectionRecord.nicks[currentNicIndex],connectionRecord.username,connectionRecord.realName,connectionRecord.hostmask);
+  onLogn();
+}
+
+void LibIRCBot::welcomeMessage ( void )
+{
+  pendingJoins = (int)connectionRecord.channels.size();
+  processPendingActions();
+}
+
+void LibIRCBot::channelJoin ( trClientJoinEventInfo* info )
+{
+}
+
+void LibIRCBot::channelPart ( trClientPartEventInfo* info )
+{
+}
+
+void LibIRCBot::userJoin ( trClientPartEventInfo* info )
+{
+}
+
+void LibIRCBot::userPart ( trClientMessageEventInfo* info )
+{
+}
+
+void LibIRCBot::chatMessage ( trClientMessageEventInfo* info, bool inChannel )
+{
+}
+
+void LibIRCBot::nickError ( void )
+{
 }
 
 
@@ -61,6 +168,7 @@ void LibIRCBotConfigItem::set( const char *data )
 
 bool LibIRCBotConfigItem::write( std::string &config )
 {
+  return false;
 }
 
 //----------------LibIRCBotConfig

@@ -69,6 +69,7 @@ typedef struct
 
   std::string hostmask;
   std::string username;
+  std::string realName;
 
   std::vector<std::string> nicks;
   std::vector<std::string> channels;
@@ -77,7 +78,19 @@ typedef struct
   std::string nickservPassword;
 }trLibIRCConnectionRecord;
 
-class LibIRCBot
+class LibIRCBotMessage
+{
+public:
+  std::string message;
+
+  std::string from;
+  std::string respond;
+
+  std::vector<std::string> params ( void );
+  std::string param ( unsigned int index );
+};
+
+class LibIRCBot : public IRCClientEventCallback
 {
 public:
   LibIRCBot();
@@ -103,13 +116,57 @@ public:
   // mix the bot into your own code
   bool runOneLoop ( void );
 
+  // IRC event callback
+  // if you overide this, you must call the default
+  // ether before or after you do your own stuff
+  // if you simply wish to register other events
+  // then overide the unhandledEvent method instead
+  bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
+
+  // IRC Event callback for events that the base lib
+  // does not handle by default
+  // if you register any event handlers with the client
+  // they will come through here.
+  bool unhandledEvent ( trBaseEventInfo &eventInfo ){return true;}
+
+  // common events
+  // these are called on the major events.
+  virtual void onLogn ( void ){};
+  virtual void onChannelJoin ( const std::string &channel ){};
+  virtual void onChannelPart ( const std::string &channel ){};
+  virtual void onUserJoin ( const std::string &channel, const std::string &user ){};
+  virtual void onUserPart ( const std::string &channel, const std::string &user ){};
+  virtual void onPrivateMessage ( const LibIRCBotMessage &message ){};
+  virtual void onChannelMessage ( const LibIRCBotMessage &message ){};
+  virtual void onNickNameError ( std::string &newNick ){};
+
 protected:
-  float	    sleepTime;
+  float		sleepTime;
+  IRCClient	client;
+
+  void disconectFromServer ( void );
 
 public:
   trLibIRCConnectionRecord connectionRecord;
+  bool			   commandsRegistered;
+  bool			   disconnect;
+  int			   pendingJoins;
+  int			   currentNicIndex;
 
+  bool verifyConRec ( void );
+  void registerStandardEventHandlers ( void );
   bool connect ( void );
+  void processPendingActions ( void );
+
+  // event actions
+  void serverLogin ( void );
+  void welcomeMessage ( void );
+  void channelJoin ( trClientJoinEventInfo* info );
+  void channelPart ( trClientPartEventInfo* info );
+  void userJoin ( trClientPartEventInfo* info );
+  void userPart ( trClientMessageEventInfo* info );
+  void chatMessage ( trClientMessageEventInfo* info, bool inChannel );
+  void nickError ( void );
 };
 
 #ifndef _LIBIRC_NO_BOTMAIN
