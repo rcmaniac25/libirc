@@ -81,6 +81,30 @@ bool LibIRCBot::process ( IRCClient &ircClient, teIRCEventType	eventType, trBase
     case eIRCWelcomeEvent:
       welcomeMessage();
       return true;
+
+    case eIRCChannelJoinEvent:
+      channelJoin((trClientJoinEventInfo*)&info);
+      return true;
+
+    case eIRCUserJoinEvent:
+      userJoin((trClientJoinEventInfo*)&info);
+      return true;
+
+   case eIRCUserPartEvent:
+      userPart((trClientPartEventInfo*)&info);
+      return true;
+
+    case eIRCPrivateMessageEvent:
+      chatMessage ((trClientMessageEventInfo*)&info,false);
+      return true;
+
+    case eIRCChannelMessageEvent:
+      chatMessage ((trClientMessageEventInfo*)&info,true);
+      return true;
+
+    case eIRCNickNameError:
+      nickError();
+      return true;
   }
   return unhandledEvent(info);
 }
@@ -117,6 +141,9 @@ void  LibIRCBot::registerStandardEventHandlers ( void )
   client.registerEventHandler(eIRCWelcomeEvent,this);
 
   client.registerEventHandler(eIRCChannelJoinEvent,this);
+  client.registerEventHandler(eIRCUserJoinEvent,this);
+  client.registerEventHandler(eIRCUserPartEvent,this);
+ 
   client.registerEventHandler(eIRCNickNameError,this);
   client.registerEventHandler(eIRCNickNameChange,this);
 
@@ -138,26 +165,85 @@ void LibIRCBot::welcomeMessage ( void )
 
 void LibIRCBot::channelJoin ( trClientJoinEventInfo* info )
 {
-}
-
-void LibIRCBot::channelPart ( trClientPartEventInfo* info )
-{
+  onChannelJoin(info->channel);
 }
 
 void LibIRCBot::userJoin ( trClientPartEventInfo* info )
 {
+  onUserJoin(info->channel,info->user);
 }
 
-void LibIRCBot::userPart ( trClientMessageEventInfo* info )
+void LibIRCBot::userPart ( trClientPartEventInfo* info )
 {
+  onUserPart(info->channel,info->user,info->reason);
 }
 
 void LibIRCBot::chatMessage ( trClientMessageEventInfo* info, bool inChannel )
 {
+  LibIRCBotMessage message;
+  message.message = info->message;
+  message.respond = info->target;
+  message.from = info->from;
+
+  if(inChannel)
+    onChannelMessage(message);
+  else
+    onPrivateMessage(message);
 }
 
 void LibIRCBot::nickError ( void )
 {
+}
+
+void LibIRCBot::disconectFromServer ( const char* r )
+{
+  std::string reason;
+  if(r)
+    reason = r;
+  client.disconnect(reason);
+  disconnect = true;
+}
+
+void LibIRCBot::disconectFromServer ( const std::string& reason )
+{
+  client.disconnect(reason);
+  disconnect = true;
+}
+
+void LibIRCBot::respond ( const LibIRCBotMessage &to, const char* text, bool action )
+{
+  if(text)
+    client.sendMessage(to.respond,std::string(text),action);
+}
+
+void LibIRCBot::respond ( const LibIRCBotMessage &to, const std::string &text, bool action )
+{ 
+  if(to.respond.size() && text.size())
+    client.sendMessage(to.respond,text,action);
+}
+
+void LibIRCBot::send ( const char* to, const char* text, bool action )
+{ 
+  if(to && text)
+    client.sendMessage(std::string(to),std::string(text),action);
+}
+
+void LibIRCBot::send ( const std::string to, const char* text, bool action  )
+{ 
+  if(text && to.size())
+    client.sendMessage(to,std::string(text),action);
+}
+
+void LibIRCBot::send ( const char* to, const std::string &text, bool action  )
+{ 
+  if(to && text.size())
+    client.sendMessage(std::string(to),text,action);
+}
+
+void LibIRCBot::send ( const std::string &to, const std::string &text, bool action  )
+{ 
+  if (to.size() && text.size())
+    client.sendMessage(to,text,action);
 }
 
 

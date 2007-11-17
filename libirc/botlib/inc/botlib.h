@@ -133,9 +133,8 @@ public:
   // these are called on the major events.
   virtual void onLogn ( void ){};
   virtual void onChannelJoin ( const std::string &channel ){};
-  virtual void onChannelPart ( const std::string &channel ){};
   virtual void onUserJoin ( const std::string &channel, const std::string &user ){};
-  virtual void onUserPart ( const std::string &channel, const std::string &user ){};
+  virtual void onUserPart ( const std::string &channel, const std::string &user, const std::string &reason ){};
   virtual void onPrivateMessage ( const LibIRCBotMessage &message ){};
   virtual void onChannelMessage ( const LibIRCBotMessage &message ){};
   virtual void onNickNameError ( std::string &newNick ){};
@@ -144,7 +143,16 @@ protected:
   float		sleepTime;
   IRCClient	client;
 
-  void disconectFromServer ( void );
+  void disconectFromServer ( const char* reason );
+  void disconectFromServer ( const std::string &reason );
+
+  void respond ( const LibIRCBotMessage &to, const char* text, bool action = false );
+  void respond ( const LibIRCBotMessage &to, const std::string &text, bool action = false );
+ 
+  void send ( const char* to, const char* text, bool action = false );
+  void send ( const std::string to, const char* text, bool action = false );
+  void send ( const char* to, const std::string &text, bool action = false );
+  void send ( const std::string &to, const std::string &text, bool action = false );
 
 public:
   trLibIRCConnectionRecord connectionRecord;
@@ -162,9 +170,8 @@ public:
   void serverLogin ( void );
   void welcomeMessage ( void );
   void channelJoin ( trClientJoinEventInfo* info );
-  void channelPart ( trClientPartEventInfo* info );
-  void userJoin ( trClientPartEventInfo* info );
-  void userPart ( trClientMessageEventInfo* info );
+  void userJoin ( trClientJoinEventInfo* info );
+  void userPart ( trClientPartEventInfo* info );
   void chatMessage ( trClientMessageEventInfo* info, bool inChannel );
   void nickError ( void );
 };
