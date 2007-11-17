@@ -173,7 +173,7 @@ public:
   void userJoin ( trClientJoinEventInfo* info );
   void userPart ( trClientPartEventInfo* info );
   void chatMessage ( trClientMessageEventInfo* info, bool inChannel );
-  void nickError ( void );
+  bool nickError ( void );
 };
 
 #ifndef _LIBIRC_NO_BOTMAIN

@@ -103,8 +103,7 @@ bool LibIRCBot::process ( IRCClient &ircClient, teIRCEventType	eventType, trBase
       return true;
 
     case eIRCNickNameError:
-      nickError();
-      return true;
+      return nickError();
   }
   return unhandledEvent(info);
 }
@@ -168,7 +167,7 @@ void LibIRCBot::channelJoin ( trClientJoinEventInfo* info )
   onChannelJoin(info->channel);
 }
 
-void LibIRCBot::userJoin ( trClientPartEventInfo* info )
+void LibIRCBot::userJoin ( trClientJoinEventInfo* info )
 {
   onUserJoin(info->channel,info->user);
 }
@@ -191,8 +190,22 @@ void LibIRCBot::chatMessage ( trClientMessageEventInfo* info, bool inChannel )
     onPrivateMessage(message);
 }
 
-void LibIRCBot::nickError ( void )
+bool LibIRCBot::nickError ( void )
 {
+  currentNicIndex++;
+
+  std::string nick;
+  if (currentNicIndex < (int)connectionRecord.nicks.size())
+    nick = connectionRecord.nicks[currentNicIndex];
+
+  onNickNameError(nick);
+  if (nick.size())
+  {
+    client.login(nick,connectionRecord.username,connectionRecord.realName,connectionRecord.hostmask);
+    return false;
+  }
+   
+  return true;
 }
 
 void LibIRCBot::disconectFromServer ( const char* r )
