@@ -706,7 +706,6 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 	return true;
 }
 
-
 myEventCaller	eventHandler;
 
 
