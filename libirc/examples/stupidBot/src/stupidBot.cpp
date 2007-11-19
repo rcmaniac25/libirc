@@ -584,14 +584,17 @@ void channelMessage ( trClientMessageEventInfo *info )
 				// see if it's a factoid
 				if (!callBotCommand("factoid",info->source,info->from,info))
 				{
-					// it's not, we dono what it is, but it was addressed to us
-					std::string	dono = getRandomString(theBotInfo.unknownResponces);
+					if (theBotInfo.unknownResponces.size())
+					{
+						// it's not, we dono what it is, but it was addressed to us
+						std::string	dono = getRandomString(theBotInfo.unknownResponces);
 
-					dono = string_util::replace_all(dono,"%u",info->from);
-					dono = string_util::replace_all(dono,"%c",info->target);
-					dono = string_util::replace_all(dono,"%b",client.getNick());
+						dono = string_util::replace_all(dono,"%u",info->from);
+						dono = string_util::replace_all(dono,"%c",info->target);
+						dono = string_util::replace_all(dono,"%b",client.getNick());
 
-					client.sendMessage(info->target,dono);
+						client.sendMessage(info->target,dono);
+					}
 				}
 			}
 		}
