@@ -33,7 +33,11 @@ typedef std::vector<LibIRCBotConfigDataValue> LibIRCBotConfigDataValueList;
 class LibIRCBotConfigItem
 {
 public:
+  LibIRCBotConfigItem ( const char *_key = NULL, const char* _data = NULL );
+  LibIRCBotConfigItem ( const std::string &_key, const std::string &_data );
+
   void set ( const char *data );
+  void set ( const std::string &data );
 
   bool write ( std::string &config );
 

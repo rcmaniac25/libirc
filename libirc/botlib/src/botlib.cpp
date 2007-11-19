@@ -300,14 +300,66 @@ bool LibIRCBot::isForMe ( const std::string &message )
 }
 
 
+//----------------LibIRCBotConfigDataValue
+LibIRCBotConfigDataValue::LibIRCBotConfigDataValue(const char* data )
+{
+  if (data)
+    value =data;
+}
+
+LibIRCBotConfigDataValue::LibIRCBotConfigDataValue ( const std::string &data )
+{
+  value = data;
+}
+
+std::vector<std::string> LibIRCBotConfigDataValue::params ( void )
+{
+  return string_util::tokenize(value,std::string(" "),0,true);
+}
+
+std::string LibIRCBotConfigDataValue::param ( unsigned int index )
+{
+  std::vector<std::string> params = string_util::tokenize(value,std::string(" "),0,true);
+  if ( index >= params.size() )
+    return std::string("");
+  return params[index];
+}
+
 //----------------LibIRCBotConfigItem
+
+LibIRCBotConfigItem::LibIRCBotConfigItem ( const char *_key, const char* _data )
+{
+  if (_key)
+    key = _key;
+  set(_data);
+}
+
+LibIRCBotConfigItem::LibIRCBotConfigItem ( const std::string &_key, const std::string &_data )
+{
+  key = _key;
+  set(_data);
+}
+
 void LibIRCBotConfigItem::set( const char *data )
 {
+  if (data)
+    values.push_back(LibIRCBotConfigDataValue(data));
+}
+
+void LibIRCBotConfigItem::set( const std::string &data )
+{
+  values.push_back(LibIRCBotConfigDataValue(data));
 }
 
 bool LibIRCBotConfigItem::write( std::string &config )
 {
-  return false;
+  if (!values.size())
+    return false;
+
+  for ( int i = 0; i < (int)values.size(); i++ )
+    config += key + ":" + values[i].value + "\n";
+
+  return true;
 }
 
 //----------------LibIRCBotConfig
