@@ -156,7 +156,9 @@ protected:
   void send ( const char* to, const std::string &text, bool action = false );
   void send ( const std::string &to, const std::string &text, bool action = false );
 
-public:
+  virtual bool isForMe ( const std::string &message );
+
+private:
   trLibIRCConnectionRecord connectionRecord;
   bool			   commandsRegistered;
   bool			   disconnect;
@@ -178,7 +180,6 @@ public:
   bool nickError ( void );
 
   // utilities
-  bool isForMe ( const std::string &message );
 };
 
 #ifndef _LIBIRC_NO_BOTMAIN

@@ -296,10 +296,6 @@ bool LibIRCBot::isForMe ( const std::string &message )
 	return true;
     }
   }
-
-  // techincaly check for name at the end, preceded by a space and punctuation
-  // but do that later
-
   return false;
 }
 
