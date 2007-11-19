@@ -85,6 +85,7 @@ public:
 
   std::string from;
   std::string respond;
+  std::string taragetUser;
 
   std::vector<std::string> params ( void );
   std::string param ( unsigned int index );
@@ -106,21 +107,21 @@ public:
   virtual bool prerun ( int argc, char *argv[] ) { return false; }
 
   // called to start the server run the vents
-  // will be blocking untill quit is called.
+  // will be blocking until quit is called.
   // will sleep for the sleepTime each loop
   int run ( void );
 
   // called once for each update loop
-  // called internaly buy run, but can be called
-  // manualy if not using run and you want to
+  // called internally buy run, but can be called
+  // manually if not using run and you want to
   // mix the bot into your own code
   bool runOneLoop ( void );
 
   // IRC event callback
-  // if you overide this, you must call the default
+  // if you override this, you must call the default
   // ether before or after you do your own stuff
   // if you simply wish to register other events
-  // then overide the unhandledEvent method instead
+  // then override the unhandledEvent method instead
   bool process ( IRCClient &ircClient, teIRCEventType	eventType, trBaseEventInfo &info );
 
   // IRC Event callback for events that the base lib
@@ -136,18 +137,19 @@ public:
   virtual void onUserJoin ( const std::string &channel, const std::string &user ){};
   virtual void onUserPart ( const std::string &channel, const std::string &user, const std::string &reason ){};
   virtual void onPrivateMessage ( const LibIRCBotMessage &message ){};
-  virtual void onChannelMessage ( const LibIRCBotMessage &message ){};
+  virtual void onChannelMessage ( const LibIRCBotMessage &message, bool isForMe ){};
   virtual void onNickNameError ( std::string &newNick ){};
 
 protected:
   float		sleepTime;
   IRCClient	client;
+  std::vector<std::string> nickShortcuts;
 
   void disconectFromServer ( const char* reason );
   void disconectFromServer ( const std::string &reason );
 
-  void respond ( const LibIRCBotMessage &to, const char* text, bool action = false );
-  void respond ( const LibIRCBotMessage &to, const std::string &text, bool action = false );
+  void respond ( const LibIRCBotMessage &to, const char* text, bool action = false, bool privately = false );
+  void respond ( const LibIRCBotMessage &to, const std::string &text, bool action = false,bool privately = false );
  
   void send ( const char* to, const char* text, bool action = false );
   void send ( const std::string to, const char* text, bool action = false );
@@ -174,6 +176,9 @@ public:
   void userPart ( trClientPartEventInfo* info );
   void chatMessage ( trClientMessageEventInfo* info, bool inChannel );
   bool nickError ( void );
+
+  // utilities
+  bool isForMe ( const std::string &message );
 };
 
 #ifndef _LIBIRC_NO_BOTMAIN

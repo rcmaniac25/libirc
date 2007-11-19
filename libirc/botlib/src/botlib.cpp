@@ -185,7 +185,7 @@ void LibIRCBot::chatMessage ( trClientMessageEventInfo* info, bool inChannel )
   message.from = info->from;
 
   if(inChannel)
-    onChannelMessage(message);
+    onChannelMessage(message,isForMe(info->message));
   else
     onPrivateMessage(message);
 }
@@ -223,16 +223,24 @@ void LibIRCBot::disconectFromServer ( const std::string& reason )
   disconnect = true;
 }
 
-void LibIRCBot::respond ( const LibIRCBotMessage &to, const char* text, bool action )
+void LibIRCBot::respond ( const LibIRCBotMessage &to, const char* text, bool action, bool privately )
 {
-  if(text)
-    client.sendMessage(to.respond,std::string(text),action);
+  if (!to.respond.size() || !text)
+    return;
+
+  bool isChannel = to.respond[0] == '#';
+  std::string target = to.respond;
+  if (isChannel && privately)
+    target = to.from;
+   client.sendMessage(target,std::string(text),action);
 }
 
-void LibIRCBot::respond ( const LibIRCBotMessage &to, const std::string &text, bool action )
+void LibIRCBot::respond ( const LibIRCBotMessage &to, const std::string &text, bool action, bool privately )
 { 
-  if(to.respond.size() && text.size())
-    client.sendMessage(to.respond,text,action);
+  if(!to.respond.size() || !text.size())
+    return;
+
+  respond(to,text.c_str(),action,privately);
 }
 
 void LibIRCBot::send ( const char* to, const char* text, bool action )
@@ -257,6 +265,42 @@ void LibIRCBot::send ( const std::string &to, const std::string &text, bool acti
 { 
   if (to.size() && text.size())
     client.sendMessage(to,text,action);
+}
+
+bool LibIRCBot::isForMe ( const std::string &message )
+{
+  if (!message.size())
+    return false;
+
+  // check for nickshortcuts
+  // if the first caracter(s) are one of the shortcuts then go and let that fly
+  if (nickShortcuts.size())
+  {
+    for ( int i = 0; i < (int)nickShortcuts.size(); i++ )
+    {
+      if (nickShortcuts[i].size() && message.size() > nickShortcuts[i].size())
+      {
+	if (strncasecmp(nickShortcuts[i].c_str(),message.c_str(),nickShortcuts[i].size()) == 0)
+	  return true;
+      }
+    }
+  }
+
+  std::string nickName = client.getNick();
+  if (message.size() > nickName.size() + 2)
+  {
+    if (strncasecmp(nickName.c_str(),message.c_str(),nickName.size()) == 0)
+    {
+      char charAfterNick = message.c_str()[nickName.size()+1];
+      if ( !string_util::isAlphabetic(charAfterNick)  && !string_util::isNumeric(charAfterNick) )
+	return true;
+    }
+  }
+
+  // techincaly check for name at the end, preceded by a space and punctuation
+  // but do that later
+
+  return false;
 }
 
 
