@@ -35,6 +35,7 @@ class LibIRCBotConfigItem
 public:
   LibIRCBotConfigItem ( const char *_key = NULL, const char* _data = NULL );
   LibIRCBotConfigItem ( const std::string &_key, const std::string &_data );
+  LibIRCBotConfigItem ( const std::string &_key );
 
   void set ( const char *data );
   void set ( const std::string &data );
@@ -54,10 +55,12 @@ public:
   ~LibIRCBotConfig();
 
   bool read ( const char * file );
+  bool read ( const std::string &file );
   bool write ( const char * file );
+  bool write ( const std::string &file );
 
-  LibIRCBotConfigDataValueList& getKeyItems( const char* key );
-  LibIRCBotConfigDataValueList& getKeyItems( const std::string &key );
+  const LibIRCBotConfigDataValueList& getKeyItems( const char* key );
+  const LibIRCBotConfigDataValueList& getKeyItems( const std::string &key );
 
   void addItem ( const char* key, const char* value );
   void addItem ( const std::string &key, const std::string &value );

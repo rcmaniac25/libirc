@@ -334,6 +334,11 @@ LibIRCBotConfigItem::LibIRCBotConfigItem ( const char *_key, const char* _data )
   set(_data);
 }
 
+LibIRCBotConfigItem::LibIRCBotConfigItem ( const std::string &_key )
+{
+  key = _key;
+}
+
 LibIRCBotConfigItem::LibIRCBotConfigItem ( const std::string &_key, const std::string &_data )
 {
   key = _key;
@@ -375,35 +380,113 @@ LibIRCBotConfig::~LibIRCBotConfig()
 
 bool LibIRCBotConfig::read ( const char * file )
 {
-  return false;
+  FILE *fp = fopen(file,"rt");
+  if (!fp)
+    return false;
+
+  items.clear();
+
+  fseek(fp,0,SEEK_END);
+  unsigned int s = ftell(fp);
+  fseek(fp,0,SEEK_SET);
+  char *c = (char*)malloc(s+1);
+  fread(c,s,1,fp);
+  fclose(fp);
+  c[s] = 0;
+  std::string fileText = c;
+  free(c);
+
+  string_list lines = string_util::tokenize(string_util::replace_all(fileText,std::string("\r"),std::string("")),std::string("\n"));
+
+  for ( int i = 0; i < (int)lines.size(); i++ )
+  {
+    const std::string &line = lines[i];
+    if ( line.size() )
+    {
+      string_list lineSections = string_util::tokenize(line,std::string(":"),1);
+      if (lineSections.size()>1 && lineSections[0].c_str())
+      {
+	const std::string &command = string_util::tolower(lineSections[0]);
+	const std::string &dataStr = lineSections[1];
+	if (items.find(command) == items.end())
+	  items[command] = LibIRCBotConfigItem(command);
+
+	items[command].set(dataStr);
+      }
+    }
+  }
+  return true;
+}
+
+bool LibIRCBotConfig::read ( const std::string &file )
+{
+  return read(file.c_str());
 }
 
 bool LibIRCBotConfig::write ( const char * file )
 {
-  return false;
+  std::string fileText;
+
+  LibIRCBotConfigItemMap::iterator itr = items.begin();
+  while ( itr != items.end() )
+  {
+    itr->second.write(fileText);
+    itr++;
+  }
+  
+  FILE *fp = fopen(file,"wt");
+  if (!fp)
+    return false;
+  fwrite(fileText.c_str(),fileText.size(),1,fp);
+  fclose(fp);
+  
+  return true;
 }
 
-LibIRCBotConfigDataValueList& LibIRCBotConfig::getKeyItems( const char* key )
+bool LibIRCBotConfig::write ( const std::string &file )
 {
-  static LibIRCBotConfigDataValueList list;
-  return list;
+  return write(file.c_str());
 }
 
-LibIRCBotConfigDataValueList& LibIRCBotConfig::getKeyItems( const std::string &key )
+const LibIRCBotConfigDataValueList& LibIRCBotConfig::getKeyItems( const char* key )
 {
-  static LibIRCBotConfigDataValueList list;
-  return list;
+  static LibIRCBotConfigDataValueList dummyKey;
+  if (!key)
+    return dummyKey;
+
+  LibIRCBotConfigItemMap::iterator itr = items.find(std::string(key));
+  if ( itr == items.end() )
+    return dummyKey;
+
+  return itr->second.values;
 }
 
-void LibIRCBotConfig::addItem ( const char* key, const char* value )
+const LibIRCBotConfigDataValueList& LibIRCBotConfig::getKeyItems( const std::string &key )
 {
+  return getKeyItems(key.c_str());
+}
+
+void LibIRCBotConfig::addItem ( const char* key, const char* _value )
+{
+  if (!key)
+    return;
+  std::string value;
+  if (_value)
+    value = _value;
+
+  addItem(std::string(key),value);
 }
 
 void LibIRCBotConfig::addItem ( const std::string &key, const std::string &value )
 {
+  std::string realKey = string_util::tolower(key);
+  LibIRCBotConfigItemMap::iterator itr = items.find(realKey);
+
+  if ( itr == items.end() )
+    items[realKey] = LibIRCBotConfigItem(realKey);
+
+  items[realKey].set(value);
 }
-
-
 
 // Local Variables: ***
 // mode:C++ ***
