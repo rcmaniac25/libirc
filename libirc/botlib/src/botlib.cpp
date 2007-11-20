@@ -179,7 +179,7 @@ void LibIRCBot::userPart ( trClientPartEventInfo* info )
 
 void LibIRCBot::chatMessage ( trClientMessageEventInfo* info, bool inChannel )
 {
-  LibIRCBotMessage message;
+  LibIRCBotMessage message(client);
   message.message = info->message;
   message.respond = info->target;
   message.from = info->from;
@@ -221,26 +221,6 @@ void LibIRCBot::disconectFromServer ( const std::string& reason )
 {
   client.disconnect(reason);
   disconnect = true;
-}
-
-void LibIRCBot::respond ( const LibIRCBotMessage &to, const char* text, bool action, bool privately )
-{
-  if (!to.respond.size() || !text)
-    return;
-
-  bool isChannel = to.respond[0] == '#';
-  std::string target = to.respond;
-  if (isChannel && privately)
-    target = to.from;
-   client.sendMessage(target,std::string(text),action);
-}
-
-void LibIRCBot::respond ( const LibIRCBotMessage &to, const std::string &text, bool action, bool privately )
-{ 
-  if(!to.respond.size() || !text.size())
-    return;
-
-  respond(to,text.c_str(),action,privately);
 }
 
 void LibIRCBot::send ( const char* to, const char* text, bool action )
@@ -299,6 +279,51 @@ bool LibIRCBot::isForMe ( const std::string &message )
   return false;
 }
 
+//----------------LibIRCBotMessage
+
+std::vector<std::string>& LibIRCBotMessage::parsePrams ( void )
+{
+  if (!paramList.size())
+    paramList = string_util::tokenize(message,std::string(" "));
+
+  return paramList;
+}
+
+std::vector<std::string> LibIRCBotMessage::params ( void )
+{
+  return parsePrams();
+}
+
+std::string LibIRCBotMessage::param ( unsigned int index )
+{
+  if (index >= parsePrams().size())
+    return std::string();
+  return paramList[index];
+}
+
+void LibIRCBotMessage::reply ( const char* text, bool privately, bool action )
+{
+  if (!respond.size() || !text)
+    return;
+
+  bool isChannel = respond[0] == '#';
+  std::string target = respond;
+  if (isChannel && privately)
+    target = from;
+  client.sendMessage(target,std::string(text),action);
+}
+
+void LibIRCBotMessage::reply ( const std::string &text, bool privately, bool action)
+{
+  if(!respond.size() || !text.size())
+    return;
+
+  bool isChannel = respond[0] == '#';
+  std::string target = respond;
+  if (isChannel && privately)
+    target = from;
+  client.sendMessage(target,text,action);
+}
 
 //----------------LibIRCBotConfigDataValue
 LibIRCBotConfigDataValue::LibIRCBotConfigDataValue(const char* data )

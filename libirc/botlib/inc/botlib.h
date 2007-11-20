@@ -85,6 +85,8 @@ typedef struct
   std::string nickservPassword;
 }trLibIRCConnectionRecord;
 
+class LibIRCBot;
+
 class LibIRCBotMessage
 {
 public:
@@ -92,10 +94,20 @@ public:
 
   std::string from;
   std::string respond;
-  std::string taragetUser;
 
   std::vector<std::string> params ( void );
   std::string param ( unsigned int index );
+
+  void reply ( const char* text, bool privately = false, bool action = false );
+  void reply ( const std::string &text, bool privately = false, bool action = false );
+
+protected:
+  friend LibIRCBot;
+  IRCClient &client;
+  LibIRCBotMessage ( IRCClient &_client ) : client(_client){};
+
+  std::vector<std::string>& parsePrams ( void );
+  std::vector<std::string> paramList;
 };
 
 class LibIRCBot : public IRCClientEventCallback
@@ -154,9 +166,6 @@ protected:
 
   void disconectFromServer ( const char* reason );
   void disconectFromServer ( const std::string &reason );
-
-  void respond ( const LibIRCBotMessage &to, const char* text, bool action = false, bool privately = false );
-  void respond ( const LibIRCBotMessage &to, const std::string &text, bool action = false,bool privately = false );
  
   void send ( const char* to, const char* text, bool action = false );
   void send ( const std::string to, const char* text, bool action = false );
