@@ -11,9 +11,6 @@
 //
 
 #include "URLManager.h"
-#include "OSFile.h"
-
-#include "log.h"
 
 URLJobHandler::~URLJobHandler()
 {
@@ -104,8 +101,6 @@ URLManager::URLManager()
 
 	if (curl_global_init(CURL_GLOBAL_WIN32) == CURLE_OK)
 		multiHandle = curl_multi_init();
-	else
-		log("URLManager init failed");
 }
 
 URLManager::~URLManager()
