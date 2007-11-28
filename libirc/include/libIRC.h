@@ -96,7 +96,7 @@ public:
 /**
  * a Client To Client Protocol command
  */
-class CTCPCommandINfo : public BaseIRCCommandInfo
+class CTCPCommandInfo : public BaseIRCCommandInfo
 {
 public:
   teCTCPCommands           ctcpCommand;
@@ -108,7 +108,7 @@ public:
 /**
  * a Direct Client Connect command
  */
-class DCCCommandINfo : public BaseIRCCommandInfo
+class DCCCommandInfo : public BaseIRCCommandInfo
 {
   std::string from;
   std::string to;
