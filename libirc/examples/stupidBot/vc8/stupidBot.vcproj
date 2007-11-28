@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include"
+				AdditionalIncludeDirectories="../../../include;../src/"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libIRC.lib Ws2_32.lib"
+				AdditionalDependencies="libIRC.lib Ws2_32.lib libcurl.lib"
 				OutputFile="$(OutDir)/stupidBot.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../../vc8/debug/"
@@ -185,12 +185,20 @@
 				RelativePath="..\src\stupidBot.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\src\URLManager.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\src\URLManager.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
