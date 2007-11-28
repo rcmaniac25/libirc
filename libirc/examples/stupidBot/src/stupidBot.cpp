@@ -21,6 +21,70 @@
 #include <string>
 #include <map>
 
+#include "URLManager.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+
+#endif
+
+double getCurrentSeconds ( void )
+{
+#ifdef _WIN32
+	return GetTickCount() * 1000.0;
+#else
+	return (double)time(NULL);
+#endif
+}
+
+class CIARSSFeedAnnouncer : public URLJobHandler
+{
+public:
+	CIARSSFeedAnnouncer( const std::string &chan, const std::string &project );
+
+	void set ( const std::string &chan, const std::string &proj );
+
+	virtual bool write ( int jobID, unsigned char* data, unsigned int size );
+	virtual bool done ( int jobID, unsigned char* data, unsigned int size );	// return true to have the URLManager delete the handler
+
+	void update ( IRCClient &client );
+
+protected:
+	void sendFeed ( IRCClient &client );
+	void getFeed ( void );
+
+	typedef struct  
+	{
+		// raw feed data
+		std::string decription;
+		std::string title;
+		std::string guID;
+		std::string pubDate;
+
+		std::string author;
+		std::string project;
+		std::string revistion;
+		std::string path;
+		std::string comment;
+	}CIAFeedRecord;
+
+	double lastUpdateTime;
+	double updateFrequency;
+
+	bool working;
+
+	std::string channel;
+	std::string project;
+	std::string url;
+	std::string filePath;
+
+	std::string feedData;
+
+	std::string lastPubDate;
+	std::string lastGUID;
+};
+
 typedef struct 
 {
 	std::string name;
@@ -68,6 +132,7 @@ typedef struct
 	channelEcho		chanEchos;
 	channelCIAEcho	CIAEchos;
 	bool			ignorePMs;
+	std::string		rssStoragePath;
 }trStupidBotInfo;
 
 trStupidBotInfo	theBotInfo;
@@ -119,6 +184,8 @@ void readConfig ( std::string file )
 {
 	theBotInfo.config = file;
 	theBotInfo.ignorePMs = false;
+	theBotInfo.rssStoragePath = "./";
+
 	std::string config;
 
 	// read the file data
@@ -282,6 +349,8 @@ void readConfig ( std::string file )
 			}
 			else if ( command == "ignorepm" )
 				theBotInfo.ignorePMs = true;
+			else if ( command == "ciarsspath")
+				theBotInfo.rssStoragePath = params[0];
 		}
 		itr++;
 	}
@@ -440,6 +509,12 @@ void saveConfig ( void )
 	if (theBotInfo.ignorePMs)
 	{
 		fprintf(fp,"ignorepm:1");
+		fprintf(fp,"%s",lineEnd.c_str());
+	}
+
+	if (theBotInfo.rssStoragePath.size() )
+	{
+		fprintf(fp,"ciarsspath:\"%s\"",theBotInfo.rssStoragePath.c_str());
 		fprintf(fp,"%s",lineEnd.c_str());
 	}
 
@@ -1603,4 +1678,128 @@ void registerBotCommands ( void )
 	installBotCommand(new kickCommand);
 }
 
+//------------CIARSSFeedAnnouncer---------------
+
+CIARSSFeedAnnouncer::CIARSSFeedAnnouncer( const std::string &chan, const std::string &project )
+{
+	set(chan,project);
+}
+
+void CIARSSFeedAnnouncer::set ( const std::string &chan, const std::string &proj )
+{
+	working = false;
+	updateFrequency = 5.0 * 60.0;
+	lastUpdateTime = updateFrequency * -2.0;
+
+	project = proj;
+	channel = chan;
+	url = "http://cia.vc/stats/project/" + project + "/.rss?ver=2&medium=plaintex";
+	feedData = "";
+
+	filePath = theBotInfo.rssStoragePath + project + ".rss";
+	FILE *fp = fopen(filePath.c_str(),"rt");
+	if (fp)
+	{
+		char temp[512] = {0};
+		fscanf(fp,"%s",temp);
+		lastPubDate = temp;
+		temp[0] = 0;
+		fscanf(fp,"%s",temp);
+		lastGUID = temp;
+		fclose(fp);
+	}
+}
+
+bool CIARSSFeedAnnouncer::write ( int jobID, unsigned char* data, unsigned int size )
+{
+	char *p = (char*)malloc(size+1);
+	if (p)
+	{
+		memcpy(p,data,size);
+		p[size] =0;
+		feedData += p;
+		free(p);
+	}
+	return false;
+}
+
+bool CIARSSFeedAnnouncer::done ( int jobID, unsigned char* data, unsigned int size )
+{
+	lastUpdateTime = getCurrentSeconds();
+
+	char *p = (char*)malloc(size+1);
+	if (p)
+	{
+		memcpy(p,data,size);
+		p[size] =0;
+		feedData += p;
+		free(p);
+	}
+
+	working = false;
+	return false;
+}// return true to have the URLManager delete the handler
+
+void CIARSSFeedAnnouncer::update ( IRCClient &client )
+{
+	if (!working)
+	{
+		if (feedData.size())
+		{
+			sendFeed (client);
+		}
+		else
+		{
+			double now = getCurrentSeconds();
+			if ( lastUpdateTime + updateFrequency  < now )
+				getFeed();
+		}
+	}
+}
+
+void CIARSSFeedAnnouncer::sendFeed ( IRCClient &client )
+{
+	std::vector<CIAFeedRecord> feedRecords;
+	std::vector<std::string> feedStrings;
+
+	feedStrings = string_util::tokenize(feedData,std::string("<item>"));
+
+	if ( feedStrings.size() > 1)
+	{
+		// parse the crap out of each line
+
+		for ( int i = 1; i < (int)feedStrings.size(); i++ )
+		{
+
+			std::string line = feedStrings[i];
+			line = string_util::replace_all(line,std::string("</pubDate>"),std::string(""));
+			line = string_util::replace_all(line,std::string("</guid>"),std::string(""));
+			line = string_util::replace_all(line,std::string("</link>"),std::string(""));
+			line = string_util::replace_all(line,std::string("</description>"),std::string(""));
+			line = string_util::replace_all(line,std::string("</title>"),std::string(""));
+			line = string_util::replace_all(line,std::string("</item>"),std::string(""));
+		}
+	}
+
+	// write out the last pub date so we can get it in case we get shutdown.
+	FILE *fp = fopen(filePath.c_str(),"wt");
+	if (fp)
+	{
+		fprintf(fp,"%s\n",lastPubDate.c_str());
+		fprintf(fp,"%s\n",lastGUID.c_str());
+		fclose(fp);
+	}
+
+	feedData = "";
+}
+
+void CIARSSFeedAnnouncer::getFeed ( void )
+{
+	if (working)
+		return;
+
+	feedData = "";
+	working = true;
+	URLManager::Instance().addJob ( url, this );
+}
 
