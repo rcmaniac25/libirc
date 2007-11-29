@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include"
+				AdditionalIncludeDirectories="../../../include;../src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -32,7 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libIRC.lib Ws2_32.lib"
+				AdditionalDependencies="libIRC.lib Ws2_32.lib libcurl.lib"
 				OutputFile="$(OutDir)/stupidBot.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../../vc7.1/debug/"
@@ -117,6 +117,12 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
 				RelativePath="..\src\stupidBot.cpp">
+			</File>
+			<File
+				RelativePath="..\src\URLManager.cpp">
+			</File>
+			<File
+				RelativePath="..\src\URLManager.h">
 			</File>
 		</Filter>
 		<Filter
