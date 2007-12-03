@@ -265,11 +265,12 @@ bool IRCServer::disconnect ( std::string reason )
     tcpServer->disconnect();
     tcpConnection.deleteServerConnection(tcpServer);
     tcpServer = NULL;
+    unsigned int i;
 
-    for (unsigned int i = 0; i < (unsigned int)clients.size(); i++ )
+    for ( i = 0; i < (unsigned int)clients.size(); i++ )
       deleteClient(clients[i]);
 
-    for (unsigned int i = 0; i < (unsigned int)channels.size(); i++ )
+    for ( i = 0; i < (unsigned int)channels.size(); i++ )
       deleteClient(clients[i]);
 
     clients.clear();

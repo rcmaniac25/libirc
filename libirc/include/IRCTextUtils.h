@@ -443,7 +443,7 @@ namespace string_util {
     std::string x;
     x+=f;
 
-    return find_first_of(text.begin(),text.end(),x.begin(),x.end());
+    return std::find_first_of(text.begin(),text.end(),x.begin(),x.end());
   }
 
   inline void eraseFirstOf ( std::string &text, char f )
