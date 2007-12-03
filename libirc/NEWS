@@ -8,10 +8,18 @@ basically means most all changes that affect the public API of libIRC
 should be listed here prior to a release.
 
 ----------------------------------------------------------------------
+--- 2007-09-XX  Release 0.2.0                                      ---
+----------------------------------------------------------------------
+
+* fixed crash on channel departure - MasterMind (mm_202), Jeff Myers
+* enhancements for plugins - Jeff Myers
+
+
+----------------------------------------------------------------------
 --- 2004-08-08  Release 0.1.0                                      ---
 ----------------------------------------------------------------------
 
- * convert API to C++
+ * convert API to C++ - Jeff Myers
 
 preliminary open source release.
 
