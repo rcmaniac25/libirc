@@ -384,7 +384,7 @@ dnl ******************************************
 BC_CONFIGURE_STAGE([compiler], [6 of 9])
 
 dnl include our include directory
-CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/include"
+CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/include -I\$(top_srcdir)/botlib/inc"
 
 dnl try to use -pipe to speed up the compiles
 pipe_flag="-pipe"
@@ -562,6 +562,9 @@ AM_CONDITIONAL(BUILD_EXAMPLES, [test "x$build_examples" != "xno"])
 
 AC_CONFIG_FILES([
 	Makefile
+	botlib/Makefile
+	botlib/inc/Makefile
+	botlib/src/Makefile
 	examples/Makefile
 	examples/simpleIRCConnect/Makefile
 	examples/simpleIRCConnect/src/Makefile
