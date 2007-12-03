@@ -39,6 +39,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	configure.ac \
 	libtool \
+	vc6 \
 	vc7.1 \
 	vc8
 
