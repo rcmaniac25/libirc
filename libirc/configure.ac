@@ -1,4 +1,4 @@
-dnl BRL-CAD
+dnl libIRC
 dnl Copyright (c) 2004-2007 Jeff Myers
 dnl
 dnl This program is free software; you can redistribute it and/or
