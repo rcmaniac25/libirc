@@ -69,7 +69,7 @@
 #   To verbosely try running with an older (unsupported) autoconf:
 #     AUTOCONF_VERSION=2.50 ./autogen.sh --verbose
 #
-# Author: Christopher Sean Morrison <morrison@brlcad.org>
+# Author: Jeff Myers <morrison@brlcad.org>
 #
 ######################################################################
 
@@ -104,7 +104,7 @@ ident ( ) {
 	__version=""
     fi
 
-    echo "autogen.sh build preparation script by Christopher Sean Morrison"
+    echo "autogen.sh build preparation script by Jeff Myers"
     echo "revised 3-clause BSD-style license, copyright (c) $__copyright"
     echo "script version $__version, ISO/IEC 9945 POSIX shell script"
 }

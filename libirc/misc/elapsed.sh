@@ -6,7 +6,7 @@
 #
 ###
 # BSD License
-# Copyright (c) 2004, Christopher Sean Morrison
+# Copyright (c) 2004, Jeff Myers
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

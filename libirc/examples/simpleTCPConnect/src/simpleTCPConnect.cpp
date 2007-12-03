@@ -1,5 +1,5 @@
 /* libIRC
-* Copyright (c) 2004 Christopher Sean Morrison
+* Copyright (c) 2004 Jeff Myers
 *
 * This package is free software;  you can redistribute it and/or
 * modify it under the terms of the license found in the file
