@@ -4,9 +4,11 @@ libIRC Contributors
 DEVELOPERS
 ----------
 
-Jeff Myers
-Christopher Sean Morrison
-Dejan Lekic (previous codebase)
-
-
-
+Jeff Myers (jeffm2501)
+	main developer and principle architect, windows build system
+Christopher Sean Morrison (brlcad)
+	*nix build system, minor bug fixes
+pelya
+	VC6 build files
+Dejan Lekic
+	previous 'libIRC' codebase
