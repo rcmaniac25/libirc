@@ -1,8 +1,8 @@
 # $Id: Makefile.am 234 2007-07-31 09:07:21Z brlcad $
 
-SUBDIRS =	\
-			src \
-			inc
+SUBDIRS = \
+	inc \
+	src
 
 EXTRA_DIST = \
 	vc7.1 \
