@@ -14,8 +14,8 @@ SUBDIRS = \
 	include \
 	m4 \
 	misc \
-	src \
 	botlib	\
+	src \
 	$(EXAMPLES)
 
 DIST_SUBDIRS = \
@@ -111,7 +111,5 @@ DISTCLEANFILES = \
 	install.$(host_triplet).log \
 	libtool \
 	so_locations
-
-MAINTAINERCLEANFILES = Makefile.in
 
 include $(top_srcdir)/misc/Makefile.defs
