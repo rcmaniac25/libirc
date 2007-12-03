@@ -102,7 +102,7 @@ public:
   void reply ( const std::string &text, bool privately = false, bool action = false );
 
 protected:
-  friend LibIRCBot;
+  friend class LibIRCBot;
   IRCClient &client;
   LibIRCBotMessage ( IRCClient &_client ) : client(_client){};
 
