@@ -16,6 +16,6 @@ libIRC_la_SOURCES = \
 	libIRC.cpp \
 	net.cpp
 
-MAINTAINERCLEANFILES = Makefile.in
+libIRC_la_LIBADD = ../botlib/src/libbot.la
 
 include $(top_srcdir)/misc/Makefile.defs
