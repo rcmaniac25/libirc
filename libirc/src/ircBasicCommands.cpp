@@ -79,6 +79,7 @@ bool IRCClientPingCommand::receive ( IRCClient &client, const std::string &comma
 {
   IRCCommandInfo  ircInfo;
   ircInfo.command = eCMD_PONG;
+  ircInfo.raw = info.raw;
   client.sendIRCCommand(eCMD_PONG,ircInfo);
   return true;
 }
@@ -109,7 +110,8 @@ bool IRCClientPongCommand::send ( IRCClient &client, const std::string &command,
 {
   IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
-  std::string commandLine;
+  std::string commandLine = info.raw.substr(5, info.raw.length()-5);
+
   // PING
   client.sendIRCCommandToServer(eCMD_PONG,commandLine);
   return true;

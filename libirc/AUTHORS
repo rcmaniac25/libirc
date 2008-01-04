@@ -1,3 +1,4 @@
+						 -*- coding: utf-8 -*-
 libIRC Contributors
 ===================
 
@@ -12,3 +13,5 @@ pelya
 	VC6 build files
 Dejan Lekic
 	previous 'libIRC' codebase
+Barna Faragó
+	PONG command fix
