@@ -410,7 +410,7 @@ bool IRCClient::sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info )
   return sendCommand(info.command,info);
 }
 
-bool IRCClient::sendCTMPCommand ( teCTCPCommands  command, CTCPCommandInfo &info )
+bool IRCClient::sendCTCPCommand ( teCTCPCommands  command, CTCPCommandInfo &info )
 {
   info.type = eCTCPCommand;
   info.ctcpCommand = command;
@@ -460,7 +460,7 @@ bool IRCClient::receiveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info
   return receiveCommand(info.command,info);
 }
 
-bool IRCClient::receiveCTMPCommand ( teCTCPCommands  command, CTCPCommandInfo &info )
+bool IRCClient::receiveCTCPCommand ( teCTCPCommands  command, CTCPCommandInfo &info )
 {
   info.type = eCTCPCommand;
   info.ctcpCommand = command;

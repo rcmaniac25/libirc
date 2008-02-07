@@ -181,11 +181,11 @@ public:
   // command sending and receving methods called by handlers
   virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
   virtual bool sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
-  virtual bool sendCTMPCommand ( teCTCPCommands  command, CTCPCommandInfo &info );
+  virtual bool sendCTCPCommand ( teCTCPCommands  command, CTCPCommandInfo &info );
 
   virtual bool receiveCommand ( const std::string &commandName, BaseIRCCommandInfo &info );
   virtual bool receiveIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
-  virtual bool receiveCTMPCommand ( teCTCPCommands  command, CTCPCommandInfo &info );
+  virtual bool receiveCTCPCommand ( teCTCPCommands  command, CTCPCommandInfo &info );
 
   // --------------------------------------------------------------------------------------
   // generaly not called by the client app
