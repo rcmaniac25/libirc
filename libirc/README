@@ -10,13 +10,9 @@ such as chat clients, games, and IRC bots.
 
 PROJECT OVERVIEW
 
-The libIRC library includes both a C++ and C API.  The C++ API
+The libIRC library includes a C++API.  The C++ API
 essentially consists of client and server objects that may be used for
-talking to IRC servers and clients respectively.  The C API is
-basically a wrapper over those C++ objects that provides a traditional
-init/call interface.  Either API is arranged so that user-applications
-may define and/or override behaviors by definining hook functions that
-get invoked when specified commands/events are encountered.
+talking to IRC servers and clients respectively.  
 
 
 INSTALLATION
