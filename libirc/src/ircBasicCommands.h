@@ -147,6 +147,16 @@ public:
   virtual bool send ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info );
 };
 
+// IRC "INVITE" command
+// paramaters {user,channel}
+class IRCClientInviteCommand : public IRCClientCommandHandler
+{
+public:
+  IRCClientInviteCommand();
+  virtual bool receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info );
+  virtual bool send ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info );
+};
+
 #endif //_IRC_BASIC_COMMANDS_
 
 // Local Variables: ***

@@ -305,6 +305,31 @@ bool IRCClientKickCommand::send ( IRCClient &client, const std::string &command,
   return true;
 }
 
+
+IRCClientInviteCommand::IRCClientInviteCommand()
+{
+	name = "INVITE";
+}
+
+bool IRCClientInviteCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+{
+	client.inviteCommand(info);
+	return true;
+}
+
+bool IRCClientInviteCommand::send ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
+{
+	IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
+
+	std::string commandLine;
+
+	// KICK target user :reason
+	commandLine = ircInfo.target + delim + ircInfo.params[0]+ delim + std::string(":") + info.getAsString(1);
+	client.sendIRCCommandToServer(eCMD_INVITE,commandLine);
+
+	return true;
+}
+
   // special case commands
 
 // Generic handler for ALL

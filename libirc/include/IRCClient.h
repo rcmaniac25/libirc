@@ -228,6 +228,7 @@ public:
   void nickNameError ( int error, std::string message );
   void nickCommand ( BaseIRCCommandInfo  &info );
   void kickCommand ( BaseIRCCommandInfo  &info );
+  void inviteCommand ( BaseIRCCommandInfo  &info );
   void QuitMessage ( BaseIRCCommandInfo  &info );
 
   // used by the defalt event handlers

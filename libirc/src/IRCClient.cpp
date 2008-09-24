@@ -575,6 +575,7 @@ void IRCClient::registerDefaultCommandHandlers ( void )
   addDefaultCommandHandlers(new IRCClientModeCommand );
   addDefaultCommandHandlers(new IRCClientPrivMsgCommand );
   addDefaultCommandHandlers(new IRCClientKickCommand );
+  addDefaultCommandHandlers(new IRCClientInviteCommand );
 }
 
 // logical event handlers

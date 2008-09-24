@@ -47,6 +47,7 @@ typedef enum
   eIRCChannelUserModeSet,
   eIRCUserModeSet,
   eIRCQuitEvent,
+  eIRCInviteEvent,
   eIRCLastEvent
 }teIRCEventType;
 
@@ -82,7 +83,7 @@ typedef struct trClientNickErrorEventInfo : public trBaseEventInfo
 }trClientNickErrorEventInfo;
 
 /**
- * join type evetns, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent
+ * join type events, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent, eIRCInviteEvent
  */
 typedef struct trClientJoinEventInfo : public trBaseEventInfo
 {

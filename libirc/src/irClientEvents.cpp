@@ -258,6 +258,16 @@ void IRCClient::kickCommand ( BaseIRCCommandInfo  &info )
   userManager.userPartChannel(eventInfo.user,eventInfo.channel);
 }
 
+void IRCClient::inviteCommand ( BaseIRCCommandInfo  &info )
+{
+  trClientJoinEventInfo  eventInfo;
+
+  eventInfo.eventType = eIRCInviteEvent;
+  eventInfo.channel = info.params[1];
+  eventInfo.user = info.params[0];
+  callEventHandler(eventInfo.eventType,eventInfo);
+}
+
 void IRCClient::QuitMessage ( BaseIRCCommandInfo  &info )
 {
   string_list    goodies = string_util::tokenize(info.source,std::string("!"));
