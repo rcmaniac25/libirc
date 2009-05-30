@@ -226,7 +226,7 @@ void readConfig ( std::string file )
 
 			string_list params = string_util::tokenize(dataStr,std::string(" "),0,true);
 
-			if (command == "identifyer")
+			if (command == "identifier")
 			{
 				theBotInfo.commandStrings.push_back(string_util::tolower(dataStr));
 			}
