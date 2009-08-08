@@ -52,7 +52,7 @@ typedef enum
 }teIRCEventType;
 
 /**
- * basic structiure that all events are based on events with no data
+ * basic structure that all events are based on events with no data
  * use this.
  */
 typedef struct trBaseEventInfo
@@ -61,7 +61,7 @@ typedef struct trBaseEventInfo
 }trBaseEventInfo;
 
 /**
- * basic structiure that all server events are based on events with no
+ * basic structure that all server events are based on events with no
  * data use this.
  */
 typedef struct trBaseServerEventInfo : public trBaseEventInfo
@@ -83,7 +83,7 @@ typedef struct trClientNickErrorEventInfo : public trBaseEventInfo
 }trClientNickErrorEventInfo;
 
 /**
- * join type events, used for  eIRCChannelJoinEvent, eIRCUserJoinEvent, eIRCInviteEvent
+ * join type events, used for eIRCChannelJoinEvent, eIRCUserJoinEvent, eIRCInviteEvent
  */
 typedef struct trClientJoinEventInfo : public trBaseEventInfo
 {
@@ -104,7 +104,7 @@ typedef struct trClientModeEventInfo : public trBaseEventInfo
 }trClientModeEventInfo;
 
 /**
- * nick change type evetns, used for  eIRCNickNameChange
+ * nick change type events, used for  eIRCNickNameChange
  */
 typedef struct trClientNickChangeEventInfo : public trBaseEventInfo
 {
@@ -113,7 +113,7 @@ typedef struct trClientNickChangeEventInfo : public trBaseEventInfo
 }trClientNickChangeEventInfo;
 
 /**
- * part type evetns, used for eIRCChannelPartEvent, eIRCUserPartEvent,
+ * part type events, used for eIRCChannelPartEvent, eIRCUserPartEvent,
  * eIRCQuitEvetnt
  */
 typedef struct trClientPartEventInfo : public trBaseEventInfo
@@ -124,7 +124,7 @@ typedef struct trClientPartEventInfo : public trBaseEventInfo
 }trClientPartEventInfo;
 
 /**
- * kick and ban type events , used for
+ * kick and ban type events, used for
  * eIRCChannelKickEvent,eIRCChannelBanEvent, eIRCUserPartEvent
  */
 typedef struct trClientKickBanEventInfo : public trBaseEventInfo

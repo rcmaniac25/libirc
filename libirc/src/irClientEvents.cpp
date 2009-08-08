@@ -233,6 +233,7 @@ void IRCClient::nickCommand ( BaseIRCCommandInfo  &info )
   std::string who = params[0];
 
   userManager.nickChange(who,info.target);
+  setNick(info.target);
 
   trClientNickChangeEventInfo eventInfo;
   eventInfo.eventType = eIRCNickNameChange;
