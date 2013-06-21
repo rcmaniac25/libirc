@@ -163,8 +163,19 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
   else  // it's a mode for a user (like us)
   {
     modeInfo.eventType = eIRCUserModeSet;
-    modeInfo.mode = info.params[1];
-    std::string infostring = info.getAsString(1);
+	std::string infostring;
+	if(info.params.size() > 1) //Potential workaround for freenode not having params[1]?
+	{
+		modeInfo.mode = info.params[1];
+		infostring = info.getAsString(1);
+	}
+	else
+	{
+		modeInfo.mode = mode;
+		infostring = info.getAsString(0);
+		if(infostring.length() > 0 && infostring[0] == ':')
+			infostring = infostring.substr(1);
+	}
     userManager.modeReceved(who,info.source, infostring);
   }
 
