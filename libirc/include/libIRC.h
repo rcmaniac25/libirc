@@ -33,16 +33,12 @@ typedef std::vector<std::string> string_list;
 
 /** An OS independent sleep function
  *
- * IRCOSSleep is used by a number of fucntions to 1) prevent 100% CPU
+ * IRCOSSleep is used by a number of functions to 1) prevent 100% CPU
  * usage, and 2) to prevent from flooding the server
  */
 void IRCOSSleep ( float fTime );
 
-/** Returns the local time in stamp format
- *
- * On windows uses the format of DAY_OF_WEEK MONTH DATE
- * HOUR:MINUTE:SECOND YEAR needs to be implemented on *nix
- */
+/** Returns the local time in stamp format */
 std::string getTimeStamp ( void );
 
 /** Returns the current library Version */

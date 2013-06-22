@@ -28,9 +28,9 @@
   #include <unistd.h>
 #else
   #include <windows.h>
-  #include <time.h>
-  #include <stdio.h>
 #endif
+#include <time.h>
+#include <stdio.h>
 
 // sleep util
 void IRCOSSleep ( float fTime )
@@ -45,9 +45,6 @@ void IRCOSSleep ( float fTime )
 
 std::string getTimeStamp ( void )
 {
-  std::string timeString;
-
-#ifdef _WIN32
   struct tm *newtime;
   time_t aclock;
 
@@ -55,10 +52,7 @@ std::string getTimeStamp ( void )
   newtime = localtime( &aclock );   // Convert time to struct tm form 
 
   /* Print local time as a string */
-  timeString = asctime( newtime );
-#endif//_WIN32
-
-  return timeString;
+  return asctime( newtime );
 }
 
 
