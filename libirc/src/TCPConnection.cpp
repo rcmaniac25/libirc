@@ -791,10 +791,10 @@ teTCPError TCPConnection::update ( void )
   return selectError ? eTCPSelectFailed : eTCPNoError;
 }
 
-void TCPConnection::setUpdateTimeout ( int timeout )
+void TCPConnection::setUpdateTimeout ( int to )
 {
   if (timeout > 0)
-    timeout = timeout;
+    timeout = to;
 }
 
 TCPClientConnection* TCPConnection::newClientConnection ( std::string server, unsigned short port )

@@ -23,7 +23,7 @@
 
 void IRCClient::noticeMessage ( trClientMessageEventInfo  &info )
 {
-  if (info.params[1] == "Looking")
+  if (info.params.size() > 1 && info.params[1] == "Looking")
   {
     if (getConnectionState() < eTCPConenct)
       setConnectionState(eTCPConenct);

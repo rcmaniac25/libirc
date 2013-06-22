@@ -29,7 +29,7 @@ be to dynamically generate this file on install, but that's a lot of work.
   (defined(__mips__) && defined(__MIPSEL__)) || \
   defined(__SYMBIAN32__) || \
   defined(__x86_64__) || \
-  defined(__LITTLE_ENDIAN__)
+  defined(__LITTLE_ENDIAN__) || defined(__LITTLEENDIAN__)
 #define NET_BYTEORDER  NET_LIL_ENDIAN
 #else
 #define NET_BYTEORDER  NET_BIG_ENDIAN

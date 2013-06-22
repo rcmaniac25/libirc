@@ -14,6 +14,7 @@
 #include "IRCTextUtils.h"
 
 // system headers
+#include <stdio.h>
 #include <string>
 #include <algorithm>
 #include <sstream>
