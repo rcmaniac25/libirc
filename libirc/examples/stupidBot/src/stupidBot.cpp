@@ -523,7 +523,7 @@ void saveConfig ( void )
 
 void login ( void )
 {
-	client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
+	client.loginLegacy(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
 }
 
 void joinChannels ( void )
@@ -770,7 +770,7 @@ bool myEventCaller::process ( IRCClient &ircClient, teIRCEventType	eventType, tr
 			if (theBotInfo.nick < (int)theBotInfo.nicks.size())
 			{
 				// try our next name
-				client.login(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
+				client.loginLegacy(theBotInfo.nicks[theBotInfo.nick],theBotInfo.username,theBotInfo.realName,theBotInfo.host);
 				return false;
 			}
 			else	// we are out of names, let the default try it

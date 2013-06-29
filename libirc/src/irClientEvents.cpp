@@ -122,7 +122,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
   modeInfo.target = who;
   banInfo.channel = who;
 
-  std::string mode = info.params[0]; // params[1] doesnt work for freenode.  Maybe wrong for the rest as well?
+  std::string mode = info.params[0]; // params[1] doesnt work for freenode.  Maybe wrong for the rest as well? (Seems that way...)
 
   // figure out who the message is from, is it form a channel or from a user
   if (who[0] == '#' )
@@ -164,7 +164,7 @@ void IRCClient::modeCommand ( BaseIRCCommandInfo  &info )
   {
     modeInfo.eventType = eIRCUserModeSet;
 	std::string infostring;
-	if(info.params.size() > 1) //Potential workaround for freenode not having params[1]?
+	if(info.params.size() > 1) //Potential workaround for freenode (and others?) not having params[1]?
 	{
 		modeInfo.mode = info.params[1];
 		infostring = info.getAsString(1);

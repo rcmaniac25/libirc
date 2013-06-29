@@ -72,9 +72,9 @@ int main ( int argc, char *argv[] )
 	client.connect("irc.efnet.net",6667);
 	std::string name = std::string("billybot");
 	std::string username = std::string("billy");
-	std::string fullname = std::string("William Shatner");
 	std::string meh = std::string("");
-	client.login(name, username, fullname, meh);
+	std::string fullname = std::string("William Shatner");
+	client.login(name, username, meh, fullname);
 
 	while (client.process())
 	{

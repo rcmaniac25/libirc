@@ -69,7 +69,7 @@ public:
   virtual std::string getCommandName ( void ){return name;}
 
   // the send and receive methods return true if the default handler is to be called
-  // it is recomended that the default ALWAYS be called, as it often sets internal data for other mesages
+  // it is recommended that the default ALWAYS be called, as it often sets internal data for other messages
 
   // called when the client receives a command of this type
   virtual bool receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info ){return true;}
@@ -114,7 +114,8 @@ public:
   virtual bool process ( void );
 
   // basic IRC operations
-  virtual bool login ( std::string &nick, std::string &username, std::string &fullname, std::string &host);
+  virtual bool login ( std::string &nick, std::string &username, std::string &thenumericmode, std::string &fullname);
+  virtual bool loginLegacy ( std::string &nick, std::string &username, std::string &fullname, std::string &host); // legacy. rfc1459
   virtual bool join ( std::string channel );
   virtual bool part ( std::string channel, std::string reason );
   virtual bool sendMessage ( std::string target, std::string message, bool isAction = false );
@@ -188,12 +189,12 @@ public:
   virtual bool receiveCTCPCommand ( teCTCPCommands  command, CTCPCommandInfo &info );
 
   // --------------------------------------------------------------------------------------
-  // generaly not called by the client app
+  // generally not called by the client app
 
   // called by the TCP/IP connection when we get data
   virtual void pending ( TCPClientConnection *connection, int count );
 
-  // tutilitys generaly used only by command handlers
+  // utilities generally used only by command handlers
   // data sending stuff
   virtual bool sendIRCCommandToServer ( teIRCCommands  command, std::string &data);
 

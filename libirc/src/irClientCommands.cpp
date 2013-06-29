@@ -18,7 +18,56 @@
 #include "ircBasicCommands.h"
 #include "IRCTextUtils.h"
 
-bool IRCClient::login ( std::string &nick, std::string &username, std::string &fullname, std::string &host )
+bool IRCClient::login ( std::string &nick, std::string &username, std::string &thenumericmode, std::string &fullname)
+{
+  if (!tcpClient || !tcpClient->connected())
+    return false;
+
+  char  someNumber[64];
+  sprintf(someNumber,"%d",rand());
+
+  if (!nick.size())
+    nick = std::string("SomeLazyUser") + std::string(someNumber);
+
+  if (!username.size())
+    username = "libIRCUser";
+
+  if (!thenumericmode.size())
+	  thenumericmode = "8"; // Sets user as invisible
+
+  if (!fullname.size())
+    fullname = "Lazy libIRC programmer";
+
+  requestedNick = nick;
+
+  IRCCommandInfo  info;
+  info.params.push_back(nick);
+
+  if (!sendIRCCommand(eCMD_NICK,info))
+  {
+    log("Login Failed: NICK command not sent",0);
+    return false;
+  }
+
+  info.params.clear();
+  info.params.push_back(username);
+  info.params.push_back(thenumericmode);
+  info.params.push_back("*");
+  info.params.push_back(fullname);
+
+  if (!sendIRCCommand(eCMD_USER,info))
+  {
+    log("Login Failed: USER command not sent",0);
+    return false;
+  }
+
+  if (getConnectionState() < eSentNickAndUSer)
+    setConnectionState(eSentNickAndUSer);
+
+  return  true;
+}
+
+bool IRCClient::loginLegacy ( std::string &nick, std::string &username, std::string &fullname, std::string &host )
 {
   if (!tcpClient || !tcpClient->connected())
     return false;
@@ -33,7 +82,7 @@ bool IRCClient::login ( std::string &nick, std::string &username, std::string &f
     username = "libIRCUser";
 
   if (!fullname.size())
-    fullname = "Lazy libIRC programer";
+    fullname = "Lazy libIRC programmer";
 
   if (!host.size())
     host = "localhost";
