@@ -192,9 +192,12 @@ bool IRCClientPartCommand::receive ( IRCClient &client, const std::string &comma
 
 bool IRCClientPartCommand::send ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
-  std::string commandLine;
+  std::string commandLine = info.target;
 
-  commandLine = info.target + delim + info.params[0];
+  if (info.params.size())
+  {
+	  commandLine += delim + std::string(":") + info.params[0];
+  }
 
   // PART CHANNEL REASON
   client.sendIRCCommandToServer(eCMD_PART,commandLine);

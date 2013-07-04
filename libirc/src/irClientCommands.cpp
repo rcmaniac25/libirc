@@ -163,7 +163,8 @@ bool IRCClient::part ( std::string channel, std::string reason )
 
   IRCCommandInfo  info;
   info.target = channel;
-  info.params.push_back(reason);
+  if ( reason.size())
+	  info.params.push_back(reason);
 
   if (!sendIRCCommand(eCMD_PART,info))
   {
@@ -183,7 +184,7 @@ bool IRCClient::part ( std::string channel, std::string reason )
 
   callEventHandler(eventInfo.eventType,eventInfo);
 
-  // todo, we realy should go and remove the channel from our listing and kill any dead users
+  // todo, we really should go and remove the channel from our listing and kill any dead users
   return true;
 }
 
