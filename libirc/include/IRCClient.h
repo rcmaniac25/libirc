@@ -179,7 +179,7 @@ public:
   virtual int listUserHandledCommands ( std::vector<std::string> &commandList );
   virtual int listDefaultHandledCommands ( std::vector<std::string> &commandList );
 
-  // command sending and receving methods called by handlers
+  // command sending and receiving methods called by handlers
   virtual bool sendCommand ( std::string &commandName, BaseIRCCommandInfo &info );
   virtual bool sendIRCCommand ( teIRCCommands  command, IRCCommandInfo &info );
   virtual bool sendCTCPCommand ( teCTCPCommands  command, CTCPCommandInfo &info );

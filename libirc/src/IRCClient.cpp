@@ -376,7 +376,7 @@ bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info
 
   if (commandListItr != userCommandHandlers.end() && commandListItr->second.size())  // do we have a custom command handler
   {
-    // someone has to want us to call the defalt now
+    // someone has to want us to call the default now
     callDefault = false;
     // is this right?
     // should we do them all? or just the first one that "HANDLES" it?
@@ -387,7 +387,8 @@ bool IRCClient::sendCommand ( std::string &commandName, BaseIRCCommandInfo &info
         callDefault = true;
       itr++;
     }
-    return true;
+    if (!callDefault)
+      return true;
   }
 
   if (callDefault)  // check for the default
@@ -734,7 +735,7 @@ bool IRCClient::process ( IRCClient &ircClient, teIRCEventType  eventType, trBas
   {
     case eIRCNickNameError:
     {
-      // atempt to keep adding crap to the nick till it goes
+      // Attempt to keep adding crap to the nick till it goes
       requestedNick += '_';
 
       IRCCommandInfo  info;
@@ -742,7 +743,7 @@ bool IRCClient::process ( IRCClient &ircClient, teIRCEventType  eventType, trBas
 
       if (!sendIRCCommand(eCMD_NICK,info))
       {
-        log("Nick Error Resned Failed: NICK command not sent",0);
+        log("Nick Error Resend Failed: NICK command not sent",0);
         return false;
       }
       if (getConnectionState() < eSentNickAndUSer)
