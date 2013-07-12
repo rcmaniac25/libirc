@@ -18,7 +18,7 @@
 #include "libIRC.h"
 
 // special case commands
-// handles ALL posible messages, dosn't actualy DO anythign with them tho
+// handles ALL possible messages, dosn't actually DO anything with them though
 class IRCClientALLCommand : public IRCClientCommandHandler
 {
 public:
@@ -38,7 +38,7 @@ public:
 // Text based IRC commands
 
 // IRC "NICK" command
-// paramaters {NICKNAME}
+// parameters {NICKNAME}
 class IRCClientNickCommand : public IRCClientCommandHandler
 {
 public:
@@ -48,7 +48,7 @@ public:
 };
 
 // IRC "USER" command
-// paramaters {USERNAME, HOST, SERVER, REAL_NAME}
+// parameters {USERNAME, HOST, SERVER, REAL_NAME}
 class IRCClientUserCommand : public IRCClientCommandHandler
 {
 public:
@@ -58,7 +58,7 @@ public:
 };
 
 // IRC "PING" command
-// paramaters {}
+// parameters {}
 class IRCClientPingCommand : public IRCClientCommandHandler
 {
 public:
@@ -68,7 +68,7 @@ public:
 };
 
 // IRC "PONG" command
-// paramaters {}
+// parameters {}
 class IRCClientPongCommand : public IRCClientCommandHandler
 {
 public:
@@ -78,7 +78,7 @@ public:
 };
 
 // IRC "NOTICE" command
-// paramaters {}
+// parameters {}
 class IRCClientNoticeCommand : public IRCClientCommandHandler
 {
 public:
@@ -88,7 +88,7 @@ public:
 };
 
 // IRC "JOIN" command
-// paramaters {chanel1,chanel2......}
+// parameters {chanel1,chanel2......}
 class IRCClientJoinCommand : public IRCClientCommandHandler
 {
 public:
@@ -98,7 +98,7 @@ public:
 };
 
 // IRC "PART" command
-// paramaters {channel reason}
+// parameters {channel reason}
 class IRCClientPartCommand : public IRCClientCommandHandler
 {
 public:
@@ -108,7 +108,7 @@ public:
 };
 
 // IRC "QUIT" command
-// paramaters {channel reason}
+// parameters {channel reason}
 class IRCClientQuitCommand : public IRCClientCommandHandler
 {
 public:
@@ -118,7 +118,7 @@ public:
 };
 
 // IRC "MODE" command
-// paramaters {target,modes}
+// parameters {target,modes}
 class IRCClientModeCommand : public IRCClientCommandHandler
 {
 public:
@@ -128,7 +128,7 @@ public:
 };
 
 // IRC "PRIVMSG" command
-// paramaters 
+// parameters
 class IRCClientPrivMsgCommand : public IRCClientCommandHandler
 {
 public:
@@ -138,7 +138,7 @@ public:
 };
 
 // IRC "KICK" command
-// paramaters {user,reason}
+// parameters {user,reason}
 class IRCClientKickCommand : public IRCClientCommandHandler
 {
 public:
@@ -148,7 +148,7 @@ public:
 };
 
 // IRC "INVITE" command
-// paramaters {user,channel}
+// parameters {user,channel}
 class IRCClientInviteCommand : public IRCClientCommandHandler
 {
 public:

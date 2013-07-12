@@ -137,8 +137,11 @@ bool IRCClientNoticeCommand::receive ( IRCClient &client, const std::string &com
 
 bool IRCClientNoticeCommand::send ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
-  // we do nothing on a pong
-  return true;
+	IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
+
+	std::string commandLine = ircInfo.target + delim + std::string(":") + info.getAsString();
+	client.sendIRCCommandToServer(eCMD_NOTICE,commandLine);
+	return true;
 }
 
 // IRC "JOIN" command
