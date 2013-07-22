@@ -274,8 +274,8 @@ class TCPConnection : public Singleton<TCPConnection>
 {
 public:
   /**
-   * initalises the socket system, on windows inits WSA called
-   * automaticly by the constructor, but exposted in case the client
+   * initializes the socket system, on windows inits WSA called
+   * automatically by the constructor, but exposed in case the client
    * needs to reinit the socket system
    */
   teTCPError init ( void );

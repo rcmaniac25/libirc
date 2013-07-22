@@ -232,7 +232,7 @@ public:
   void inviteCommand ( BaseIRCCommandInfo  &info );
   void QuitMessage ( BaseIRCCommandInfo  &info );
 
-  // used by the defalt event handlers
+  // used by the default event handlers
   bool process ( IRCClient &ircClient, teIRCEventType  eventType, trBaseEventInfo &info );
 
   // external network access

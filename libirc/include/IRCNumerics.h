@@ -19,7 +19,7 @@
 #define  RPL_YOURHOST  2
 #define  RPL_CREATED  3
 #define  RPL_MYINFO  4
-#define  RPL_BOUNCE  5
+#define  RPL_ISUPPORT  5
 
 #define  RPL_TRACELINK  200
 #define  RPL_TRACECONNECTING  201

@@ -52,7 +52,7 @@ static DefaultIRCLogHandler  defaultLogger;
 // IRC class stuff
 
 IRCClient::IRCClient(CIRCClientNetworkHandler *h)
-:tcpConnection(TCPConnection::instance())
+  :tcpConnection(TCPConnection::instance())
 {
   netHandler = h;
   tcpClient = NULL;
@@ -88,7 +88,7 @@ bool IRCClient::init ( void )
   registered = false;
   connected = false;
   nickname = "";
-  // if any old conenctions are around, kill em
+  // if any old connections are around, kill em
   if (netHandler)
     netHandler->disconnect(false);
   else  if (tcpClient)
@@ -137,7 +137,7 @@ bool IRCClient::disconnect ( std::string reason )
   if (ircConnectionState >= eLoggedIn)
   {
     if (!reason.size())
-      reason = "shuting down";
+      reason = "shutting down";
 
     IRCCommandInfo  info;
     info.params.push_back(reason);

@@ -88,9 +88,13 @@ bool IRCClientPingCommand::send ( IRCClient &client, const std::string &command,
 {
   IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
-  std::string commandLine;
+  std::string commandLine = info.target;
+  if(info.params.size())
+  {
+	  commandLine += " " + info.params[0];
+  }
   // PING
-  client.sendIRCCommandToServer(eCMD_PING,commandLine);
+  client.sendIRCCommandToServer(eCMD_PING, commandLine);
   return true;
 }
 
@@ -397,7 +401,7 @@ bool IRCClientNumericCommand::receive ( IRCClient &client, const std::string &co
 
     case RPL_CREATED: //"This server was created <date>"
     case RPL_MYINFO: //"<servername> <version> <available user modes> <available channel modes>"
-    case RPL_BOUNCE: //  "Try server <server name>, port <port number>"
+    case RPL_ISUPPORT: //"<feature>[,<feature] :are supported by this server"
     case RPL_TRACELINK: //"Link <version & debug level> <destination> <next server> V<protocol version> <link uptime in seconds> <backstream sendq> <upstream sendq>"
     case RPL_TRACECONNECTING: //"Try. <class> <server>"
     case RPL_TRACEHANDSHAKE: //"H.S. <class> <server>"
