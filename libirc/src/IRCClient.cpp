@@ -142,7 +142,7 @@ bool IRCClient::disconnect ( std::string reason )
     IRCCommandInfo  info;
     info.params.push_back(reason);
 
-    if (netHandler && !sendIRCCommand(eCMD_QUIT,info))
+    if (!sendIRCCommand(eCMD_QUIT,info))
     {
       log("Disconnect Failed: QUIT command not sent",0);
       return false;

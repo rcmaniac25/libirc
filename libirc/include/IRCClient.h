@@ -230,7 +230,7 @@ public:
   void nickCommand ( BaseIRCCommandInfo  &info );
   void kickCommand ( BaseIRCCommandInfo  &info );
   void inviteCommand ( BaseIRCCommandInfo  &info );
-  void QuitMessage ( BaseIRCCommandInfo  &info );
+  void quitMessage ( BaseIRCCommandInfo  &info );
 
   // used by the default event handlers
   bool process ( IRCClient &ircClient, teIRCEventType  eventType, trBaseEventInfo &info );

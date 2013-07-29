@@ -280,7 +280,7 @@ void IRCClient::inviteCommand ( BaseIRCCommandInfo  &info )
   callEventHandler(eventInfo.eventType,eventInfo);
 }
 
-void IRCClient::QuitMessage ( BaseIRCCommandInfo  &info )
+void IRCClient::quitMessage ( BaseIRCCommandInfo  &info )
 {
   string_list    goodies = string_util::tokenize(info.source,std::string("!"));
 

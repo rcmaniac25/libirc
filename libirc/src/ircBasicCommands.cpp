@@ -39,9 +39,7 @@ bool IRCClientNickCommand::send ( IRCClient &client, const std::string &command,
 
   // NICK
   commandLine = ircInfo.params[0];
-  client.sendIRCCommandToServer(eCMD_NICK,commandLine);
-
-  return true;
+  return client.sendIRCCommandToServer(eCMD_NICK,commandLine);
 }
 
 // IRC "USER" command
@@ -64,9 +62,7 @@ bool IRCClientUserCommand::send ( IRCClient &client, const std::string &command,
 
   //username host server fullname
   commandLine = ircInfo.params[0] + delim + ircInfo.params[1] + delim + ircInfo.params[2] + delim + std::string(":") + ircInfo.params[3];
-  client.sendIRCCommandToServer(eCMD_USER,commandLine);
-
-  return true;
+  return client.sendIRCCommandToServer(eCMD_USER,commandLine);
 }
 
 // IRC "PING" command
@@ -80,8 +76,7 @@ bool IRCClientPingCommand::receive ( IRCClient &client, const std::string &comma
   IRCCommandInfo  ircInfo;
   ircInfo.command = eCMD_PONG;
   ircInfo.raw = info.raw;
-  client.sendIRCCommand(eCMD_PONG,ircInfo);
-  return true;
+  return client.sendIRCCommand(eCMD_PONG,ircInfo);
 }
 
 bool IRCClientPingCommand::send ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
@@ -94,8 +89,7 @@ bool IRCClientPingCommand::send ( IRCClient &client, const std::string &command,
 	  commandLine += " " + info.params[0];
   }
   // PING
-  client.sendIRCCommandToServer(eCMD_PING, commandLine);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_PING, commandLine);
 }
 
 // IRC "PONG" command
@@ -117,8 +111,7 @@ bool IRCClientPongCommand::send ( IRCClient &client, const std::string &command,
   std::string commandLine = info.raw.substr(5, info.raw.length()-5);
 
   // PING
-  client.sendIRCCommandToServer(eCMD_PONG,commandLine);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_PONG,commandLine);
 }
 
 // IRC "NOTICE" command
@@ -144,8 +137,7 @@ bool IRCClientNoticeCommand::send ( IRCClient &client, const std::string &comman
 	IRCCommandInfo  &ircInfo = (IRCCommandInfo&)info;
 
 	std::string commandLine = ircInfo.target + delim + std::string(":") + info.getAsString();
-	client.sendIRCCommandToServer(eCMD_NOTICE,commandLine);
-	return true;
+	return client.sendIRCCommandToServer(eCMD_NOTICE,commandLine);
 }
 
 // IRC "JOIN" command
@@ -181,8 +173,7 @@ bool IRCClientJoinCommand::send ( IRCClient &client, const std::string &command,
     commandLine = info.target;
 
   // JOIN CHANNEL1,CHANNEL2,....,CHANNELN
-  client.sendIRCCommandToServer(eCMD_JOIN,commandLine);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_JOIN,commandLine);
 }
 
 // IRC "PART" command
@@ -207,8 +198,7 @@ bool IRCClientPartCommand::send ( IRCClient &client, const std::string &command,
   }
 
   // PART CHANNEL REASON
-  client.sendIRCCommandToServer(eCMD_PART,commandLine);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_PART,commandLine);
 }
 
 // IRC "QUIT" command
@@ -220,7 +210,7 @@ IRCClientQuitCommand::IRCClientQuitCommand()
 
 bool IRCClientQuitCommand::receive ( IRCClient &client, const std::string &command, BaseIRCCommandInfo  &info )
 {
-  client.QuitMessage(info);
+  client.quitMessage(info);
   return true;
 }
 
@@ -228,11 +218,13 @@ bool IRCClientQuitCommand::send ( IRCClient &client, const std::string &command,
 {
   std::string commandLine;
 
-  commandLine = info.params[0];
+  if(info.params.size())
+  {
+	commandLine = std::string(":") + info.params[0];
+  }
 
   // QUIT CHANNEL REASON
-  client.sendIRCCommandToServer(eCMD_QUIT,commandLine);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_QUIT,commandLine);
 
 }
 
@@ -256,13 +248,12 @@ bool IRCClientModeCommand::send ( IRCClient &client, const std::string &command,
 
   if ( info.params.size())
   {
-    modeline+= delim + info.params[0];
+    modeline += delim + info.params[0];
 
     if ( info.params.size() > 1)
-      modeline+= delim + info.params[1];
+      modeline += delim + info.params[1];
   }
-  client.sendIRCCommandToServer(eCMD_MODE, modeline);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_MODE, modeline);
 }
 
 // IRC "PRIVMSG" command
@@ -285,8 +276,7 @@ bool IRCClientPrivMsgCommand::send ( IRCClient &client, const std::string &comma
   ircInfo.target = 
   //username host server fullname
   commandLine = ircInfo.target + delim + std::string(":") + info.getAsString();
-  client.sendIRCCommandToServer(eCMD_PRIVMSG,commandLine);
-  return true;
+  return client.sendIRCCommandToServer(eCMD_PRIVMSG,commandLine);
 }
 
 // IRC "KICK" command
@@ -310,9 +300,7 @@ bool IRCClientKickCommand::send ( IRCClient &client, const std::string &command,
 
   // KICK target user :reason
   commandLine = ircInfo.target + delim + ircInfo.params[0]+ delim + std::string(":") + info.getAsString(1);
-  client.sendIRCCommandToServer(eCMD_KICK,commandLine);
-
-  return true;
+  return client.sendIRCCommandToServer(eCMD_KICK,commandLine);
 }
 
 
@@ -335,9 +323,7 @@ bool IRCClientInviteCommand::send ( IRCClient &client, const std::string &comman
 
 	// KICK target user :reason
 	commandLine = ircInfo.target + delim + ircInfo.params[0]+ delim + std::string(":") + info.getAsString(1);
-	client.sendIRCCommandToServer(eCMD_INVITE,commandLine);
-
-	return true;
+	return client.sendIRCCommandToServer(eCMD_INVITE,commandLine);
 }
 
   // special case commands
